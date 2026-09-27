@@ -1,0 +1,82 @@
+import Image from "next/image";
+
+import { MONTHS, type Team, type UpcomingGame } from "@/lib/games";
+
+export type MatchCardGame = UpcomingGame & { homeScore?: number | null; awayScore?: number | null };
+
+function dateLabel(game: UpcomingGame) {
+  const month = MONTHS.indexOf(game.month) + 1;
+  return `${game.day}.${String(month).padStart(2, "0")}.${game.year} ${game.time}`;
+}
+
+function MatchCrest({ team, fallbackLogo }: { team: Team; fallbackLogo: string }) {
+  const logo = team.logo ?? fallbackLogo;
+
+  return logo ? (
+    <Image src={logo} alt="" width={62} height={62} className="size-[62px] object-contain" />
+  ) : (
+    <span className="grid size-[62px] place-items-center rounded-full border border-white/45 font-heading text-lg text-white">
+      {team.initials ?? team.name.slice(0, 2).toUpperCase()}
+    </span>
+  );
+}
+
+export function MatchCard({
+  game,
+  homeBorderStripe,
+  awayBorderStripe,
+  compact = false,
+  completed = false,
+}: {
+  game: MatchCardGame;
+  homeBorderStripe: string;
+  awayBorderStripe: string;
+  compact?: boolean;
+  completed?: boolean;
+}) {
+  return (
+    <article
+      className={`relative isolate flex overflow-hidden bg-[#151515] p-5 pb-3 text-white sm:p-6 sm:pb-4 ${compact ? "min-h-[360px] sm:min-h-[390px]" : "min-h-[400px] xl:min-h-[460px] xl:p-8 xl:pb-4"}`}
+    >
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 z-10 h-1.5" style={{ backgroundImage: homeBorderStripe }} />
+      <span aria-hidden="true" className="pointer-events-none absolute left-6 top-5 -z-10 font-heading text-[96px] font-semibold uppercase leading-none tracking-[-0.08em] text-white/[0.07] sm:text-[132px]">
+        {game.home.name.replace(/[^\p{L}\p{N}]/gu, "").slice(0, 3)}
+      </span>
+      <span aria-hidden="true" className="pointer-events-none absolute bottom-24 right-6 -z-10 font-heading text-[96px] font-semibold uppercase leading-none tracking-[-0.08em] text-white/[0.07] sm:text-[132px]">
+        {game.away.name.replace(/[^\p{L}\p{N}]/gu, "").slice(0, 3)}
+      </span>
+
+      <div className="flex w-full flex-col">
+        <div className="flex items-center justify-between gap-4 text-sm font-semibold">
+          <span>{game.day}. {game.month}</span>
+          <Image src="/altero-liga.png" alt="Altero.lv līga" width={138} height={72} className="h-12 w-auto object-contain brightness-0 invert" />
+        </div>
+
+        <div className={`mt-auto pb-4 sm:pb-5 ${compact ? "pt-12" : "pt-20"}`}>
+          <div className="flex items-center gap-5">
+            <MatchCrest team={game.home} fallbackLogo="/upcoming-liepaja.png" />
+            {game.homeScore != null && game.awayScore != null && (
+              <span aria-label={`Rezultāts ${game.homeScore} pret ${game.awayScore}`} className="whitespace-nowrap font-heading text-[34px] font-semibold leading-none tabular-nums sm:text-[40px]">
+                {game.homeScore} : {game.awayScore}
+              </span>
+            )}
+            {(game.homeScore == null || game.awayScore == null) && <span className="h-10 w-px bg-white/70" />}
+            <MatchCrest team={game.away} fallbackLogo="/upcoming-afa.png" />
+          </div>
+          <h3 className={`mt-5 max-w-[520px] font-heading font-semibold uppercase leading-[0.98] ${compact ? "text-[24px] sm:text-[28px]" : "text-[24px] sm:text-[30px] xl:text-[36px]"}`}>
+            {game.home.name}<br />{game.away.name}
+          </h3>
+          <p className="mt-4 font-sans text-[15px] font-semibold text-white sm:text-base">{dateLabel(game)}</p>
+          <p className="mt-1 max-w-md font-sans text-sm text-white/80">{game.venue}</p>
+        </div>
+
+        <div className="space-y-3 sm:space-y-4">
+          <div aria-hidden="true" className={`-mx-5 h-1.5 sm:-mx-6 ${compact ? "" : "xl:-mx-8"}`} style={{ backgroundImage: awayBorderStripe }} />
+          <div className="border border-white/60 px-4 py-3 text-center font-heading text-base font-semibold uppercase tracking-wide">
+            {completed ? "Noslēgusies" : "Spēles diena"}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
