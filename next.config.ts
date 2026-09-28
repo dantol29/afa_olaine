@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
+    // Shared hosting has a tight process-memory limit. This caps page-data
+    // collection as well as static generation to one worker; the batch-size
+    // setting below only affects the latter phase.
+    cpus: 1,
     serverActions: {
       // Matches the 5MB cap enforced in src/lib/uploads.ts for photo
       // uploads — Next's own default (1MB) would reject the request
