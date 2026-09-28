@@ -12,7 +12,7 @@ export function InnerPageHero({ title, id }: { title: string; id: string }) {
       }}
     >
       <Image src="/afaolaine-logo-outline.png" alt="" width={1254} height={1254} priority className="pointer-events-none absolute left-[72%] top-[60%] size-[340px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain opacity-20 md:left-[57%] md:top-[65%] md:size-[520px]" />
-      <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 md:top-28">
+      <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 hidden md:top-28 md:block">
         <div className="mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] items-center gap-3 pl-12 text-sm font-semibold text-white/65 md:w-[calc(100%-10rem)] md:pl-24">
           <Link href="/" aria-label="Sākums" className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"><House className="size-5" aria-hidden="true" /></Link>
           <ChevronRight className="size-4" aria-hidden="true" />

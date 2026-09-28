@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 
 export type AcademyTeam = {
   id: number;
@@ -12,14 +15,37 @@ export function selectAcademyTeams<T extends { id: number }>(teams: T[]): T[] {
 }
 
 export function AcademyContent({ teams }: { teams: AcademyTeam[] }) {
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  const visibleTeams = selectedTeamId === null ? teams : teams.filter((team) => team.id === selectedTeamId);
+
   return (
-    <section aria-label="Akadēmijas komandas" className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] py-12 md:w-[calc(100%-10rem)] md:py-20">
+    <section aria-label="Akadēmijas komandas" className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] pb-20 pt-6 text-white md:w-[calc(100%-10rem)] sm:pt-8 xl:pb-28">
       {teams.length === 0 && <p className="text-white/60">Akadēmijas komandas tiks pievienotas.</p>}
+      {teams.length > 0 && (
+        <div className="mb-8 flex gap-2 overflow-x-auto sm:mb-10 sm:gap-3" role="group" aria-label="Filtrēt pēc komandas">
+          {[null, ...teams.map((team) => team.id)].map((teamId) => {
+            const selected = selectedTeamId === teamId;
+            return (
+              <button
+                key={teamId ?? "all"}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setSelectedTeamId(teamId)}
+                className={`min-h-12 shrink-0 px-4 py-3 font-heading text-[18px] font-semibold uppercase leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7 sm:text-[22px] ${selected ? "bg-white text-[#050505]" : "border border-white/40 text-white hover:border-white"}`}
+              >
+                {teamId === null ? "Visas komandas" : teams.find((team) => team.id === teamId)?.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="space-y-16 md:space-y-24">
-        {teams.map((team) => (
-          <article id={`team-${team.id}`} key={team.id} className="scroll-mt-24 border-t border-white/20 pt-7 md:pt-10">
+        {visibleTeams.map((team) => (
+          <article id={`team-${team.id}`} key={team.id} className="scroll-mt-24">
             <div className="mb-7 flex items-baseline justify-between gap-4">
-              <h2 className="font-heading text-4xl font-semibold uppercase leading-none md:text-6xl">{team.name}</h2>
+              <div>
+                <h2 className="font-heading text-4xl font-semibold uppercase leading-none md:text-6xl">{team.name}</h2>
+              </div>
               <span className="text-sm text-white/50">{team.players.length} spēlētāji</span>
             </div>
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12">

@@ -1,4 +1,4 @@
-import { AcademyContent, selectAcademyTeams } from "@/components/academy-content";
+import { AcademyContent } from "@/components/academy-content";
 import { InnerPageHero } from "@/components/inner-page-hero";
 import { SiteEnding } from "@/components/site-ending";
 import { SiteHeader } from "@/components/site-header";
@@ -9,7 +9,7 @@ export default async function AcademyPage() {
     orderBy: (teams, { asc }) => [asc(teams.id)],
     with: { playerTeams: { with: { player: true } } },
   });
-  const academyTeams = selectAcademyTeams(rows).map((team) => ({
+  const academyTeams = rows.slice(1).map((team) => ({
     id: team.id,
     name: team.name,
     groupPhotoUrl: team.groupPhotoUrl,

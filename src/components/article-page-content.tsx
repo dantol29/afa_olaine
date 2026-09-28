@@ -12,7 +12,7 @@ export function ArticlePageContent({ article }: { article: Article }) {
       <section aria-label={article.title} className="relative isolate h-[68svh] min-h-[520px] overflow-hidden md:h-[76svh] md:min-h-[620px]">
         <ArticleHeroImage src={article.image} alt={article.title} />
         <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.55)_0%,rgba(5,5,5,0.08)_42%,rgba(5,5,5,0.76)_100%)]" />
-        <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 md:top-28">
+        <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 hidden md:top-28 md:block">
           <div className="mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] items-center gap-3 pl-12 text-sm font-semibold text-white/80 md:w-[calc(100%-10rem)] md:pl-24">
             <Link href="/" aria-label="Sākums" className="transition-colors hover:text-[#fbb040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"><House className="size-5" aria-hidden="true" /></Link>
             <ChevronRight className="size-4" aria-hidden="true" />
@@ -21,7 +21,7 @@ export function ArticlePageContent({ article }: { article: Article }) {
         </nav>
       </section>
 
-      <div className="relative z-10 mx-auto -mt-24 w-[calc(100%-3rem)] max-w-[860px] bg-[#050505] px-6 pb-9 pt-8 sm:px-10 md:-mt-28 md:w-full md:pb-12 md:pt-10">
+      <div className="relative z-10 mx-auto -mt-24 w-full max-w-[860px] bg-[#050505] px-6 pb-9 pt-8 sm:px-10 md:-mt-28 md:pb-12 md:pt-10">
         <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-sans text-sm font-semibold uppercase tracking-wide sm:text-base">
           <span className="text-[#fbb040]">{article.category}</span>
           <time className="text-white/65">{article.date}</time>

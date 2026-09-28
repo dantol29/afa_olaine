@@ -23,7 +23,7 @@ async function main() {
   assert.match(html, /Sastāvs tiks papildināts/, "teams without assigned players have an honest empty state");
   assert.doesNotMatch(html, /swiper|carousel/, "the academy does not use a gallery");
 
-  console.log("academy lists only youth teams with group-photo and roster states");
+  console.log("academy lists youth teams with real data or empty states");
 }
 
 void main();

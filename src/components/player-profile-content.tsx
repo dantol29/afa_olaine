@@ -23,7 +23,7 @@ export function PlayerProfileContent({ player }: { player: PlayerProfile }) {
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,5,5,.92)_0%,rgba(5,5,5,.35)_28%,rgba(5,5,5,.2)_55%,#050505_100%)]" />
         <Image src="/afaolaine-logo-outline.png" alt="" width={700} height={700} className="pointer-events-none absolute left-1/2 top-1/2 -z-10 w-[520px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.12] sm:w-[700px]" />
 
-        <nav aria-label="Atpakaļceļš" className="relative z-20 mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] flex-wrap items-center gap-2 pt-28 font-heading text-sm font-semibold uppercase text-white/70 md:w-[calc(100%-10rem)] md:pt-32">
+        <nav aria-label="Atpakaļceļš" className="relative z-20 mx-auto hidden w-[calc(100%-3rem)] max-w-[1500px] flex-wrap items-center gap-2 pt-28 font-heading text-sm font-semibold uppercase text-white/70 md:flex md:w-[calc(100%-10rem)] md:pt-32">
           <Link href="/" aria-label="Sākums" className="hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"><House className="size-5" aria-hidden="true" /></Link>
           <ChevronRight className="size-4" aria-hidden="true" />
           <Link href="/komanda" className="hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Komanda</Link>

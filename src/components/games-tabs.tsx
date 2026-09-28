@@ -28,7 +28,7 @@ export function GamesTabs({ upcoming, past }: { upcoming: GameWithStripes[]; pas
       {visibleGames.length > 0 ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-7">
           {visibleGames.map(({ game, homeBorderStripe, awayBorderStripe }) => (
-            <MatchCard key={game.id} game={game} homeBorderStripe={homeBorderStripe} awayBorderStripe={awayBorderStripe} compact completed={view === "past"} />
+            <MatchCard key={game.id} game={game} homeBorderStripe={homeBorderStripe} awayBorderStripe={awayBorderStripe} compact />
           ))}
         </div>
       ) : (

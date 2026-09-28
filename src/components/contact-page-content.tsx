@@ -13,7 +13,7 @@ export function ContactPageContent({ settings }: { settings: SiteSettings }) {
       <section aria-label="Kontakti" className="relative isolate h-[68svh] min-h-[520px] overflow-hidden md:h-[76svh] md:min-h-[620px]">
         <ArticleHeroImage src="/match-stadium.jpg" alt="Olaines pilsētas stadions" />
         <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.55)_0%,rgba(5,5,5,0.08)_42%,rgba(5,5,5,0.76)_100%)]" />
-        <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 md:top-28">
+        <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 hidden md:top-28 md:block">
           <div className="mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] items-center gap-3 pl-12 text-sm font-semibold text-white/80 md:w-[calc(100%-10rem)] md:pl-24">
             <Link href="/" aria-label="Sākums" className="transition-colors hover:text-[#fbb040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"><House className="size-5" aria-hidden="true" /></Link>
             <ChevronRight className="size-4" aria-hidden="true" />

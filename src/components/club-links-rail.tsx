@@ -37,16 +37,16 @@ export function ClubLinksRail() {
 
       <FullWidthGallery
         className="mt-7 !overflow-visible sm:mt-8"
-        slideWidth={(width) => width >= 1280 ? 400 : width >= 640 ? 360 : Math.round(width * 0.86)}
+        slideWidth={(width) => width >= 1280 ? 400 : width >= 640 ? 360 : Math.round(width * 0.72)}
         spaceBetween={20}
         onSwiper={(instance) => { setSwiper(instance); updateNavigation(instance); }}
         onSlideChange={updateNavigation}
       >
         {CLUB_LINKS.map((item) => (
-          <SwiperSlide key={item.title} className="!aspect-[10/9] !h-auto !w-[86vw] sm:!w-[360px] xl:!w-[400px]">
+          <SwiperSlide key={item.title} className="!aspect-[10/9] !h-auto !w-[72vw] sm:!w-[360px] xl:!w-[400px]">
             <a href={item.href} className="group flex h-full flex-col overflow-hidden bg-[#19191b] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-[#fbb040]">
               <div className="relative min-h-0 flex-1 overflow-hidden bg-[#19191b]">
-                <Image src={item.image} alt="" fill sizes="(min-width: 1280px) 400px, (min-width: 640px) 360px, 86vw" className="object-cover transition-transform duration-500 group-hover:scale-105" style={{ objectPosition: item.position }} />
+                <Image src={item.image} alt="" fill sizes="(min-width: 1280px) 400px, (min-width: 640px) 360px, 72vw" className="object-cover transition-transform duration-500 group-hover:scale-105" style={{ objectPosition: item.position }} />
                 <Image src="/hero-logo.png" alt="" width={56} height={56} className="absolute left-5 top-5 size-14 object-contain" />
               </div>
               <div className="flex min-h-[64px] shrink-0 items-center justify-between gap-3 px-4 py-3 sm:min-h-[68px] sm:px-5 sm:py-3">

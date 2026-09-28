@@ -14,7 +14,6 @@ import {
   ImageIcon,
   LogOut,
   Menu,
-  MessageCircleQuestion,
   Newspaper,
   Settings,
   Trophy,
@@ -39,7 +38,6 @@ const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/club-pages", label: "Kluba lapas", icon: FileText },
   { href: "/admin/club-logos", label: "Klubu logo", icon: ImageIcon },
   { href: "/admin/partners", label: "Partneri", icon: Handshake },
-  { href: "/admin/aptaujas", label: "Aptaujas", icon: MessageCircleQuestion },
   { href: "/admin/jaunumi", label: "Jaunumi", icon: Newspaper },
   { href: "/admin/site-settings", label: "Iestatījumi", icon: Settings },
 ];

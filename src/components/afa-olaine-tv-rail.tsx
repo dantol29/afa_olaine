@@ -38,9 +38,9 @@ export function AfaOlaineTvRail({ stripe, bottomStripes, viewCounts, viewsAreSna
         </div>
         <a href={CHANNEL_URL} target="_blank" rel="noreferrer" className="hidden border border-white/50 px-4 py-2.5 font-heading text-sm font-semibold uppercase tracking-wide transition-colors hover:border-white hover:bg-white hover:text-[#050505] sm:block">Visi video</a>
       </div>
-      <FullWidthGallery className="mt-7 !overflow-visible sm:mt-8" slideWidth={(width) => width >= 1280 ? 400 : width >= 640 ? 360 : Math.round(width * 0.86)} spaceBetween={20} onSwiper={(instance) => { setSwiper(instance); updateNavigation(instance); }} onSlideChange={updateNavigation}>
+      <FullWidthGallery className="mt-7 !overflow-visible sm:mt-8" slideWidth={(width) => width >= 1280 ? 400 : width >= 640 ? 360 : Math.round(width * 0.72)} spaceBetween={20} onSwiper={(instance) => { setSwiper(instance); updateNavigation(instance); }} onSlideChange={updateNavigation}>
         {streams.map((stream) => (
-          <SwiperSlide key={stream.id} className="!aspect-[10/9] !h-auto !w-[86vw] sm:!w-[360px] xl:!w-[400px]">
+          <SwiperSlide key={stream.id} className="!aspect-[10/9] !h-auto !w-[72vw] sm:!w-[360px] xl:!w-[400px]">
             <a href={`https://www.youtube.com/watch?v=${stream.id}`} target="_blank" rel="noreferrer" className="group flex h-full flex-col overflow-hidden bg-[#19191b] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-[#fbb040]">
               <div className="relative min-h-0 flex-1 overflow-hidden bg-[#19191b]">
                 <img src={`https://i.ytimg.com/vi/${stream.id}/hqdefault.jpg`} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />

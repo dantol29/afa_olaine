@@ -5,9 +5,11 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Menu, Search, UserRound, X } from "lucide-react";
 import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { ClubNav } from "./club-nav";
 import { SiteNavLink } from "./site-nav-link";
 
 type HeroArticle = {
+  slug: string;
   title: string;
   date: string;
   image: string;
@@ -36,6 +38,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
   const headerSentinelRef = useRef<HTMLSpanElement>(null);
   const { scrollY } = useScroll();
   const shouldReduceMotion = useReducedMotion();
@@ -89,17 +92,16 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
   }, [isMenuOpen]);
 
   return (
-    <section id="jaunumi" className="relative z-10 h-[88svh] min-h-[600px] w-full overflow-visible bg-[#050505] md:h-[90svh] md:min-h-[680px]" aria-label="AFA Olaine">
+    <section ref={heroRef} id="jaunumi" className="relative z-10 h-[88svh] min-h-[600px] w-full overflow-visible bg-[#050505] md:h-[90svh] md:min-h-[680px]" aria-label="AFA Olaine">
       <span ref={headerSentinelRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-6 size-px" />
       <motion.header
-        className="fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out motion-reduce:transition-none"
+        className={`fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out motion-reduce:transition-none ${hasScrolled || isMenuOpen ? "bg-[#050505]" : "bg-transparent"} md:!bg-[#050505]`}
         animate={{
           y: isHeaderHidden && !isMenuOpen ? "-100%" : 0,
           opacity: isHeaderHidden && !isMenuOpen ? 0 : 1,
         }}
         transition={{ duration: shouldReduceMotion ? 0 : 0.32, ease: "easeInOut" }}
         style={{
-          backgroundColor: hasScrolled ? "#050505" : "transparent",
           boxShadow: hasScrolled ? "0 8px 28px rgba(0,0,0,0.32)" : "none",
           backdropFilter: hasScrolled ? "blur(12px)" : "none",
         }}
@@ -126,9 +128,9 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
               <nav aria-label="Galvenā navigācija" className="ml-5 flex items-center gap-6 font-heading text-[18px] font-semibold uppercase tracking-wide lg:gap-8">
                 <SiteNavLink href="/">Sākums</SiteNavLink>
                 <SiteNavLink href="/jaunumi">Jaunumi</SiteNavLink>
+                <ClubNav portalContainer={heroRef} />
                 <SiteNavLink href="/speles">Spēles</SiteNavLink>
                 <SiteNavLink href="/trenini">Treniņi</SiteNavLink>
-                <SiteNavLink href="/akademija">Akadēmija</SiteNavLink>
                 <SiteNavLink href="/kontakti">Kontakti</SiteNavLink>
               </nav>
             </div>
@@ -140,9 +142,8 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
         </div>
 
         <div className="flex h-[76px] items-center justify-between px-6 md:hidden">
-          <Link href="/" aria-label="AFA Olaine sākumlapa" className="flex items-center gap-2.5">
-            <Image src="/hero-logo.png" alt="" width={48} height={48} priority className="size-12 object-contain" />
-            <span className="font-heading text-[23px] font-semibold uppercase tracking-[0.08em]">AFA Olaine</span>
+          <Link href="/" aria-label="AFA Olaine sākumlapa" className="relative z-10 flex size-[92px] shrink-0 translate-y-3 items-center justify-center">
+            <Image src="/hero-logo.png" alt="" width={88} height={88} priority className="size-[88px] object-contain" />
           </Link>
           <div className="flex items-center"><Link href="/meklet" aria-label="Meklēt" className="grid size-12 place-items-center text-white transition-colors hover:text-[#fbb040]"><Search className="size-6" /></Link><button
             type="button"
@@ -160,7 +161,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
           <nav
             id="mobile-navigation"
             aria-label="Mobilā navigācija"
-            className="absolute left-0 top-full flex min-h-[calc(100vh-76px)] w-full flex-col border-t border-white/15 bg-[#050505] px-6 py-8 text-center font-heading text-[30px] font-semibold uppercase leading-[1.3] tracking-wide text-white shadow-[0_16px_32px_rgba(0,0,0,0.45)]"
+            className="absolute left-0 top-full flex max-h-[calc(100dvh-76px)] min-h-[calc(100dvh-76px)] w-full flex-col overflow-y-auto border-t border-white/15 bg-[#050505] px-6 py-8 text-center font-heading text-[30px] font-semibold uppercase leading-[1.3] tracking-wide text-white shadow-[0_16px_32px_rgba(0,0,0,0.45)]"
           >
             <SiteNavLink href="/" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
               Sākums
@@ -168,14 +169,12 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
             <SiteNavLink href="/jaunumi" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
               Jaunumi
             </SiteNavLink>
+            <ClubNav mobile onNavigate={() => setIsMenuOpen(false)} />
             <SiteNavLink href="/speles" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
               Spēles
             </SiteNavLink>
             <SiteNavLink href="/trenini" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
               Treniņi
-            </SiteNavLink>
-            <SiteNavLink href="/akademija" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
-              Akadēmija
             </SiteNavLink>
             <SiteNavLink href="/kontakti" onClick={() => setIsMenuOpen(false)} className="py-4">
               Kontakti
@@ -194,13 +193,6 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
           className="absolute inset-0 size-full object-cover"
         />
         <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.08) 55%, rgba(0,0,0,0.3) 100%), linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.02) 40%, rgba(5,5,5,0.58) 100%)",
-          }}
-        />
-        <div
           aria-hidden="true"
           className="absolute inset-x-0 bottom-0 h-[500px] bg-gradient-to-t from-[#050505]/55 via-[#050505]/35 via-[45%] to-transparent md:hidden"
         />
@@ -213,42 +205,28 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
                   {article.title}
                 </h2>
                 <div className="flex w-full items-center justify-between gap-2.5">
-                  <button type="button" className="bg-[#fbb040] px-8 py-4 font-heading text-[18px] font-semibold uppercase tracking-wide text-[#050505] transition-colors hover:bg-[#cd8d2e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  <Link href={`/jaunumi/${article.slug}`} className="bg-[#fbb040] px-6 py-3 font-heading text-[18px] font-semibold uppercase tracking-wide text-[#050505] transition-colors hover:bg-[#cd8d2e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                     Lasīt vairāk
-                  </button>
+                  </Link>
                   {articles.length > 1 && (
-                    <>
-                      <div className="flex items-center gap-2 md:hidden">
-                        <button
-                          type="button"
-                          onClick={showPreviousArticle}
-                          aria-label="Iepriekšējais jaunums"
-                          className="grid size-[46px] place-items-center border border-white/70 text-white transition-colors hover:border-[#fbb040] hover:bg-[#fbb040] hover:text-[#050505] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                        >
-                          <ArrowLeft className="size-5" strokeWidth={1.8} aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={showNextArticle}
-                          aria-label="Nākamais jaunums"
-                          className="grid size-[46px] place-items-center border border-white/70 text-white transition-colors hover:border-[#fbb040] hover:bg-[#fbb040] hover:text-[#050505] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                        >
-                          <ArrowRight className="size-5" strokeWidth={1.8} aria-hidden="true" />
-                        </button>
-                      </div>
-                      <div className="hidden flex-col items-end gap-3 md:flex" aria-label="Jaunumu slaidu navigācija">
-                        {articles.map((item, index) => (
-                          <button
-                            key={`${item.title}-${index}`}
-                            type="button"
-                            onClick={() => setActiveIndex(index)}
-                            aria-label={`Rādīt jaunumu ${index + 1}: ${item.title}`}
-                            aria-current={index === activeIndex ? "true" : undefined}
-                            className={index === activeIndex ? "h-[2.5px] w-9 bg-white transition-colors" : "h-[2.5px] w-9 bg-white/40 transition-colors hover:bg-white/70"}
-                          />
-                        ))}
-                      </div>
-                    </>
+                    <div className="flex items-center gap-2" aria-label="Jaunumu slaidu navigācija">
+                      <button
+                        type="button"
+                        onClick={showPreviousArticle}
+                        aria-label="Iepriekšējais jaunums"
+                        className="grid size-[46px] place-items-center border border-white/70 text-white transition-colors hover:border-[#fbb040] hover:bg-[#fbb040] hover:text-[#050505] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                      >
+                        <ArrowLeft className="size-5" strokeWidth={1.8} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={showNextArticle}
+                        aria-label="Nākamais jaunums"
+                        className="grid size-[46px] place-items-center border border-white/70 text-white transition-colors hover:border-[#fbb040] hover:bg-[#fbb040] hover:text-[#050505] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                      >
+                        <ArrowRight className="size-5" strokeWidth={1.8} aria-hidden="true" />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

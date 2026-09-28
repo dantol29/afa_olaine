@@ -15,7 +15,7 @@ export default async function HomePage() {
   const lastGame = games.filter((game) => game.isPast).at(-1);
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4]">
+    <main className="min-h-screen bg-[#050505]">
       <SiteHero
         articles={articles.slice(0, 3)}
         lastGame={

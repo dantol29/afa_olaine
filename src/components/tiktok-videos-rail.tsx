@@ -32,15 +32,15 @@ export function TiktokVideosRail() {
       </div>
       <FullWidthGallery
         className="mt-7 !overflow-visible sm:mt-8"
-        slideWidth={(width) => width >= 1280 ? 320 : width >= 640 ? 280 : Math.round(width * 0.8)}
+        slideWidth={(width) => width >= 1280 ? 320 : width >= 640 ? 280 : Math.round(width * 0.66)}
         spaceBetween={24}
         onSwiper={(instance) => { setSwiper(instance); updateNavigation(instance); }}
         onSlideChange={updateNavigation}
       >
         {reels.map((reel) => (
-          <SwiperSlide key={reel.id} className="!h-[360px] !w-[80vw] !rounded-none sm:!h-[420px] sm:!w-[280px] xl:!w-[320px]">
+          <SwiperSlide key={reel.id} className="!h-[360px] !w-[66vw] !rounded-none sm:!h-[420px] sm:!w-[280px] xl:!w-[320px]">
             <a href={TIKTOK_PROFILE_URL} target="_blank" rel="noreferrer" aria-label={`Skatīt AFA Olaine TikTok video: ${reel.id}`} className="group relative block h-full !rounded-none overflow-hidden bg-[#2b2d30] outline-offset-4 focus-visible:outline-2 focus-visible:outline-white">
-              <Image src={reel.image} alt="" fill sizes="(min-width: 1280px) 320px, (min-width: 640px) 280px, 80vw" className="object-cover" />
+              <Image src={reel.image} alt="" fill sizes="(min-width: 1280px) 320px, (min-width: 640px) 280px, 66vw" className="object-cover" />
               <span className="absolute inset-0 grid place-items-center bg-black/0 transition-colors group-hover:bg-black/15"><Play className="size-12" strokeWidth={2} fill="currentColor" /></span>
             </a>
           </SwiperSlide>
