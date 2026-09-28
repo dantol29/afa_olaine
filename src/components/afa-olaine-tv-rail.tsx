@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { ArrowLeft, ArrowRight, Eye } from "lucide-react";
 import { useState } from "react";
 import { SwiperSlide } from "swiper/react";
@@ -44,7 +43,6 @@ export function AfaOlaineTvRail({ stripe, bottomStripes, viewCounts, viewsAreSna
             <a href={`https://www.youtube.com/watch?v=${stream.id}`} target="_blank" rel="noreferrer" className="group flex h-full flex-col overflow-hidden bg-[#19191b] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-[#fbb040]">
               <div className="relative min-h-0 flex-1 overflow-hidden bg-[#19191b]">
                 <img src={`https://i.ytimg.com/vi/${stream.id}/hqdefault.jpg`} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <Image src="/hero-logo.png" alt="" width={56} height={56} className="absolute left-5 top-5 size-14 object-contain" />
               </div>
               <div aria-hidden="true" className="h-1.5 shrink-0" style={{ backgroundImage: bottomStripes[stream.id] ?? stripe }} />
               <div className="flex min-h-[78px] shrink-0 flex-col justify-end gap-1 px-4 py-2.5 sm:min-h-[82px] sm:px-5">

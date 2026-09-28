@@ -26,7 +26,7 @@ export function LeagueStandingsRail({ url, standings }: { url: string; standings
     <section aria-labelledby="league-table-heading" className="overflow-hidden bg-[#050505] pb-5 pt-2 text-white xl:pb-8 xl:pt-4">
       <div className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] md:w-[calc(100%-10rem)]">
         <p className="mb-20 flex items-center justify-center gap-[0.12em] whitespace-nowrap font-heading text-[42px] font-semibold uppercase leading-none tracking-[-0.03em] text-white min-[390px]:text-[48px] sm:text-[72px] lg:text-[96px] xl:mb-28">
-          Anno <span aria-hidden="true" className="relative h-[0.5em] w-[1em] shrink-0 bg-white"><span className="absolute right-0 top-0 h-1/2 w-1/2 bg-[#fbb040]" /><span className="absolute bottom-0 left-0 h-1/2 w-1/2 bg-[#050505]" /></span> <span className="bg-gradient-to-r from-[#fbb040] via-white to-[#fbb040] bg-clip-text text-transparent">2013</span>
+          Anno <span className="bg-gradient-to-r from-[#fbb040] via-white to-[#fbb040] bg-clip-text text-transparent">2013</span>
         </p>
         <div className="flex items-center justify-between gap-6">
           <div className="flex items-center gap-3 sm:gap-5">

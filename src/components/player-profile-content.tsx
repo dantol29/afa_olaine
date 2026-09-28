@@ -13,10 +13,11 @@ export type PlayerProfile = {
 };
 
 export function PlayerProfileContent({ player }: { player: PlayerProfile }) {
+  const goals = player.teams.reduce((total, team) => total + team.goals, 0);
+
   return (
     <>
       <section aria-labelledby="player-profile-title" className="relative isolate min-h-[660px] overflow-hidden bg-[#050505] text-white sm:min-h-[720px] lg:min-h-[820px]">
-        <Image src="/hero-team.png" alt="" fill priority sizes="100vw" className="-z-30 object-cover object-center opacity-30" />
         {player.photoUrl && (
           <Image src={player.photoUrl} alt="" fill priority sizes="100vw" className="-z-20 scale-[1.7] object-contain object-center opacity-25 blur-md" />
         )}
@@ -38,39 +39,30 @@ export function PlayerProfileContent({ player }: { player: PlayerProfile }) {
             <div className="grid h-full place-items-center"><UserRound className="size-56 text-white/30" strokeWidth={0.5} aria-hidden="true" /></div>
           )}
         </div>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[30%] bg-gradient-to-t from-[#050505] via-[#050505]/65 to-transparent" />
 
-        <div className="absolute inset-x-0 bottom-10 z-10 mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] items-end justify-between gap-4 md:w-[calc(100%-10rem)] lg:bottom-14">
-          <div className="max-w-[70%] lg:max-w-[45%]">
-            <h1 id="player-profile-title" className="font-heading text-[44px] font-semibold uppercase leading-[0.9] tracking-tight drop-shadow-[0_3px_12px_rgba(0,0,0,.6)] sm:text-[68px] lg:text-[84px]">{player.name}</h1>
-            <p className="mt-4 text-lg text-white/85 sm:text-2xl">{player.position ?? "Spēlētājs"}</p>
+        <div className="absolute inset-x-0 bottom-10 z-10 mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] items-end justify-start gap-5 sm:justify-between sm:gap-4 md:w-[calc(100%-10rem)] lg:bottom-14">
+          <div className="order-2 min-w-0 pb-1 sm:order-1 sm:max-w-[70%] sm:pb-0 lg:max-w-[45%]">
+            <h1 id="player-profile-title" className="font-heading text-[27px] font-semibold uppercase leading-[0.95] tracking-tight drop-shadow-[0_3px_12px_rgba(0,0,0,.6)] sm:text-[68px] sm:leading-[0.9] lg:text-[84px]">{player.name}</h1>
+            <p className="mt-1 text-[18px] text-white/85 sm:mt-4 sm:text-2xl">{player.position ?? "Spēlētājs"}</p>
           </div>
-          {player.number !== null && <span aria-label={`Numurs ${player.number}`} className="font-heading text-[100px] font-semibold leading-[0.75] text-white sm:text-[160px] lg:text-[210px]">{player.number}</span>}
+          {player.number !== null && <span aria-label={`Numurs ${player.number}`} className="order-1 shrink-0 font-heading text-[78px] font-semibold leading-[0.85] tracking-[-0.06em] text-white sm:order-2 sm:text-[160px] sm:leading-[0.75] sm:tracking-normal lg:text-[210px]">{player.number}</span>}
         </div>
       </section>
 
-      <section aria-label="Spēlētāja informācija" className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] py-10 md:w-[calc(100%-10rem)]">
-        <dl className="grid gap-6 bg-white px-6 py-7 text-[#050505] sm:grid-cols-2 sm:px-8 lg:grid-cols-4 lg:px-10">
-          <div><dt className="text-sm text-black/60">Komanda</dt><dd className="mt-2 font-heading text-[25px] font-semibold uppercase leading-none">{player.teams.map((team) => team.name).join(", ") || "Nav norādīta"}</dd></div>
-          <div><dt className="text-sm text-black/60">Pozīcija</dt><dd className="mt-2 font-heading text-[25px] font-semibold uppercase leading-none">{player.position ?? "Spēlētājs"}</dd></div>
-          <div><dt className="text-sm text-black/60">Dzimšanas datums</dt><dd className="mt-2 font-heading text-[25px] font-semibold uppercase leading-none">{player.birthdate}</dd></div>
-          {player.number !== null && <div><dt className="text-sm text-black/60">Numurs</dt><dd className="mt-2 font-heading text-[25px] font-semibold uppercase leading-none">{player.number}</dd></div>}
-        </dl>
-      </section>
-
-      {player.teams.length > 0 && (
-        <section aria-labelledby="player-stats-title" className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] pb-20 pt-10 text-white md:w-[calc(100%-10rem)] lg:pb-28 lg:pt-20">
-          <h2 id="player-stats-title" className="font-heading text-[32px] font-semibold uppercase leading-none sm:text-[42px]">Komandu statistika</h2>
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {player.teams.map((team) => (
-              <div key={team.name} className="bg-[#151515] px-6 py-7">
-                <span className="font-heading text-[52px] font-semibold leading-none">{team.goals}</span>
-                <p className="mt-2 text-sm text-white/65">Gūtie vārti</p>
-                <p className="mt-5 font-heading text-[23px] font-semibold uppercase leading-none">{team.name}</p>
-              </div>
-            ))}
+      <section aria-labelledby="player-stats-title" className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] pb-20 pt-10 text-white md:w-[calc(100%-10rem)] lg:pb-28 lg:pt-20">
+        <h2 id="player-stats-title" className="font-heading text-[32px] font-semibold uppercase leading-none sm:text-[42px]">Info</h2>
+        <div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 lg:max-w-[760px]">
+          <div className="flex flex-col bg-[#151515] px-3 py-5 sm:px-6 sm:py-7">
+            <span className="flex flex-1 flex-col justify-center font-heading text-[21px] font-semibold leading-none min-[390px]:text-[24px] sm:text-[44px]">{goals}</span>
+            <p className="mt-2 text-xs text-white/65 sm:text-sm">Gūtie vārti</p>
           </div>
-        </section>
-      )}
+          <div className="flex flex-col bg-[#151515] px-3 py-5 sm:px-6 sm:py-7">
+            <span className="flex flex-1 flex-col justify-center whitespace-nowrap font-heading text-[21px] font-semibold leading-none min-[390px]:text-[24px] sm:text-[44px]">{player.birthdate}</span>
+            <p className="mt-2 text-xs text-white/65 sm:text-sm">Dzimšanas datums</p>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
