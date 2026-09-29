@@ -47,7 +47,7 @@ export function AfaOlaineTvRail({ stripe, bottomStripes, viewCounts, viewsAreSna
               <div aria-hidden="true" className="h-1.5 shrink-0" style={{ backgroundImage: bottomStripes[stream.id] ?? stripe }} />
               <div className="flex min-h-[78px] shrink-0 flex-col justify-end gap-1 px-4 py-2.5 sm:min-h-[82px] sm:px-5">
                 <div className="min-w-0">
-                  <h3 className="line-clamp-2 font-heading text-[21px] font-semibold uppercase leading-[0.9] sm:text-[23px]">{stream.title}</h3>
+                  <h3 className="line-clamp-2 min-h-[1.8em] font-heading text-[21px] font-semibold uppercase leading-[0.9] sm:text-[23px]">{stream.title}</h3>
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-2 text-sm leading-none text-white/60">
                   <time>{stream.date}</time>

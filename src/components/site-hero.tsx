@@ -38,8 +38,8 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
-  const headerSentinelRef = useRef<HTMLSpanElement>(null);
   const { scrollY } = useScroll();
   const shouldReduceMotion = useReducedMotion();
   const article = articles[activeIndex];
@@ -62,23 +62,14 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
 
   useEffect(() => {
     const updateHeader = () => {
-      const currentScrollY = window.scrollY;
-      setHasScrolled(currentScrollY > 24 || window.location.hash.length > 0);
+      setHasScrolled((heroRef.current?.getBoundingClientRect().bottom ?? 0) <= (window.innerWidth >= 768 ? 80 : 76));
     };
     updateHeader();
-    const initialCheck = window.setTimeout(updateHeader, 100);
-    const sentinel = headerSentinelRef.current;
-    const observer = sentinel
-      ? new IntersectionObserver(([entry]) => setHasScrolled(!entry.isIntersecting), { threshold: 0 })
-      : null;
-    if (sentinel) observer?.observe(sentinel);
     window.addEventListener("scroll", updateHeader, { passive: true });
-    window.addEventListener("hashchange", updateHeader);
+    window.addEventListener("resize", updateHeader);
     return () => {
-      window.clearTimeout(initialCheck);
-      observer?.disconnect();
       window.removeEventListener("scroll", updateHeader);
-      window.removeEventListener("hashchange", updateHeader);
+      window.removeEventListener("resize", updateHeader);
     };
   }, []);
 
@@ -92,10 +83,9 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
   }, [isMenuOpen]);
 
   return (
-    <section ref={heroRef} id="jaunumi" className="relative z-10 h-[88svh] min-h-[600px] w-full overflow-visible bg-[#050505] md:h-[90svh] md:min-h-[680px]" aria-label="AFA Olaine">
-      <span ref={headerSentinelRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-6 size-px" />
+    <section ref={heroRef} id="jaunumi" data-site-hero className="relative z-10 h-[88svh] min-h-[600px] w-full overflow-visible bg-[#050505] md:h-[90svh] md:min-h-[680px]" aria-label="AFA Olaine">
       <motion.header
-        className={`fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out motion-reduce:transition-none ${hasScrolled || isMenuOpen ? "bg-[#050505]" : "bg-transparent"} md:!bg-[#050505]`}
+        className={`fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out motion-reduce:transition-none ${hasScrolled || isMenuOpen || clubMenuOpen ? "bg-[#050505]" : "bg-transparent"}`}
         animate={{
           y: isHeaderHidden && !isMenuOpen ? "-100%" : 0,
           opacity: isHeaderHidden && !isMenuOpen ? 0 : 1,
@@ -128,7 +118,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
               <nav aria-label="Galvenā navigācija" className="ml-5 flex items-center gap-6 font-heading text-[18px] font-semibold uppercase tracking-wide lg:gap-8">
                 <SiteNavLink href="/">Sākums</SiteNavLink>
                 <SiteNavLink href="/jaunumi">Jaunumi</SiteNavLink>
-                <ClubNav portalContainer={heroRef} />
+                <ClubNav portalContainer={heroRef} onOpenChange={setClubMenuOpen} />
                 <SiteNavLink href="/speles">Spēles</SiteNavLink>
                 <SiteNavLink href="/trenini">Treniņi</SiteNavLink>
                 <SiteNavLink href="/kontakti">Kontakti</SiteNavLink>

@@ -8,10 +8,15 @@ import type { Swiper as SwiperType } from "swiper";
 
 import { FullWidthGallery } from "./full-width-gallery";
 
-const TIKTOK_PROFILE_URL = "https://www.tiktok.com/@afa.olaine";
 const reels = [
-  { id: "back-to-school", image: "/social/tiktok/back-to-school.png" }, { id: "training", image: "/social/tiktok/training.png" }, { id: "family-day", image: "/social/tiktok/family-day.png" },
-  { id: "celebration", image: "/social/tiktok/celebration.png" }, { id: "teammates", image: "/social/tiktok/teammates.png" }, { id: "matchday", image: "/social/tiktok/matchday.png" },
+  { id: "training", image: "/social/tiktok/training.png", url: "https://www.tiktok.com/@afa.olaine/video/7678731105402490134" },
+  { id: "family-day", image: "/social/tiktok/family-day.png", url: "https://www.tiktok.com/@afa.olaine/video/7671996910001229079" },
+  { id: "celebration", image: "/social/tiktok/celebration.png", url: "https://www.tiktok.com/@afa.olaine/video/7661955701681474838" },
+  { id: "teammates", image: "/social/tiktok/teammates.png", url: "https://www.tiktok.com/@afa.olaine/video/7661698905502960918" },
+  { id: "league-action", image: "/social/tiktok/league-action.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7627576277922352406" },
+  { id: "indoor-match", image: "/social/tiktok/indoor-match.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7592282369227345174" },
+  { id: "girls-tournament", image: "/social/tiktok/girls-tournament.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7573643272854228246" },
+  { id: "league-highlight", image: "/social/tiktok/league-highlight.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7568132347103546646" },
 ];
 
 export function TiktokVideosRail() {
@@ -39,7 +44,7 @@ export function TiktokVideosRail() {
       >
         {reels.map((reel) => (
           <SwiperSlide key={reel.id} className="!h-[360px] !w-[66vw] !rounded-none sm:!h-[420px] sm:!w-[280px] xl:!w-[320px]">
-            <a href={TIKTOK_PROFILE_URL} target="_blank" rel="noreferrer" aria-label={`Skatīt AFA Olaine TikTok video: ${reel.id}`} className="group relative block h-full !rounded-none overflow-hidden bg-[#2b2d30] outline-offset-4 focus-visible:outline-2 focus-visible:outline-white">
+            <a href={reel.url} target="_blank" rel="noreferrer" aria-label={`Skatīt AFA Olaine TikTok video: ${reel.id}`} className="group relative block h-full !rounded-none overflow-hidden bg-[#2b2d30] outline-offset-4 focus-visible:outline-2 focus-visible:outline-white">
               <Image src={reel.image} alt="" fill sizes="(min-width: 1280px) 320px, (min-width: 640px) 280px, 66vw" className="object-cover" />
               <span className="absolute inset-0 grid place-items-center bg-black/0 transition-colors group-hover:bg-black/15"><Play className="size-12" strokeWidth={2} fill="currentColor" /></span>
             </a>

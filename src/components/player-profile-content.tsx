@@ -17,7 +17,7 @@ export function PlayerProfileContent({ player }: { player: PlayerProfile }) {
 
   return (
     <>
-      <section aria-labelledby="player-profile-title" className="relative isolate min-h-[660px] overflow-hidden bg-[#050505] text-white sm:min-h-[720px] lg:min-h-[820px]">
+      <section aria-labelledby="player-profile-title" data-site-hero className="relative isolate min-h-[660px] overflow-hidden bg-[#050505] text-white sm:min-h-[720px] lg:min-h-[820px]">
         {player.photoUrl && (
           <Image src={player.photoUrl} alt="" fill priority sizes="100vw" className="-z-20 scale-[1.7] object-contain object-center opacity-25 blur-md" />
         )}

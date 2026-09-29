@@ -10,6 +10,7 @@ import { SiteNavLink } from "./site-nav-link";
 
 export function SiteHeader() {
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { scrollY } = useScroll();
@@ -23,12 +24,19 @@ export function SiteHeader() {
   });
 
   useEffect(() => {
-    const update = () => setHasScrolled(window.scrollY > 24 || window.location.hash.length > 0);
+    const update = () => {
+      const hero = document.querySelector<HTMLElement>("[data-site-hero]");
+      setHasScrolled(hero
+        ? hero.getBoundingClientRect().bottom <= (window.innerWidth >= 768 ? 80 : 76)
+        : window.scrollY > 24 || window.location.hash.length > 0);
+    };
     update();
     window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
     window.addEventListener("hashchange", update);
     return () => {
       window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
       window.removeEventListener("hashchange", update);
     };
   }, []);
@@ -38,11 +46,11 @@ export function SiteHeader() {
       className="fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out"
       animate={{ y: hidden && !menuOpen ? "-100%" : 0, opacity: hidden && !menuOpen ? 0 : 1 }}
       transition={{ duration: reduceMotion ? 0 : 0.32, ease: "easeInOut" }}
-      style={{ backgroundColor: hasScrolled ? "#050505" : "transparent", boxShadow: hasScrolled ? "0 8px 28px rgba(0,0,0,0.32)" : "none", backdropFilter: hasScrolled ? "blur(12px)" : "none" }}
+      style={{ backgroundColor: hasScrolled || menuOpen || clubMenuOpen ? "#050505" : "transparent", boxShadow: hasScrolled ? "0 8px 28px rgba(0,0,0,0.32)" : "none", backdropFilter: hasScrolled ? "blur(12px)" : "none" }}
     >
       <div className="hidden md:block">
         <div className="mx-auto flex h-20 w-[calc(100%-3rem)] max-w-[1500px] items-center justify-between pt-4 md:w-[calc(100%-10rem)]">
-          <div className="flex items-center"><Link href="/" aria-label="AFA Olaine sākumlapa" className="relative z-10 flex size-[104px] shrink-0 translate-y-3 items-center justify-center"><Image src="/hero-logo.png" alt="" width={94} height={94} priority className="size-[94px] object-contain" /></Link><nav aria-label="Galvenā navigācija" className="ml-5 flex items-center gap-6 font-heading text-[18px] font-semibold uppercase tracking-wide lg:gap-8"><SiteNavLink href="/">Sākums</SiteNavLink><SiteNavLink href="/jaunumi">Jaunumi</SiteNavLink><ClubNav /><SiteNavLink href="/speles">Spēles</SiteNavLink><SiteNavLink href="/trenini">Treniņi</SiteNavLink><SiteNavLink href="/kontakti">Kontakti</SiteNavLink></nav></div>
+          <div className="flex items-center"><Link href="/" aria-label="AFA Olaine sākumlapa" className="relative z-10 flex size-[104px] shrink-0 translate-y-3 items-center justify-center"><Image src="/hero-logo.png" alt="" width={94} height={94} priority className="size-[94px] object-contain" /></Link><nav aria-label="Galvenā navigācija" className="ml-5 flex items-center gap-6 font-heading text-[18px] font-semibold uppercase tracking-wide lg:gap-8"><SiteNavLink href="/">Sākums</SiteNavLink><SiteNavLink href="/jaunumi">Jaunumi</SiteNavLink><ClubNav onOpenChange={setClubMenuOpen} /><SiteNavLink href="/speles">Spēles</SiteNavLink><SiteNavLink href="/trenini">Treniņi</SiteNavLink><SiteNavLink href="/kontakti">Kontakti</SiteNavLink></nav></div>
           <div className="flex items-center gap-4"><Link href="/meklet" aria-label="Meklēt" className="grid size-10 place-items-center"><Search className="size-6" /></Link><Link href="/admin" prefetch={false} aria-label="Profils" className="grid size-10 place-items-center"><UserRound className="size-6" /></Link></div>
         </div>
       </div>

@@ -10,7 +10,7 @@ export function ContactPageContent({ settings }: { settings: SiteSettings }) {
 
   return (
     <div className="bg-[#050505] text-white">
-      <section aria-label="Kontakti" className="relative isolate h-[68svh] min-h-[520px] overflow-hidden md:h-[76svh] md:min-h-[620px]">
+      <section aria-label="Kontakti" data-site-hero className="relative isolate h-[68svh] min-h-[520px] overflow-hidden md:h-[76svh] md:min-h-[620px]">
         <ArticleHeroImage src="/match-stadium.jpg" alt="Olaines pilsētas stadions" />
         <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.55)_0%,rgba(5,5,5,0.08)_42%,rgba(5,5,5,0.76)_100%)]" />
         <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 hidden md:top-28 md:block">

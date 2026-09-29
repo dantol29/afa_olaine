@@ -6,6 +6,7 @@ export function InnerPageHero({ title, id }: { title: string; id: string }) {
   return (
     <section
       aria-labelledby={id}
+      data-site-hero
       className="relative isolate flex min-h-[400px] items-end overflow-hidden pt-24 md:min-h-[460px] md:pt-28"
       style={{
         background: "radial-gradient(ellipse 42% 85% at 22% 105%, rgba(158,151,135,0.34), transparent 72%), radial-gradient(ellipse 44% 95% at 54% 108%, rgba(153,92,24,0.54), transparent 73%), radial-gradient(ellipse 42% 90% at 82% 106%, rgba(251,176,64,0.43), transparent 72%), linear-gradient(180deg, #050505 0%, #090807 48%, #15110b 100%)",

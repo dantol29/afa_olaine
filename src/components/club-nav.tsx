@@ -7,7 +7,7 @@ import type { RefObject } from "react";
 
 import { SiteNavLink } from "./site-nav-link";
 
-export function ClubNav({ mobile = false, onNavigate, portalContainer }: { mobile?: boolean; onNavigate?: () => void; portalContainer?: RefObject<HTMLElement | null> }) {
+export function ClubNav({ mobile = false, onNavigate, onOpenChange, portalContainer }: { mobile?: boolean; onNavigate?: () => void; onOpenChange?: (open: boolean) => void; portalContainer?: RefObject<HTMLElement | null> }) {
   const pathname = usePathname();
   const isCurrent = ["/komanda", "/akademija"].some((path) => pathname === path || pathname?.startsWith(`${path}/`));
 
@@ -29,7 +29,7 @@ export function ClubNav({ mobile = false, onNavigate, portalContainer }: { mobil
   }
 
   return (
-    <NavigationMenu.Root data-club-nav render={<div />} className="relative">
+    <NavigationMenu.Root data-club-nav render={<div />} className="relative" onValueChange={(value) => onOpenChange?.(value !== null)}>
       <NavigationMenu.List className="list-none">
         <NavigationMenu.Item>
           <NavigationMenu.Trigger

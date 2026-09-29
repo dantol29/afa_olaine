@@ -9,7 +9,7 @@ import { ArticleShareButtons } from "./article-share-buttons";
 export function ArticlePageContent({ article }: { article: Article }) {
   return (
     <article className="bg-[#050505] text-white">
-      <section aria-label={article.title} className="relative isolate h-[68svh] min-h-[520px] overflow-hidden md:h-[76svh] md:min-h-[620px]">
+      <section aria-label={article.title} data-site-hero className="relative isolate h-[68svh] min-h-[520px] overflow-hidden md:h-[76svh] md:min-h-[620px]">
         <ArticleHeroImage src={article.image} alt={article.title} />
         <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.55)_0%,rgba(5,5,5,0.08)_42%,rgba(5,5,5,0.76)_100%)]" />
         <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 hidden md:top-28 md:block">
