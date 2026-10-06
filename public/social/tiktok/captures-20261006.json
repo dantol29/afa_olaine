@@ -1,0 +1,70 @@
+{
+  "capturedAt": "2026-10-06",
+  "method": "Browser screenshot of a clean rendered video frame at native aspect ratio; no page controls.",
+  "videos": [
+    {
+      "id": "training",
+      "url": "https://www.tiktok.com/@afa.olaine/video/7678731105402490134",
+      "image": "/social/tiktok/training-20261006.jpg",
+      "width": 576,
+      "height": 1024,
+      "seconds": 3
+    },
+    {
+      "id": "family-day",
+      "url": "https://www.tiktok.com/@afa.olaine/video/7671996910001229079",
+      "image": "/social/tiktok/family-day-20261006.jpg",
+      "width": 576,
+      "height": 1024,
+      "seconds": 3
+    },
+    {
+      "id": "celebration",
+      "url": "https://www.tiktok.com/@afa.olaine/video/7661955701681474838",
+      "image": "/social/tiktok/celebration-20261006.jpg",
+      "width": 864,
+      "height": 576,
+      "seconds": 3
+    },
+    {
+      "id": "teammates",
+      "url": "https://www.tiktok.com/@afa.olaine/video/7661698905502960918",
+      "image": "/social/tiktok/teammates-20261006.jpg",
+      "width": 576,
+      "height": 1024,
+      "seconds": 3
+    },
+    {
+      "id": "league-action",
+      "url": "https://www.tiktok.com/@afa.olaine/video/7627576277922352406",
+      "image": "/social/tiktok/league-action-20261006.jpg",
+      "width": 1024,
+      "height": 576,
+      "seconds": 3
+    },
+    {
+      "id": "indoor-match",
+      "url": "https://www.tiktok.com/@afa.olaine/video/7592282369227345174",
+      "image": "/social/tiktok/indoor-match-20261006.jpg",
+      "width": 576,
+      "height": 1024,
+      "seconds": 3
+    },
+    {
+      "id": "girls-tournament",
+      "url": "https://www.tiktok.com/@afa.olaine/video/7573643272854228246",
+      "image": "/social/tiktok/girls-tournament-20261006.jpg",
+      "width": 576,
+      "height": 1024,
+      "seconds": 3
+    },
+    {
+      "id": "league-highlight",
+      "url": "https://www.tiktok.com/@afa.olaine/video/7568132347103546646",
+      "image": "/social/tiktok/league-highlight-20261006.jpg",
+      "width": 576,
+      "height": 1022,
+      "seconds": 3
+    }
+  ]
+}

@@ -9,14 +9,14 @@ import type { Swiper as SwiperType } from "swiper";
 import { FullWidthGallery } from "./full-width-gallery";
 
 const reels = [
-  { id: "training", image: "/social/tiktok/training.png", url: "https://www.tiktok.com/@afa.olaine/video/7678731105402490134" },
-  { id: "family-day", image: "/social/tiktok/family-day.png", url: "https://www.tiktok.com/@afa.olaine/video/7671996910001229079" },
-  { id: "celebration", image: "/social/tiktok/celebration.png", url: "https://www.tiktok.com/@afa.olaine/video/7661955701681474838" },
-  { id: "teammates", image: "/social/tiktok/teammates.png", url: "https://www.tiktok.com/@afa.olaine/video/7661698905502960918" },
-  { id: "league-action", image: "/social/tiktok/league-action.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7627576277922352406" },
-  { id: "indoor-match", image: "/social/tiktok/indoor-match.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7592282369227345174" },
-  { id: "girls-tournament", image: "/social/tiktok/girls-tournament.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7573643272854228246" },
-  { id: "league-highlight", image: "/social/tiktok/league-highlight.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7568132347103546646" },
+  { id: "training", image: "/social/tiktok/training-20261006.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7678731105402490134" },
+  { id: "family-day", image: "/social/tiktok/family-day-20261006.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7671996910001229079" },
+  { id: "celebration", image: "/social/tiktok/celebration-20261006.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7661955701681474838" },
+  { id: "teammates", image: "/social/tiktok/teammates-20261006.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7661698905502960918" },
+  { id: "league-action", image: "/social/tiktok/league-action-20261006.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7627576277922352406" },
+  { id: "indoor-match", image: "/social/tiktok/indoor-match-20261006.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7592282369227345174" },
+  { id: "girls-tournament", image: "/social/tiktok/girls-tournament-20261006.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7573643272854228246" },
+  { id: "league-highlight", image: "/social/tiktok/league-highlight-20261006.jpg", url: "https://www.tiktok.com/@afa.olaine/video/7568132347103546646" },
 ];
 
 export function TiktokVideosRail() {

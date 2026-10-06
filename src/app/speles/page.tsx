@@ -7,8 +7,9 @@ import { getAllGamesFromDb } from "@/lib/games-server";
 import { getLogoBorderStripe } from "@/lib/logo-color";
 
 export const metadata: Metadata = {
-  title: "Spēles | AFA Olaine",
-  description: "AFA Olaine spēļu kalendārs un aizvadītās spēles.",
+  title: "AFA Olaine spēles | Kalendārs un rezultāti",
+  description: "Apskati AFA Olaine gaidāmās spēles un aizvadīto maču rezultātus. Spēļu datumi, pretinieki un norises vietas vienuviet futbola līdzjutējiem.",
+  alternates: { canonical: "/speles" },
 };
 
 export default async function GamesPage() {

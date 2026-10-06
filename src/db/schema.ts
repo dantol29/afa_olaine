@@ -310,6 +310,13 @@ export const siteSettings = sqliteTable("site_settings", {
   updatedAt: integer("updated_at").notNull(),
 });
 
+/** Persistent login throttling shared by every Node process and client IP. */
+export const adminLoginLimits = sqliteTable("admin_login_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull(),
+  resetAt: integer("reset_at").notNull(),
+});
+
 export const clubPages = sqliteTable("club_pages", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),

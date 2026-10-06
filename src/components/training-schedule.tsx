@@ -48,11 +48,17 @@ export function toggleSelectedDate(currentDate: string | null, clickedDate: stri
   return currentDate === clickedDate ? null : clickedDate;
 }
 
+function relevantMonth(trainings: TrainingListItem[], todayKey: string) {
+  const nextTraining = trainings.find((training) => training.rawDate >= todayKey);
+  const referenceDate = nextTraining?.rawDate ?? trainings[trainings.length - 1]?.rawDate ?? todayKey;
+  return monthStart(dateFromKey(referenceDate));
+}
+
 export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingListItem[]; todayKey: string }) {
   const sorted = [...trainings].sort((a, b) => a.rawDate.localeCompare(b.rawDate) || a.startTime.localeCompare(b.startTime));
   const [team, setTeam] = useState("__all__");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [visibleMonth, setVisibleMonth] = useState(() => monthStart(dateFromKey(todayKey)));
+  const [visibleMonth, setVisibleMonth] = useState(() => relevantMonth(sorted, todayKey));
   const teamOptions = [...new Set(sorted.map((training) => training.teamName))].sort((a, b) => a.localeCompare(b, "lv"));
   const filtered = team === "__all__" ? sorted : sorted.filter((training) => training.teamName === team);
   const visibleItems = selectedDate ? filtered.filter((training) => training.rawDate === selectedDate) : filtered;
@@ -62,6 +68,7 @@ export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingL
   function selectTeam(nextTeam: string) {
     setTeam(nextTeam);
     setSelectedDate(null);
+    setVisibleMonth(relevantMonth(nextTeam === "__all__" ? sorted : sorted.filter((training) => training.teamName === nextTeam), todayKey));
   }
 
   function navigateMonth(amount: number) {
@@ -91,11 +98,11 @@ export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingL
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(350px,440px)] lg:gap-12">
-        <div className="order-2 min-w-0 lg:order-1">
+        <div className="min-w-0">
           {visibleItems.length > 0 ? (
             <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,280px))] gap-5 sm:gap-6" aria-label={selectedDate ? "Izvēlētās dienas treniņi" : "Visi treniņi"}>
               {visibleItems.map((training) => (
-                <li key={training.id} className="flex min-h-[280px] min-w-0 flex-col bg-[#19191B] p-5 sm:min-h-[300px] sm:p-6">
+                <li key={training.id} className="flex min-w-0 flex-col bg-[#19191B] p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-heading text-[57px] font-semibold leading-none tabular-nums text-white sm:text-[64px]">{training.startTime}</span>
                     <time dateTime={training.rawDate} aria-label={displayDate(dateFromKey(training.rawDate))} className="text-sm font-semibold text-white">
@@ -103,7 +110,7 @@ export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingL
                     </time>
                   </div>
                   <p className="mt-1 font-sans text-lg font-medium text-white/80">Līdz {training.endTime}</p>
-                  <div className="mt-auto pt-7">
+                  <div className="mt-7">
                     <h3 className="font-heading text-[25px] font-semibold uppercase leading-none sm:text-[29px]">{training.teamName}</h3>
                     <dl className="mt-3 space-y-2 border-t border-white/20 pt-3 font-sans text-sm leading-snug">
                       <div><dt className="sr-only">Vieta</dt><dd className="flex items-start gap-2 text-white/90"><MapPin className="mt-0.5 size-4 shrink-0 text-[#fbb040]" aria-hidden="true" />{training.location}</dd></div>
@@ -121,7 +128,7 @@ export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingL
           )}
         </div>
 
-        <div className="order-1 self-start bg-[#1b1b1b] p-5 sm:p-7 lg:order-2" aria-label="Treniņu kalendārs">
+        <div className="self-start bg-[#1b1b1b] p-5 sm:p-7" aria-label="Treniņu kalendārs">
           <div className="mb-6 flex items-center justify-between gap-3">
             <h2 className="font-heading text-[29px] font-semibold uppercase leading-none sm:text-[35px]">{displayMonth(visibleMonth)}</h2>
             <div className="flex gap-2">

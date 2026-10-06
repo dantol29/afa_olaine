@@ -1,0 +1,32 @@
+{
+  "watford": {
+    "desktop": {
+      "width": 1440,
+      "height": 5188
+    },
+    "mobile": {
+      "width": 390,
+      "height": 7868
+    }
+  },
+  "wolves": {
+    "desktop": {
+      "width": 1440,
+      "height": 5852
+    },
+    "mobile": {
+      "width": 390,
+      "height": 5709
+    }
+  },
+  "hull": {
+    "desktop": {
+      "width": 1440,
+      "height": 5421
+    },
+    "mobile": {
+      "width": 390,
+      "height": 10260
+    }
+  }
+}

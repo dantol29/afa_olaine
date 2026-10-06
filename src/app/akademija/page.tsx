@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
+
 import { AcademyContent } from "@/components/academy-content";
 import { InnerPageHero } from "@/components/inner-page-hero";
 import { SiteEnding } from "@/components/site-ending";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db/client";
+
+export const metadata: Metadata = {
+  title: "AFA Olaine akadēmija | Jauniešu futbola komandas",
+  description: "Iepazīsti AFA Olaine futbola akadēmijas jauniešu komandas Olainē. Apskati komandu fotoattēlus, spēlētāju sarakstus un atrodi savu vecuma grupu.",
+  alternates: { canonical: "/akademija" },
+};
 
 export default async function AcademyPage() {
   const rows = await db.query.teams.findMany({

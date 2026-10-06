@@ -10,6 +10,7 @@ export type Article = {
   title: string;
   excerpt: string;
   date: string;
+  dateKey: string;
   category: ArticleCategory;
   team?: string;
   image: string;

@@ -10,8 +10,9 @@ import { getAllTrainingsFromDb } from "@/lib/trainings-server";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Treniņi | AFA Olaine",
-  description: "AFA Olaine komandu treniņu grafiks, norises vietas un treneri.",
+  title: "AFA Olaine treniņi | Komandu grafiks Olainē",
+  description: "Atrodi AFA Olaine komandu treniņu laikus, vietas un trenerus. Pārskati futbola nodarbību grafiku Olainē un izvēlies sev interesējošo komandu.",
+  alternates: { canonical: "/trenini" },
 };
 
 export default async function TrainingsPage() {

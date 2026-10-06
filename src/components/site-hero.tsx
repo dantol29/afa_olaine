@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Menu, Search, UserRound, X } from "lucide-react";
-import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
+import { ArrowLeft, ArrowRight, Menu, UserRound, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ClubNav } from "./club-nav";
 import { SiteNavLink } from "./site-nav-link";
+import { SiteSearch } from "./site-search";
 
 type HeroArticle = {
   slug: string;
@@ -36,12 +36,9 @@ function ScoreRailMark({ name, logo }: { name: string; logo?: string }) {
 export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; lastGame?: LastGame }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [hasScrolled, setHasScrolled] = useState(false);
-  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
-  const { scrollY } = useScroll();
-  const shouldReduceMotion = useReducedMotion();
   const article = articles[activeIndex];
   const showPreviousArticle = () => {
     setActiveIndex((current) => (current - 1 + articles.length) % articles.length);
@@ -49,17 +46,6 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
   const showNextArticle = () => {
     setActiveIndex((current) => (current + 1) % articles.length);
   };
-  useMotionValueEvent(scrollY, "change", (current) => {
-    const previous = scrollY.getPrevious() ?? 0;
-    if (current <= 24) {
-      setIsHeaderHidden(false);
-    } else if (current > previous) {
-      setIsHeaderHidden(true);
-    } else if (current < previous) {
-      setIsHeaderHidden(false);
-    }
-  });
-
   useEffect(() => {
     const updateHeader = () => {
       setHasScrolled((heroRef.current?.getBoundingClientRect().bottom ?? 0) <= (window.innerWidth >= 768 ? 80 : 76));
@@ -84,13 +70,9 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
 
   return (
     <section ref={heroRef} id="jaunumi" data-site-hero className="relative z-10 h-[88svh] min-h-[600px] w-full overflow-visible bg-[#050505] md:h-[90svh] md:min-h-[680px]" aria-label="AFA Olaine">
-      <motion.header
+      <h1 className="sr-only">AFA Olaine — futbola klubs un akadēmija Olainē</h1>
+      <header
         className={`fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out motion-reduce:transition-none ${hasScrolled || isMenuOpen || clubMenuOpen ? "bg-[#050505]" : "bg-transparent"}`}
-        animate={{
-          y: isHeaderHidden && !isMenuOpen ? "-100%" : 0,
-          opacity: isHeaderHidden && !isMenuOpen ? 0 : 1,
-        }}
-        transition={{ duration: shouldReduceMotion ? 0 : 0.32, ease: "easeInOut" }}
         style={{
           boxShadow: hasScrolled ? "0 8px 28px rgba(0,0,0,0.32)" : "none",
           backdropFilter: hasScrolled ? "blur(12px)" : "none",
@@ -125,7 +107,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
               </nav>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/meklet" aria-label="Meklēt" className="grid size-10 place-items-center transition-colors hover:text-[#fbb040]"><Search className="size-6" /></Link>
+              <SiteSearch className="grid size-10 place-items-center transition-colors hover:text-[#fbb040]" onOpen={() => setIsMenuOpen(false)} />
               <Link href="/admin" prefetch={false} aria-label="Profils" className="grid size-10 place-items-center transition-colors hover:text-[#fbb040]"><UserRound className="size-6" /></Link>
             </div>
           </div>
@@ -135,7 +117,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
           <Link href="/" aria-label="AFA Olaine sākumlapa" className="relative z-10 flex size-[92px] shrink-0 translate-y-3 items-center justify-center">
             <Image src="/hero-logo.png" alt="" width={88} height={88} priority className="size-[88px] object-contain" />
           </Link>
-          <div className="flex items-center"><Link href="/meklet" aria-label="Meklēt" className="grid size-12 place-items-center text-white transition-colors hover:text-[#fbb040]"><Search className="size-6" /></Link><button
+          <div className="flex items-center"><SiteSearch className="grid size-12 place-items-center text-white transition-colors hover:text-[#fbb040]" onOpen={() => setIsMenuOpen(false)} /><button
             type="button"
             onClick={() => setIsMenuOpen((open) => !open)}
             aria-expanded={isMenuOpen}
@@ -171,7 +153,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
             </SiteNavLink>
           </nav>
         )}
-      </motion.header>
+      </header>
 
       <div className="absolute inset-0 overflow-visible">
         <Image
@@ -181,6 +163,10 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
           height={1080}
           priority
           className="absolute inset-0 size-full object-cover"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-[#050505]/70 via-[#050505]/30 to-transparent md:h-[320px]"
         />
         <div
           aria-hidden="true"

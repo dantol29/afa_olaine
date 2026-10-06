@@ -6,8 +6,9 @@ import { SiteHeader } from "@/components/site-header";
 import { getPublicSiteSettings } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
-  title: "Kontakti | AFA Olaine",
-  description: "Sazinies ar AFA Olaine. Tālrunis, e-pasts un Olaines pilsētas stadiona adrese.",
+  title: "AFA Olaine kontakti | Sazinies ar futbola klubu",
+  description: "Sazinies ar AFA Olaine futbola klubu: atrodi tālruni, e-pasta adresi, Olaines pilsētas stadiona atrašanās vietu un kluba rekvizītus.",
+  alternates: { canonical: "/kontakti" },
 };
 
 export default async function ContactPage() {

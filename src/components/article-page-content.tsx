@@ -24,7 +24,7 @@ export function ArticlePageContent({ article }: { article: Article }) {
       <div className="relative z-10 mx-auto -mt-24 w-full max-w-[860px] bg-[#050505] px-6 pb-9 pt-8 sm:px-10 md:-mt-28 md:pb-12 md:pt-10">
         <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-sans text-sm font-semibold uppercase tracking-wide sm:text-base">
           <span className="text-[#fbb040]">{article.category}</span>
-          <time className="text-white/65">{article.date}</time>
+          <time dateTime={article.dateKey} className="text-white/65">{article.date}</time>
         </div>
         <h1 className="font-heading text-[34px] font-semibold uppercase leading-[0.96] tracking-[-0.02em] sm:text-[46px] lg:text-[56px]">{article.title}</h1>
         <div className="mt-7 flex justify-start">

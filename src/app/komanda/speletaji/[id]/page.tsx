@@ -37,7 +37,16 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
   return {
     title: `${player.name} | AFA Olaine`,
     description: `${player.name} — ${player.position ?? "spēlētājs"}, AFA Olaine.`,
-    openGraph: player.photoUrl ? { images: [player.photoUrl] } : undefined,
+    alternates: { canonical: `/komanda/speletaji/${player.id}` },
+    openGraph: {
+      type: "profile",
+      locale: "lv_LV",
+      siteName: "AFA Olaine",
+      title: `${player.name} | AFA Olaine`,
+      description: `${player.name} — ${player.position ?? "spēlētājs"}, AFA Olaine.`,
+      url: `/komanda/speletaji/${player.id}`,
+      images: player.photoUrl ? [player.photoUrl] : ["/match-stadium.jpg"],
+    },
   };
 }
 

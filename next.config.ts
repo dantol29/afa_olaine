@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "test.afaolaine.lv" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
   experimental: {
     // Shared hosting has a tight process-memory limit. This caps page-data
     // collection as well as static generation to one worker; the batch-size

@@ -19,6 +19,7 @@ function rowToArticle(row: ArticleRow, teamName: string | null, authorCoach: Aut
     title: row.title,
     excerpt: row.excerpt,
     date: formatArticleDate(row.date),
+    dateKey: row.date,
     category: row.category,
     team: teamName ?? undefined,
     image: row.image,

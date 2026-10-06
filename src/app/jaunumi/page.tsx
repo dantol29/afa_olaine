@@ -7,8 +7,9 @@ import { SiteHeader } from "@/components/site-header";
 import { getArticles } from "@/lib/jaunumi-server";
 
 export const metadata: Metadata = {
-  title: "Jaunumi | AFA Olaine",
-  description: "AFA Olaine jaunākās ziņas un kluba aktualitātes.",
+  title: "AFA Olaine jaunumi | Futbola kluba aktualitātes",
+  description: "Lasi AFA Olaine jaunākos rakstus par komandām, spēlēm, akadēmiju un kluba notikumiem Olainē. Seko līdzi futbolistu sasniegumiem un gaidāmajiem pasākumiem.",
+  alternates: { canonical: "/jaunumi" },
 };
 
 export default async function NewsPage() {

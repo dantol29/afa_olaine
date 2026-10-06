@@ -2,7 +2,7 @@ type RankedTeam = { pos: number };
 type OlaineMarkedTeam = { isOlaine: boolean };
 
 /** Sorts live standings into the compact ranking-card order. */
-export function leagueCardRows<T extends RankedTeam>(standings: T[], limit = 8): T[] {
+export function leagueCardRows<T extends RankedTeam>(standings: T[], limit = standings.length): T[] {
   return [...standings].sort((first, second) => first.pos - second.pos).slice(0, limit);
 }
 

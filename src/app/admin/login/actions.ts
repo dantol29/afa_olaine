@@ -23,7 +23,7 @@ export async function login(
   const forwardedFor = headersList.get("x-forwarded-for");
   const ip = forwardedFor?.split(",").map((part) => part.trim()).filter(Boolean).pop() ?? "unknown";
 
-  if (!checkRateLimit(ip)) {
+  if (!(await checkRateLimit(ip))) {
     return { error: "Pārāk daudz mēģinājumu. Mēģini vēlreiz pēc 10 minūtēm." };
   }
 
@@ -33,7 +33,7 @@ export async function login(
     return { error: "Nepareiza parole." };
   }
 
-  resetRateLimit(ip);
+  await resetRateLimit(ip);
   const token = await createSessionToken();
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {

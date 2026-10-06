@@ -130,6 +130,7 @@ export async function createArticle(
 
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
   redirect("/admin/jaunumi");
 }
@@ -192,6 +193,7 @@ export async function updateArticle(
 
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
   revalidatePath(`/jaunumi/${existing.slug}`);
   redirect("/admin/jaunumi");
@@ -213,5 +215,6 @@ export async function deleteArticle(id: number) {
   await db.delete(articles).where(eq(articles.id, id));
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
 }
