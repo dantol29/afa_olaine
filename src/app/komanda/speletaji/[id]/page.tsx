@@ -31,6 +31,7 @@ const getPlayer = cache(async function getPlayer(idParam: string) {
     number: row.number,
     position: row.position,
     birthdate: row.birthdate,
+    nationality: row.nationality,
     photoUrl: row.id === 67 ? "/player-cutouts/nikoloz-gujabidze.png" : row.photoUrl,
     teams: row.playerTeams.map(({ team, goals }) => ({ name: team.name, goals })),
   };

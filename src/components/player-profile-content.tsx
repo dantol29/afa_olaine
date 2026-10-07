@@ -8,12 +8,17 @@ export type PlayerProfile = {
   number: number | null;
   position: string | null;
   birthdate: string;
+  nationality: string;
   photoUrl: string | null;
   teams: { name: string; goals: number }[];
 };
 
 export function PlayerProfileContent({ player }: { player: PlayerProfile }) {
   const goals = player.teams.reduce((total, team) => total + team.goals, 0);
+  const nationality = player.nationality.trim();
+  const nationalityLabel = /^[a-z]{2}$/i.test(nationality)
+    ? new Intl.DisplayNames(["lv"], { type: "region", fallback: "code" }).of(nationality.toUpperCase()) ?? nationality
+    : nationality || "—";
 
   return (
     <>
@@ -52,7 +57,7 @@ export function PlayerProfileContent({ player }: { player: PlayerProfile }) {
 
       <section aria-labelledby="player-stats-title" className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] pb-20 pt-10 text-white md:w-[calc(100%-10rem)] lg:pb-28 lg:pt-20">
         <h2 id="player-stats-title" className="font-heading text-[32px] font-semibold uppercase leading-none sm:text-[42px]">Info</h2>
-        <div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 lg:max-w-[760px]">
+        <div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 lg:max-w-[1100px] lg:grid-cols-3">
           <div className="flex flex-col bg-[#151515] px-3 py-5 sm:px-6 sm:py-7">
             <span className="flex flex-1 flex-col justify-center font-heading text-[21px] font-semibold leading-none min-[390px]:text-[24px] sm:text-[44px]">{goals}</span>
             <p className="mt-2 text-xs text-white/65 sm:text-sm">Gūtie vārti</p>
@@ -60,6 +65,10 @@ export function PlayerProfileContent({ player }: { player: PlayerProfile }) {
           <div className="flex flex-col bg-[#151515] px-3 py-5 sm:px-6 sm:py-7">
             <span className="flex flex-1 flex-col justify-center whitespace-nowrap font-heading text-[21px] font-semibold leading-none min-[390px]:text-[24px] sm:text-[44px]">{player.birthdate}</span>
             <p className="mt-2 text-xs text-white/65 sm:text-sm">Dzimšanas datums</p>
+          </div>
+          <div className="col-span-2 flex min-w-0 flex-col bg-[#151515] px-3 py-5 sm:px-6 sm:py-7 lg:col-span-1">
+            <span className="flex flex-1 flex-col justify-center break-words font-heading text-[21px] font-semibold leading-tight min-[390px]:text-[24px] sm:text-[44px]">{nationalityLabel}</span>
+            <p className="mt-2 text-xs text-white/65 sm:text-sm">Pilsonība</p>
           </div>
         </div>
       </section>
