@@ -70,8 +70,11 @@ export async function createPlayer(
     .returning({ id: players.id });
   await syncPlayerTeams(inserted.id, teamGoals);
 
+  revalidatePath("/komanda/speletaji/[id]", "page");
   revalidatePath("/admin/players");
-  revalidatePath("/komandas");
+  revalidatePath("/komanda");
+  revalidatePath("/akademija");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
   redirect("/admin/players");
 }
@@ -117,8 +120,11 @@ export async function updatePlayer(
   await db.update(players).set(updates).where(eq(players.id, id));
   await syncPlayerTeams(id, teamGoals);
 
+  revalidatePath("/komanda/speletaji/[id]", "page");
   revalidatePath("/admin/players");
-  revalidatePath("/komandas");
+  revalidatePath("/komanda");
+  revalidatePath("/akademija");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
   redirect("/admin/players");
 }
@@ -133,7 +139,10 @@ export async function deletePlayer(id: number) {
   await deleteUploadedPhoto(existing?.photoUrl ?? null);
 
   await db.delete(players).where(eq(players.id, id));
+  revalidatePath("/komanda/speletaji/[id]", "page");
   revalidatePath("/admin/players");
-  revalidatePath("/komandas");
+  revalidatePath("/komanda");
+  revalidatePath("/akademija");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
 }

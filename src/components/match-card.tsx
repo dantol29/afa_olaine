@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { TeamLogo } from "./team-logo";
 
 import { MONTHS, type Team, type UpcomingGame } from "@/lib/games";
 
@@ -9,16 +10,8 @@ function dateLabel(game: UpcomingGame) {
   return `${game.day}.${String(month).padStart(2, "0")}.${game.year} ${game.time}`;
 }
 
-function MatchCrest({ team, fallbackLogo }: { team: Team; fallbackLogo: string }) {
-  const logo = team.logo ?? fallbackLogo;
-
-  return logo ? (
-    <Image src={logo} alt="" width={62} height={62} className="size-[62px] object-contain" />
-  ) : (
-    <span className="grid size-[62px] place-items-center rounded-full border border-white/45 font-heading text-lg text-white">
-      {team.initials ?? team.name.slice(0, 2).toUpperCase()}
-    </span>
-  );
+function MatchCrest({ team }: { team: Team }) {
+  return <TeamLogo src={team.logo} name={team.name} width={62} height={62} className="size-[62px] object-contain" fallbackClassName="grid size-[62px] place-items-center rounded-full border border-white/45 font-heading text-lg text-white" />;
 }
 
 export function MatchCard({
@@ -48,19 +41,19 @@ export function MatchCard({
       <div className="flex w-full flex-col">
         <div className="flex items-center justify-between gap-4 text-sm font-semibold">
           <span>{game.day}. {game.month}</span>
-          <Image src="/altero-liga.png" alt="Altero.lv līga" width={138} height={72} className="h-12 w-auto object-contain brightness-0 invert" />
+          {game.leagueLogoUrl ? <Image src={game.leagueLogoUrl} alt={game.league} width={138} height={72} className="h-12 w-auto object-contain brightness-0 invert" /> : <span className="font-heading text-sm font-semibold uppercase text-white/65">{game.league}</span>}
         </div>
 
         <div className={`mt-auto pb-4 sm:pb-5 ${compact ? "pt-12" : "pt-20"}`}>
           <div className="flex items-center gap-5">
-            <MatchCrest team={game.home} fallbackLogo="/upcoming-liepaja.png" />
+            <MatchCrest team={game.home} />
             {game.homeScore != null && game.awayScore != null && (
               <span aria-label={`Rezultāts ${game.homeScore} pret ${game.awayScore}`} className="whitespace-nowrap font-heading text-[34px] font-semibold leading-none tabular-nums sm:text-[40px]">
                 {game.homeScore} : {game.awayScore}
               </span>
             )}
             {(game.homeScore == null || game.awayScore == null) && <span className="h-10 w-px bg-white/70" />}
-            <MatchCrest team={game.away} fallbackLogo="/upcoming-afa.png" />
+            <MatchCrest team={game.away} />
           </div>
           <h3 className={`mt-5 max-w-[520px] font-heading font-semibold uppercase leading-[0.98] ${compact ? "text-[24px] sm:text-[28px]" : "text-[24px] sm:text-[30px] xl:text-[36px]"}`}>
             {game.home.name}<br />{game.away.name}

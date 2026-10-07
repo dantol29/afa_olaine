@@ -1,17 +1,20 @@
 import Image from "next/image";
 
 import { getPartners } from "@/lib/partners-server";
+import { getLeagueSourceMetadata } from "@/lib/league-source-metadata";
 import { loopSponsorTickerItems, splitSponsorTickerItems, sponsorTickerItems } from "@/lib/sponsor-ticker";
 
 export async function SponsorsTicker() {
-  const partners = await getPartners();
-  const { staticItem, movingItems } = splitSponsorTickerItems(sponsorTickerItems(partners));
+  const [partners, sources] = await Promise.all([getPartners(), getLeagueSourceMetadata()]);
+  const league = sources.find((source) => source.isMainLeague);
+  const leagueMark = league?.logoUrl ? { id: -league.id, name: league.label, logoUrl: league.logoUrl, needsWhite: true } : null;
+  const { staticItem, movingItems } = splitSponsorTickerItems(sponsorTickerItems(partners, leagueMark), Boolean(leagueMark));
   const loopItems = loopSponsorTickerItems(movingItems);
 
   return (
     <section aria-label="Partneri" className="relative z-0 bg-[#050505] pb-7 pt-32 md:pb-9 md:pt-36">
       <div className="mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] items-center gap-8 md:w-[calc(100%-10rem)] md:gap-12">
-        <div className="shrink-0">
+        {staticItem && <div className="shrink-0">
           <Image
             src={staticItem.logoUrl}
             alt={staticItem.name}
@@ -19,7 +22,7 @@ export async function SponsorsTicker() {
             height={72}
             className="h-10 w-auto object-contain grayscale invert mix-blend-screen opacity-65"
           />
-        </div>
+        </div>}
         <div className="sponsors-ticker-mask min-w-0 flex-1 overflow-hidden">
           <div className="sponsors-ticker-track flex w-max items-center gap-14 pr-14 md:gap-24 md:pr-24">
             {loopItems.map((item, index) => {

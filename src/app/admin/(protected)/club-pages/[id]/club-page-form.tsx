@@ -37,7 +37,7 @@ export function ClubPageForm(props: { mode: "create" } | { mode: "edit"; page: C
       <h1 className="mb-1 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauna kluba lapa" : "Rediģēt kluba lapu"}
       </h1>
-      <p className="mb-6 text-sm text-slate-500">Publicēta lapa automātiski parādīsies izvēlnē “Klubs”.</p>
+      <p className="mb-6 text-sm text-slate-500">Publicēta lapa automātiski parādīsies galvenajā navigācijā.</p>
 
       <label className="block text-sm font-semibold text-club-navy">
         Virsraksts

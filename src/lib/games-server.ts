@@ -7,6 +7,7 @@ import { games as gamesTable, teams as teamsTable } from "@/db/schema";
 import { toDateKey } from "@/lib/calendar";
 import { resolveClubLogos } from "@/lib/club-logos";
 import { colorFor, initialsFor, MONTHS, type Team, type UpcomingGame } from "@/lib/games";
+import { getLeagueSourceMetadata, leagueLogoForGame } from "@/lib/league-source-metadata";
 
 function teamDisplay(name: string, logo: string | null): Team {
   return logo ? { name, logo } : { name, initials: initialsFor(name), color: colorFor(name) };
@@ -50,7 +51,7 @@ export const getUpcomingGamesFromDb = cache(async function getUpcomingGamesFromD
       .orderBy(gamesTable.date, gamesTable.startTime)
       .limit(limit);
 
-    const logos = await resolveClubLogos(rows.flatMap((row) => [row.homeTeam, row.awayTeam]));
+    const [logos, sources] = await Promise.all([resolveClubLogos(rows.flatMap((row) => [row.homeTeam, row.awayTeam])), getLeagueSourceMetadata()]);
 
     return rows.map((row) => {
       const [year, month, day] = row.date.split("-").map(Number);
@@ -62,6 +63,7 @@ export const getUpcomingGamesFromDb = cache(async function getUpcomingGamesFromD
         weekday: weekdayAbbrFor(row.date),
         time: row.startTime,
         league: row.league ?? "Draudzības spēle",
+        leagueLogoUrl: leagueLogoForGame(sources, row.teamId, row.league),
         home: teamDisplay(row.homeTeam, logos.get(row.homeTeam) ?? null),
         away: teamDisplay(row.awayTeam, logos.get(row.awayTeam) ?? null),
         venue: row.location,
@@ -90,6 +92,7 @@ export const getAllGamesFromDb = cache(async function getAllGamesFromDb(): Promi
     const rows = await db
       .select({
         id: gamesTable.id,
+        teamId: gamesTable.teamId,
         homeTeam: gamesTable.homeTeam,
       awayTeam: gamesTable.awayTeam,
       homeScore: gamesTable.homeScore,
@@ -104,7 +107,7 @@ export const getAllGamesFromDb = cache(async function getAllGamesFromDb(): Promi
       .innerJoin(teamsTable, eq(gamesTable.teamId, teamsTable.id))
       .orderBy(gamesTable.date, gamesTable.startTime);
 
-    const logos = await resolveClubLogos(rows.flatMap((row) => [row.homeTeam, row.awayTeam]));
+    const [logos, sources] = await Promise.all([resolveClubLogos(rows.flatMap((row) => [row.homeTeam, row.awayTeam])), getLeagueSourceMetadata()]);
 
     return rows.map((row) => {
       const [year, month, day] = row.date.split("-").map(Number);
@@ -116,6 +119,7 @@ export const getAllGamesFromDb = cache(async function getAllGamesFromDb(): Promi
         weekday: weekdayAbbrFor(row.date),
         time: row.startTime,
         league: row.league ?? "Draudzības spēle",
+        leagueLogoUrl: leagueLogoForGame(sources, row.teamId, row.league),
         home: teamDisplay(row.homeTeam, logos.get(row.homeTeam) ?? null),
         away: teamDisplay(row.awayTeam, logos.get(row.awayTeam) ?? null),
         venue: row.location,

@@ -38,7 +38,7 @@ const FALLBACK_STANDINGS: StandingRow[] = [
   },
 ];
 
-export type LeagueStandings = { label: string; standings: StandingRow[]; url: string };
+export type LeagueStandings = { label: string; standings: StandingRow[]; url: string; logoUrl?: string | null; isMainLeague?: boolean };
 
 function withDevelopmentTestLeagues(leagues: LeagueStandings[]): LeagueStandings[] {
   if (process.env.NODE_ENV !== "development" || leagues.length === 0) return leagues;
@@ -63,7 +63,7 @@ export const getLeagueStandingsForDisplay = cache(async function getLeagueStandi
 
   try {
     const sources = await db
-      .select({ label: leagueSources.label, standingsUrl: leagueSources.standingsUrl })
+      .select({ label: leagueSources.label, standingsUrl: leagueSources.standingsUrl, logoUrl: leagueSources.logoUrl, isMainLeague: leagueSources.isMainLeague })
       .from(leagueSources)
       .where(isNotNull(leagueSources.standingsUrl))
       .orderBy(leagueSources.displayOrder, leagueSources.label);
@@ -77,9 +77,9 @@ export const getLeagueStandingsForDisplay = cache(async function getLeagueStandi
         const url = source.standingsUrl as string;
         try {
           const standings = await getStandings(url);
-          return { label: source.label, standings, url };
+          return { label: source.label, standings, url, logoUrl: source.logoUrl, isMainLeague: source.isMainLeague };
         } catch {
-          return { label: source.label, standings: [], url };
+          return { label: source.label, standings: [], url, logoUrl: source.logoUrl, isMainLeague: source.isMainLeague };
         }
       }),
     );

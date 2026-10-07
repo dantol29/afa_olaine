@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 export type AcademyTeam = {
@@ -65,7 +66,7 @@ export function AcademyContent({ teams }: { teams: AcademyTeam[] }) {
                     {team.players.map((player) => (
                       <li key={player.id} className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto]">
                         <span className="font-heading text-2xl text-[#fbb040]">{player.number ?? "—"}</span>
-                        <span className="font-heading text-xl font-semibold uppercase">{player.name}</span>
+                        <Link href={`/komanda/speletaji/${player.id}`} className="font-heading text-xl font-semibold uppercase transition-colors hover:text-[#fbb040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#fbb040]">{player.name}</Link>
                         {player.position && <span className="col-start-2 text-sm text-white/55 sm:col-start-auto">{player.position}</span>}
                       </li>
                     ))}

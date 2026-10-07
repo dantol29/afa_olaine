@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Image from "next/image";
 
 import { createLeagueSource, updateLeagueSource } from "../actions";
 
@@ -12,6 +13,8 @@ type LeagueSource = {
   standingsUrl: string | null;
   topScorersUrl: string | null;
   displayOrder: number;
+  logoUrl: string | null;
+  isMainLeague: boolean;
 };
 type TeamOption = { id: number; name: string };
 
@@ -41,6 +44,19 @@ export function LeagueSourceForm(
           defaultValue={source?.label ?? ""}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
         />
+      </label>
+
+      <div className="mt-4">
+        <label htmlFor="league-logo" className="block text-sm font-semibold text-club-navy">Līgas logotips</label>
+        {source?.logoUrl && <Image src={source.logoUrl} alt={`${source.label} logotips`} width={96} height={96} className="mt-3 size-24 object-contain" unoptimized />}
+        <input id="league-logo" name="logo" type="file" accept="image/jpeg,image/png,image/webp" className="mt-3 block w-full text-sm text-club-navy file:mr-3 file:border-0 file:bg-club-gray-light file:px-3 file:py-2 file:font-semibold file:text-club-navy" />
+        <p className="mt-1.5 text-xs text-slate-400">JPEG, PNG vai WebP, līdz 5 MB. Nav obligāts.</p>
+        {source?.logoUrl && <label className="mt-3 flex items-center gap-2 text-sm text-club-navy"><input type="checkbox" name="removeLogo" /> Noņemt pašreizējo logotipu</label>}
+      </div>
+
+      <label className="mt-5 flex items-center gap-2 text-sm font-semibold text-club-navy">
+        <input type="checkbox" name="isMainLeague" defaultChecked={source?.isMainLeague ?? false} />
+        Galvenā līga
       </label>
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">

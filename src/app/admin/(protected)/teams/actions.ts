@@ -33,7 +33,8 @@ export async function createTeam(
     return { error: error instanceof Error ? error.message : "Komandu neizdevās saglabāt." };
   }
   revalidatePath("/admin/teams");
-  revalidatePath("/komandas");
+  revalidatePath("/komanda");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/akademija");
   redirect("/admin/teams");
 }
@@ -67,7 +68,8 @@ export async function updateTeam(
   }
   if (groupPhotoUrl !== existing.groupPhotoUrl) await deleteUploadedPhoto(existing.groupPhotoUrl);
   revalidatePath("/admin/teams");
-  revalidatePath("/komandas");
+  revalidatePath("/komanda");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/akademija");
   redirect("/admin/teams");
 }
@@ -79,6 +81,7 @@ export async function deleteTeam(id: number) {
   await db.delete(teams).where(eq(teams.id, id));
   await deleteUploadedPhoto(existing?.groupPhotoUrl ?? null);
   revalidatePath("/admin/teams");
-  revalidatePath("/komandas");
+  revalidatePath("/komanda");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/akademija");
 }

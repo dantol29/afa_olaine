@@ -20,6 +20,7 @@ export type UpcomingGame = {
   away: Team;
   venue: string;
   league: string;
+  leagueLogoUrl?: string | null;
 };
 
 export function isOlaine(name: string) {

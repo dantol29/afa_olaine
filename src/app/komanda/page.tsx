@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 
 import { TeamPageContent } from "@/components/team-page-content";
 import { SiteEnding } from "@/components/site-ending";
@@ -7,11 +7,11 @@ import { InnerPageHero } from "@/components/inner-page-hero";
 import { db } from "@/db/client";
 import { groupTeamPagePlayers, teamTabFromSearchParam } from "@/lib/team-page";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "AFA Olaine komanda | Spēlētāji un treneri",
   description: "Iepazīsti AFA Olaine futbola komandas spēlētājus un trenerus. Apskati sastāvu, pozīcijas, spēlētāju profilus un komandas personālu.",
-  alternates: { canonical: "/komanda" },
-};
+  path: "/komanda",
+});
 
 export default async function TeamPage({ searchParams }: { searchParams: Promise<{ skats?: string | string[] }> }) {
   const { skats } = await searchParams;

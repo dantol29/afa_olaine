@@ -9,20 +9,14 @@ type SponsorTickerPartner = {
 
 export type SponsorTickerItem = SponsorTickerPartner;
 
-const LEAGUE_MARK: SponsorTickerItem = {
-  id: 0,
-  name: "Altero.lv 2. līga",
-  logoUrl: "/altero-liga.png",
-  needsWhite: true,
-};
-
 /** Places the league identity ahead of the admin-managed sponsor records. */
-export function sponsorTickerItems(partners: SponsorTickerPartner[]): SponsorTickerItem[] {
-  return [LEAGUE_MARK, ...partners];
+export function sponsorTickerItems(partners: SponsorTickerPartner[], leagueMark?: SponsorTickerItem | null): SponsorTickerItem[] {
+  return leagueMark ? [leagueMark, ...partners] : partners;
 }
 
 /** Keeps the league mark fixed while every database sponsor can loop. */
-export function splitSponsorTickerItems(items: SponsorTickerItem[]) {
+export function splitSponsorTickerItems(items: SponsorTickerItem[], hasLeagueMark = false) {
+  if (!hasLeagueMark) return { staticItem: undefined, movingItems: items };
   const [staticItem, ...movingItems] = items;
   return { staticItem, movingItems };
 }

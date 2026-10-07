@@ -4,9 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Menu, UserRound, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { ClubNav } from "./club-nav";
 import { SiteNavLink } from "./site-nav-link";
 import { SiteSearch } from "./site-search";
+import { HeaderCustomLinks } from "./header-custom-links";
+import { TeamLogo } from "./team-logo";
 
 type HeroArticle = {
   slug: string;
@@ -24,20 +25,13 @@ type LastGame = {
 };
 
 function ScoreRailMark({ name, logo }: { name: string; logo?: string }) {
-  return logo ? (
-    <Image src={logo} alt={name} width={28} height={28} className="size-7 object-contain" />
-  ) : (
-    <span className="grid size-7 place-items-center rounded-full border border-white/30 font-heading text-[10px] text-white">
-      {name.slice(0, 2).toUpperCase()}
-    </span>
-  );
+  return <TeamLogo src={logo} name={name} width={28} height={28} className="size-7 object-contain" fallbackClassName="grid size-7 place-items-center rounded-full border border-white/30 font-heading text-sm text-white" />;
 }
 
 export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; lastGame?: LastGame }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const article = articles[activeIndex];
   const showPreviousArticle = () => {
@@ -48,7 +42,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
   };
   useEffect(() => {
     const updateHeader = () => {
-      setHasScrolled((heroRef.current?.getBoundingClientRect().bottom ?? 0) <= (window.innerWidth >= 768 ? 80 : 76));
+      setHasScrolled((heroRef.current?.getBoundingClientRect().bottom ?? 0) <= (window.innerWidth >= 1024 ? 80 : 76));
     };
     updateHeader();
     window.addEventListener("scroll", updateHeader, { passive: true });
@@ -72,13 +66,13 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
     <section ref={heroRef} id="jaunumi" data-site-hero className="relative z-10 h-[88svh] min-h-[600px] w-full overflow-visible bg-[#050505] md:h-[90svh] md:min-h-[680px]" aria-label="AFA Olaine">
       <h1 className="sr-only">AFA Olaine — futbola klubs un akadēmija Olainē</h1>
       <header
-        className={`fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out motion-reduce:transition-none ${hasScrolled || isMenuOpen || clubMenuOpen ? "bg-[#050505]" : "bg-transparent"}`}
+        className={`fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out motion-reduce:transition-none ${hasScrolled || isMenuOpen ? "bg-[#050505]" : "bg-transparent"}`}
         style={{
           boxShadow: hasScrolled ? "0 8px 28px rgba(0,0,0,0.32)" : "none",
           backdropFilter: hasScrolled ? "blur(12px)" : "none",
         }}
       >
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <div className="hidden relative h-10 items-center justify-center border-b border-white/10 font-heading text-sm font-semibold uppercase tracking-wide">
             {lastGame ? (
               <>
@@ -93,27 +87,27 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
             )}
           </div>
           <div className="mx-auto flex h-20 w-[calc(100%-3rem)] max-w-[1500px] items-center justify-between pt-4 md:w-[calc(100%-10rem)]">
-            <div className="flex items-center">
+            <div className="flex min-w-0 flex-1 items-center">
               <Link href="/" aria-label="AFA Olaine sākumlapa" className="relative z-10 flex size-[104px] shrink-0 translate-y-3 items-center justify-center">
                 <Image src="/hero-logo.png" alt="" width={94} height={94} priority className="size-[94px] object-contain" />
               </Link>
-              <nav aria-label="Galvenā navigācija" className="ml-5 flex items-center gap-6 font-heading text-[18px] font-semibold uppercase tracking-wide lg:gap-8">
+              <nav aria-label="Galvenā navigācija" className="ml-5 flex min-w-0 items-center gap-4 overflow-x-auto whitespace-nowrap [scrollbar-width:thin] [&>a]:shrink-0 font-heading text-[16px] font-semibold uppercase tracking-wide xl:gap-8 xl:text-[18px]">
                 <SiteNavLink href="/">Sākums</SiteNavLink>
                 <SiteNavLink href="/jaunumi">Jaunumi</SiteNavLink>
-                <ClubNav portalContainer={heroRef} onOpenChange={setClubMenuOpen} />
+                <SiteNavLink href="/komanda">Komanda</SiteNavLink><SiteNavLink href="/akademija">Akadēmija</SiteNavLink>
                 <SiteNavLink href="/speles">Spēles</SiteNavLink>
                 <SiteNavLink href="/trenini">Treniņi</SiteNavLink>
-                <SiteNavLink href="/kontakti">Kontakti</SiteNavLink>
+                <HeaderCustomLinks /><SiteNavLink href="/kontakti">Kontakti</SiteNavLink>
               </nav>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="ml-4 flex shrink-0 items-center gap-4">
               <SiteSearch className="grid size-10 place-items-center transition-colors hover:text-[#fbb040]" onOpen={() => setIsMenuOpen(false)} />
               <Link href="/admin" prefetch={false} aria-label="Profils" className="grid size-10 place-items-center transition-colors hover:text-[#fbb040]"><UserRound className="size-6" /></Link>
             </div>
           </div>
         </div>
 
-        <div className="flex h-[76px] items-center justify-between px-6 md:hidden">
+        <div className="flex h-[76px] items-center justify-between px-6 lg:hidden">
           <Link href="/" aria-label="AFA Olaine sākumlapa" className="relative z-10 flex size-[92px] shrink-0 translate-y-3 items-center justify-center">
             <Image src="/hero-logo.png" alt="" width={88} height={88} priority className="size-[88px] object-contain" />
           </Link>
@@ -133,7 +127,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
           <nav
             id="mobile-navigation"
             aria-label="Mobilā navigācija"
-            className="absolute left-0 top-full flex max-h-[calc(100dvh-76px)] min-h-[calc(100dvh-76px)] w-full flex-col overflow-y-auto border-t border-white/15 bg-[#050505] px-6 py-8 text-center font-heading text-[30px] font-semibold uppercase leading-[1.3] tracking-wide text-white shadow-[0_16px_32px_rgba(0,0,0,0.45)]"
+            className="site-menu-enter absolute left-0 top-full flex max-h-[calc(100dvh-76px)] min-h-[calc(100dvh-76px)] w-full flex-col overflow-y-auto border-t border-white/15 bg-[#050505] px-6 py-8 text-center font-heading text-[30px] font-semibold uppercase leading-[1.3] tracking-wide text-white shadow-[0_16px_32px_rgba(0,0,0,0.45)]"
           >
             <SiteNavLink href="/" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
               Sākums
@@ -141,28 +135,30 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
             <SiteNavLink href="/jaunumi" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
               Jaunumi
             </SiteNavLink>
-            <ClubNav mobile onNavigate={() => setIsMenuOpen(false)} />
+            <SiteNavLink href="/komanda" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">Komanda</SiteNavLink><SiteNavLink href="/akademija" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">Akadēmija</SiteNavLink>
             <SiteNavLink href="/speles" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
               Spēles
             </SiteNavLink>
             <SiteNavLink href="/trenini" onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-4">
               Treniņi
             </SiteNavLink>
-            <SiteNavLink href="/kontakti" onClick={() => setIsMenuOpen(false)} className="py-4">
+            <HeaderCustomLinks mobile onNavigate={() => setIsMenuOpen(false)} /><SiteNavLink href="/kontakti" onClick={() => setIsMenuOpen(false)} className="py-4">
               Kontakti
             </SiteNavLink>
+            
           </nav>
         )}
       </header>
 
       <div className="absolute inset-0 overflow-visible">
         <Image
+          key={article?.slug ?? "team"}
           src={article?.image ?? "/hero-team.png"}
           alt={article?.title ?? "AFA Olaine komanda"}
           width={1920}
           height={1080}
           priority
-          className="absolute inset-0 size-full object-cover"
+          className="site-hero-photo absolute inset-0 size-full object-cover"
         />
         <div
           aria-hidden="true"
@@ -176,12 +172,13 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
         {article && (
           <>
             <div className="absolute -bottom-28 left-1/2 w-[calc(100%-3rem)] max-w-[1500px] -translate-x-1/2 bg-[#050505] px-6 py-7 md:w-[calc(100%-10rem)] md:px-10 md:py-8 xl:px-10">
-              <div className="flex flex-col items-start gap-6">
-                <h2 className="max-w-[1050px] font-heading text-[26px] font-semibold uppercase leading-[1.05] text-white md:text-[38px]">
+              <div className="relative flex flex-col items-start gap-6">
+                <span key={`accent-${article.slug}`} aria-hidden="true" className="site-hero-accent absolute -top-7 left-0 h-0.5 w-16 bg-[#fbb040] md:-top-8" />
+                <h2 key={article.slug} className="site-hero-title max-w-[1050px] font-heading text-[26px] font-semibold uppercase leading-[1.05] text-white md:text-[38px]">
                   {article.title}
                 </h2>
                 <div className="flex w-full items-center justify-between gap-2.5">
-                  <Link href={`/jaunumi/${article.slug}`} className="bg-[#fbb040] px-6 py-3 font-heading text-[18px] font-semibold uppercase tracking-wide text-[#050505] transition-colors hover:bg-[#cd8d2e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  <Link href={`/jaunumi/${article.slug}`} className="site-action bg-[#fbb040] px-6 py-3 font-heading text-[18px] font-semibold uppercase tracking-wide text-[#050505] transition-colors hover:bg-[#cd8d2e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                     Lasīt vairāk
                   </Link>
                   {articles.length > 1 && (

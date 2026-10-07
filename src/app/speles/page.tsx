@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 import { SiteHeader } from "@/components/site-header";
 import { SiteEnding } from "@/components/site-ending";
 import { GamesTabs } from "@/components/games-tabs";
@@ -6,11 +6,11 @@ import { InnerPageHero } from "@/components/inner-page-hero";
 import { getAllGamesFromDb } from "@/lib/games-server";
 import { getLogoBorderStripe } from "@/lib/logo-color";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "AFA Olaine spēles | Kalendārs un rezultāti",
   description: "Apskati AFA Olaine gaidāmās spēles un aizvadīto maču rezultātus. Spēļu datumi, pretinieki un norises vietas vienuviet futbola līdzjutējiem.",
-  alternates: { canonical: "/speles" },
-};
+  path: "/speles",
+});
 
 export default async function GamesPage() {
   const allGames = await getAllGamesFromDb();

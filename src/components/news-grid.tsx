@@ -21,10 +21,10 @@ function NewsImage({ article }: { article: Article }) {
   return (
     <Image
       src={src}
-      alt=""
+      alt={article.title}
       fill
       sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-      className="object-cover transition-transform duration-500 motion-reduce:transition-none group-hover:scale-[1.03]"
+      className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-[1.03] motion-reduce:group-hover:scale-100"
       onError={() => setSrc(fallbackImages[article.category])}
     />
   );
@@ -72,12 +72,12 @@ export function NewsGrid({ articles }: { articles: Article[] }) {
     <section aria-label="Jaunumu saraksts" className="bg-[#050505] pb-16 pt-6 text-white sm:pt-8 xl:pb-24">
       <div className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] md:w-[calc(100%-10rem)]">
         <div className="mb-8 grid grid-cols-2 gap-2 sm:mb-10 sm:flex sm:gap-3">
-          <Filter label="Sekcija" value={section} options={sections} onChange={setSection} />
+          <Filter label="Komanda" value={section} options={sections} onChange={setSection} />
           <Filter label="Kategorija" value={category} options={categories} onChange={setCategory} />
         </div>
 
         {visibleArticles.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-7 xl:gap-y-10">
+          <div key={`${section}:${category}`} className="site-panel-enter grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-7 xl:gap-y-10">
             {visibleArticles.map((article) => (
               <Link key={article.slug} href={`/jaunumi/${article.slug}`} className="group block min-w-0 bg-[#19191b] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-[#fbb040]">
                 <article className="h-full">
@@ -86,7 +86,7 @@ export function NewsGrid({ articles }: { articles: Article[] }) {
                     <span aria-hidden="true" className="absolute bottom-0 left-0 z-10 h-6 w-12 bg-[#19191b]"><span className="absolute right-0 top-0 h-3 w-6 bg-[#fbb040]" /><span className="absolute bottom-0 left-0 h-3 w-6 bg-[#050505]" /></span>
                   </div>
                   <div className="relative min-h-[132px] px-4 pb-5 pt-4 sm:min-h-[146px] sm:px-5">
-                    <p className="flex flex-wrap gap-x-2 font-sans text-sm leading-5"><span className="font-semibold text-[#fbb040]">{article.category}</span><span className="text-white/60">{article.date}</span></p>
+                    <p className="flex flex-wrap gap-x-2 font-sans text-sm leading-5"><span className="font-semibold text-[#fbb040]">{article.category}</span><time dateTime={article.dateKey} className="text-white/60">{article.date}</time></p>
                     <h2 className="mt-3 line-clamp-3 font-heading text-[25px] font-semibold uppercase leading-[1.03] sm:text-[28px]">{article.title}</h2>
                   </div>
                 </article>

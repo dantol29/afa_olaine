@@ -21,11 +21,14 @@ export function sanitizeRichText(input: string): string {
     const href = tag === "a" ? element.attribs.href : undefined;
     for (const attribute of Object.keys(element.attribs)) $(element).removeAttr(attribute);
     if (tag !== "a") return;
-    if (!href || !/^(https?:\/\/|mailto:)/i.test(href)) {
+    // Preserve local links without allowing protocol-relative or script URLs.
+    const localLink = href && /^(\/(?!\/)|#)/.test(href) && !/[\\\s\u0000-\u001f]/.test(href);
+    if (!href || (!localLink && !/^(https?:\/\/|mailto:|tel:)/i.test(href))) {
       $(element).replaceWith($(element).contents());
       return;
     }
-    $(element).attr({ href, rel: "noopener noreferrer", target: "_blank" });
+    $(element).attr("href", href);
+    if (!localLink) $(element).attr({ rel: "noopener noreferrer", target: "_blank" });
   });
 
   return $.html().trim();

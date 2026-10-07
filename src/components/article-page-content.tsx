@@ -27,6 +27,7 @@ export function ArticlePageContent({ article }: { article: Article }) {
           <time dateTime={article.dateKey} className="text-white/65">{article.date}</time>
         </div>
         <h1 className="font-heading text-[34px] font-semibold uppercase leading-[0.96] tracking-[-0.02em] sm:text-[46px] lg:text-[56px]">{article.title}</h1>
+        {article.authorName && <p className="mt-4 font-sans text-sm text-white/65">Autors: <span className="text-white">{article.authorName}</span>{article.authorPosition ? ` — ${article.authorPosition}` : ""}</p>}
         <div className="mt-7 flex justify-start">
           <ArticleShareButtons title={article.title} />
         </div>

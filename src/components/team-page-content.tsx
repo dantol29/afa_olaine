@@ -102,8 +102,7 @@ export function TeamPageContent({ playerGroups, coaches, initialTab = "players" 
           </button>
         </div>
 
-        {activeTab === "players" ? (
-          <div id="players-panel" role="tabpanel" aria-labelledby="players-tab" className="[&>section:first-child]:pt-0">
+          <div hidden={activeTab !== "players"} id="players-panel" role="tabpanel" aria-labelledby="players-tab" className="site-panel-enter [&>section:first-child]:pt-0">
             {playerGroups.map((group) => (
               <TeamRosterRail
                 key={group.label}
@@ -120,8 +119,7 @@ export function TeamPageContent({ playerGroups, coaches, initialTab = "players" 
               />
             ))}
           </div>
-        ) : (
-          <div id="staff-panel" role="tabpanel" aria-labelledby="staff-tab" className="[&>section:first-child]:pt-0">
+          <div hidden={activeTab !== "staff"} id="staff-panel" role="tabpanel" aria-labelledby="staff-tab" className="site-panel-enter [&>section:first-child]:pt-0">
             <TeamRosterRail
               title="Treneri"
               sectionId="coaches"
@@ -136,7 +134,6 @@ export function TeamPageContent({ playerGroups, coaches, initialTab = "players" 
               }))}
             />
           </div>
-        )}
       </div>
     </section>
   );

@@ -63,7 +63,7 @@ export function SiteSearch({ className = "", onOpen }: { className?: string; onO
     <button ref={trigger} type="button" aria-label="Meklēt" aria-haspopup="dialog" aria-expanded={open} onClick={() => { onOpen?.(); setResults(null); setError(false); setLoading(term.length >= 2); setOpen(true); }} className={`${className} cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#fbb040]`}><Search className="size-6" aria-hidden="true" /></button>
     {open && createPortal(
       <dialog ref={dialog} aria-labelledby={`${id}-heading`} onCancel={() => setOpen(false)} className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none overflow-y-auto border-0 bg-[#050505] p-0 text-white backdrop:bg-black/70 selection:bg-[#fbb040] selection:text-[#050505]">
-        <div className="mx-auto w-[calc(100%-3rem)] max-w-[960px] py-6 sm:py-10">
+        <div className="site-overlay-enter mx-auto w-[calc(100%-3rem)] max-w-[960px] py-6 sm:py-10">
           <div className="mb-8 flex items-center justify-between gap-4">
             <h2 id={`${id}-heading`} className="font-heading text-3xl font-semibold uppercase sm:text-4xl">Meklēt</h2>
             <button type="button" aria-label="Aizvērt meklēšanu" onClick={() => setOpen(false)} className="grid size-11 cursor-pointer place-items-center hover:text-[#fbb040] focus-visible:outline-2 focus-visible:outline-[#fbb040]"><X className="size-7" aria-hidden="true" /></button>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import { TeamLogo } from "./team-logo";
+import { colorFor } from "@/lib/games";
 import {
   CalendarDays,
   ChevronLeft,
@@ -16,7 +17,6 @@ import {
 import { OPEN_CALENDAR_EVENT_NAME } from "@/lib/calendar-bridge";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar";
-import { colorFor, initialsFor } from "@/lib/games";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
 import {
   Select,
@@ -378,18 +378,7 @@ function EventCard({
 function TeamBadgeMini({ name, logo }: { name: string; logo: string | null }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center">
-      {logo ? (
-        <Image src={logo} alt={name} width={40} height={40} className="h-10 w-10 object-contain" />
-      ) : (
-        <div
-          className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full text-[10px] font-extrabold text-white",
-            colorFor(name),
-          )}
-        >
-          {initialsFor(name)}
-        </div>
-      )}
+      <TeamLogo src={logo} name={name} width={40} height={40} className="h-10 w-10 object-contain" fallbackClassName={cn("flex h-10 w-10 items-center justify-center rounded-full text-base font-extrabold text-white", colorFor(name))} />
       <span className="line-clamp-2 text-[11px] leading-tight text-club-navy">{name}</span>
     </div>
   );

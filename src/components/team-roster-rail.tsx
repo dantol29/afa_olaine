@@ -29,7 +29,7 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
   };
 
   return (
-    <section id={sectionId} aria-labelledby={`${sectionId}-heading`} className="overflow-hidden bg-[#050505] py-14 text-white xl:py-20">
+    <section id={sectionId} aria-labelledby={`${sectionId}-heading`} className="relative isolate z-0 overflow-hidden bg-[#050505] py-14 text-white xl:py-20">
       <div className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] md:w-[calc(100%-10rem)]">
         <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-3">
@@ -64,7 +64,7 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
         >
         {players.map((player, index) => (
           <SwiperSlide key={player.id} className={`!h-[420px] !w-[260px] sm:!h-[460px] sm:!w-[280px] ${index > 0 ? "-ml-7 sm:-ml-10" : ""}`}>
-            <article className={`relative h-full min-w-0 transition-transform duration-300 ${index === 0 ? "origin-bottom-left" : "origin-bottom"} ${selectedIndex === index ? "z-10 scale-[1.16] sm:scale-[1.23]" : "scale-[0.94]"}`}>
+            <article className={`relative h-full min-w-0 transition-transform duration-300 motion-reduce:transition-none ${index === 0 ? "origin-bottom-left" : "origin-bottom"} ${selectedIndex === index ? "z-10 scale-[1.16] sm:scale-[1.23]" : "scale-[0.94]"}`}>
               <button
                 type="button"
                 aria-label={`Rādīt ${player.name} profilu`}
@@ -76,12 +76,12 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
                 className="relative block h-full w-full cursor-pointer text-left"
               >
                 {player.imageUrl ? (
-                  <Image src={player.imageUrl} alt={player.name} fill sizes="(min-width: 640px) 280px, 260px" className={`object-contain object-bottom transition-[filter] duration-300 ${selectedIndex === index ? "brightness-100" : "brightness-[0.55] sm:brightness-[0.82]"}`} />
+                  <Image src={player.imageUrl} alt={player.name} fill sizes="(min-width: 640px) 280px, 260px" className={`object-contain object-bottom transition-[filter] duration-300 motion-reduce:transition-none ${selectedIndex === index ? "brightness-100" : "brightness-[0.55] sm:brightness-[0.82]"}`} />
                 ) : (
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_32%,#333_0%,#111_50%,#050505_100%)]" />
                 )}
               </button>
-                <div className={`pointer-events-none absolute left-[86%] top-12 z-20 hidden items-start whitespace-nowrap transition-all duration-300 sm:flex ${selectedIndex === index ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"}`}>
+                <div className={`pointer-events-none absolute left-[86%] top-12 z-20 hidden items-start whitespace-nowrap transition-[transform,opacity] duration-300 motion-reduce:transition-none sm:flex ${selectedIndex === index ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"}`}>
                   {player.number !== null && <p className="font-heading text-[94px] font-semibold leading-[0.82] tracking-[-0.08em] text-white sm:text-[142px]">{player.number}</p>}
                   <div className={`${player.number !== null ? "ml-8 sm:ml-10" : "ml-0"} pt-1 sm:pt-2`}>
                     <h3 className="font-heading text-[22px] font-semibold uppercase leading-[0.88] sm:text-[30px]">{player.name}</h3>

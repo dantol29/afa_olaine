@@ -1,5 +1,6 @@
 "use client";
 
+import { TeamLogo } from "./team-logo";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
@@ -24,13 +25,7 @@ const SEASON_MONTHS = [7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6];
 function TeamMark({ name, logo }: { name: string; logo?: string | null }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 text-center">
-      {logo ? (
-        <Image src={logo} alt="" width={60} height={60} className="size-[60px] object-contain" />
-      ) : (
-        <span className="grid size-[60px] place-items-center rounded-full bg-[#f1f1ef] text-sm font-bold text-[#111]">
-          {name.slice(0, 2).toUpperCase()}
-        </span>
-      )}
+      <TeamLogo src={logo} name={name} width={60} height={60} className="size-[60px] object-contain" fallbackClassName="grid size-[60px] place-items-center rounded-full bg-[#f1f1ef] text-xl font-bold text-[#111]" />
       <span className="line-clamp-2 font-heading text-[18px] font-semibold leading-[1.2] text-black">{name}</span>
     </div>
   );

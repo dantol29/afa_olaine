@@ -21,7 +21,7 @@ export function InnerPageHero({ title, id }: { title: string; id: string }) {
         </div>
       </nav>
       <div className="relative z-10 mx-auto w-[calc(100%-3rem)] max-w-[1500px] pb-32 md:w-[calc(100%-10rem)] md:pb-36">
-        <h1 id={id} className="font-heading text-[58px] font-semibold uppercase leading-[0.9] tracking-[-0.035em] sm:text-[72px] lg:text-[88px]">{title}</h1>
+        <h1 id={id} className="site-page-title font-heading text-[58px] font-semibold uppercase leading-[0.9] tracking-[-0.035em] sm:text-[72px] lg:text-[88px]">{title}</h1>
       </div>
     </section>
   );

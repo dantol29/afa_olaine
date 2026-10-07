@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 
 import { InnerPageHero } from "@/components/inner-page-hero";
 import { SiteEnding } from "@/components/site-ending";
@@ -9,11 +9,11 @@ import { getAllTrainingsFromDb } from "@/lib/trainings-server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "AFA Olaine treniņi | Komandu grafiks Olainē",
   description: "Atrodi AFA Olaine komandu treniņu laikus, vietas un trenerus. Pārskati futbola nodarbību grafiku Olainē un izvēlies sev interesējošo komandu.",
-  alternates: { canonical: "/trenini" },
-};
+  path: "/trenini",
+});
 
 export default async function TrainingsPage() {
   const trainings = await getAllTrainingsFromDb();

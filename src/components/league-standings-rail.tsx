@@ -9,6 +9,7 @@ import type { Swiper as SwiperType } from "swiper";
 
 import { initialStandingCardIndex } from "@/lib/league-standings-cards";
 import { FullWidthGallery } from "./full-width-gallery";
+import { TeamLogo } from "./team-logo";
 
 type StandingCard = { pos: number; team: string; logo: string | null; played: number; points: number; isOlaine: boolean };
 
@@ -58,7 +59,7 @@ export function LeagueStandingsRail({ url, standings }: { url: string; standings
             <article className={`relative flex h-full min-w-0 flex-col overflow-hidden p-5 sm:p-6 ${team.isOlaine ? "bg-[linear-gradient(135deg,#8a6019,#3c2608)]" : "bg-[#19191B]"}`}>
               {team.isOlaine && team.logo && <Image src="/afaolaine-logo-outline.png" alt="" fill aria-hidden="true" className="pointer-events-none object-contain p-5 opacity-[0.3]" />}
               <span className="relative z-10 font-heading text-[64px] font-semibold leading-none text-white sm:text-[76px]">{team.pos}</span>
-              {team.logo ? <Image src={team.logo} alt="" width={64} height={64} className="absolute right-5 top-6 z-10 size-[52px] object-contain sm:right-6 sm:top-7 sm:size-[64px]" /> : <span className="absolute right-5 top-6 z-10 grid size-[52px] place-items-center rounded-full border border-white/30 font-heading text-sm sm:right-6 sm:top-7 sm:size-[64px]">{team.team.slice(0, 2).toUpperCase()}</span>}
+              <TeamLogo src={team.logo} name={team.team} width={64} height={64} className="absolute right-5 top-6 z-10 size-[52px] object-contain sm:right-6 sm:top-7 sm:size-[64px]" fallbackClassName="absolute right-5 top-6 z-10 grid size-[52px] place-items-center rounded-full border border-white/30 font-heading text-xl sm:right-6 sm:top-7 sm:size-[64px]" />
               <h3 className="relative z-10 mt-auto max-w-[190px] font-heading text-[24px] font-semibold uppercase leading-[0.98] sm:text-[29px]">{team.team}</h3>
               <dl className="relative z-10 mt-3 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[18px] leading-none sm:text-[21px]"><dt className="text-white/85">Punkti</dt><dd className="font-semibold">{team.points}</dd><dt className="text-white/65">Spēles</dt><dd className="text-white/80">{team.played}</dd></dl>
             </article>

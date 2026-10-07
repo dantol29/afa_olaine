@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Pencil } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
@@ -21,6 +22,8 @@ export default async function AdminLeagueSourcesPage() {
         standingsUrl: leagueSources.standingsUrl,
         topScorersUrl: leagueSources.topScorersUrl,
         displayOrder: leagueSources.displayOrder,
+        logoUrl: leagueSources.logoUrl,
+        isMainLeague: leagueSources.isMainLeague,
         teamName: teams.name,
       })
       .from(leagueSources)
@@ -122,7 +125,12 @@ export default async function AdminLeagueSourcesPage() {
           {rows.map((source) => (
             <tr data-admin-search-item={`${source.label} ${source.teamName} ${source.url} ${source.standingsUrl ?? ""} ${source.topScorersUrl ?? ""}`} key={source.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 text-slate-500">{source.displayOrder}</td>
-              <td className="p-4 font-semibold text-club-navy">{source.label}</td>
+              <td className="p-4 font-semibold text-club-navy">
+                <div className="flex items-center gap-3">
+                  {source.logoUrl && <Image src={source.logoUrl} alt={`${source.label} logotips`} width={40} height={40} className="size-10 shrink-0 object-contain" unoptimized />}
+                  <div>{source.label}{source.isMainLeague && <span className="mt-1 block text-xs font-semibold text-club-red">Galvenā līga</span>}</div>
+                </div>
+              </td>
               <td className="p-4 text-slate-500">{source.teamName}</td>
               <td className="max-w-xs truncate p-4 text-slate-500">{source.url}</td>
               <td className="p-4 text-right">

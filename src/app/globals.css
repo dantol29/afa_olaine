@@ -179,7 +179,7 @@
     transition: transform 150ms ease-out;
   }
   button:not(:disabled):active {
-    transform: scale(0.9);
+    transform: scale(0.97);
   }
   /* Consistent keyboard-focus ring for every plain button/link — most of
    * this site's interactive elements are hand-styled buttons/anchors
@@ -456,4 +456,75 @@
 .admin-theme :is(a, button, input, textarea, select):focus-visible {
   outline: 2px solid #fbb040;
   outline-offset: 2px;
+}
+
+.rich-page-content.custom-page-body :is(h2, h3) { color: white; }
+.rich-page-content.custom-page-body a { color: #fbb040; }
+.rich-page-content.custom-page-body blockquote { border-color: #fbb040; color: rgb(255 255 255 / 75%); }
+
+/* The hero carries the focal sequence; controls and panels use shorter feedback. */
+:root {
+  --site-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes site-story-enter {
+  from { opacity: 0.8; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes site-accent-enter {
+  from { opacity: 0.55; transform: scaleX(0.25); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+@keyframes site-photo-enter {
+  from { opacity: 0.85; }
+  to { opacity: 1; }
+}
+
+@keyframes site-panel-enter {
+  from { opacity: 0.85; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes site-menu-enter {
+  from { opacity: 0.85; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.site-hero-title { animation: site-story-enter 480ms var(--site-motion-ease); }
+.site-hero-accent { transform-origin: left; animation: site-accent-enter 600ms var(--site-motion-ease); }
+.site-hero-photo { animation: site-photo-enter 320ms ease-out; }
+.site-page-title { animation: site-panel-enter 380ms var(--site-motion-ease); }
+.site-panel-enter { animation: site-panel-enter 220ms var(--site-motion-ease); }
+.site-menu-enter { animation: site-menu-enter 240ms var(--site-motion-ease); }
+.site-overlay-enter { animation: site-panel-enter 280ms var(--site-motion-ease); }
+
+.site-action {
+  transition: background-color 150ms ease-out, transform 150ms var(--site-motion-ease);
+}
+.site-action:active { transform: scale(0.98); }
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .site-nav-link { position: relative; }
+  .site-nav-link::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -4px;
+    height: 1px;
+    background: #fbb040;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 180ms var(--site-motion-ease);
+  }
+  .site-nav-link:is(:hover, :focus-visible)::after { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-hero-title, .site-hero-accent, .site-hero-photo, .site-page-title,
+  .site-panel-enter, .site-menu-enter, .site-overlay-enter { animation: none; }
+  .site-action { transition: background-color 150ms ease-out; }
+  .site-action:active { transform: none; }
+  .site-nav-link::after { transition: none; }
 }

@@ -10,46 +10,28 @@ import { TiktokVideosRail } from "@/components/tiktok-videos-rail";
 import { getAllGamesFromDb } from "@/lib/games-server";
 import { getArticles } from "@/lib/jaunumi-server";
 import { UpcomingGamesSection } from "@/components/upcoming-games-section";
-import { getPublicSiteSettings } from "@/lib/site-settings";
+import { StructuredData } from "@/components/structured-data";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  alternates: { canonical: "/", types: { "application/rss+xml": "/feed.xml" } },
 };
 
 export default async function HomePage() {
-  const [articles, games, settings] = await Promise.all([getArticles(), getAllGamesFromDb(), getPublicSiteSettings()]);
+  const [articles, games] = await Promise.all([getArticles(), getAllGamesFromDb()]);
   const lastGame = games.filter((game) => game.isPast).at(-1);
-  const siteUrl = getSiteUrl();
-  const organization = {
-    "@context": "https://schema.org",
-    "@type": "SportsOrganization",
-    "@id": `${siteUrl}/#organization`,
-    name: "AFA Olaine",
-    legalName: settings.legalName,
-    url: siteUrl,
-    logo: `${siteUrl}/afaolaine-logo.png`,
-    sport: "Football",
-    foundingDate: "2013",
-    email: settings.email,
-    telephone: settings.phone,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: settings.legalAddress,
-      addressLocality: "Olaine",
-      addressCountry: "LV",
-    },
-    sameAs: [
-      "https://www.facebook.com/afaolaine.sievietes/",
-      "https://www.instagram.com/afa.olaine/",
-      "https://www.youtube.com/@afaolaine",
-      "https://www.tiktok.com/@afa.olaine",
-    ],
-  };
 
   return (
     <main className="min-h-screen bg-[#050505]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization).replace(/</g, "\\u003c") }} />
+      <StructuredData data={{
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": `${getSiteUrl()}/#website`,
+        name: "AFA Olaine",
+        url: getSiteUrl(),
+        inLanguage: "lv-LV",
+        publisher: { "@id": `${getSiteUrl()}/#organization` },
+      }} />
       <SiteHero
         articles={articles.slice(0, 3)}
         lastGame={

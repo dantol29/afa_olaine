@@ -128,9 +128,11 @@ export async function createArticle(
     createdAt: Date.now(),
   });
 
+  revalidatePath("/jaunumi/[slug]", "page");
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
   revalidatePath("/sitemap.xml");
+  revalidatePath("/feed.xml");
   revalidatePath("/");
   redirect("/admin/jaunumi");
 }
@@ -191,9 +193,11 @@ export async function updateArticle(
     .set({ ...articleFields, image: imageUrl, highlights })
     .where(eq(articles.id, id));
 
+  revalidatePath("/jaunumi/[slug]", "page");
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
   revalidatePath("/sitemap.xml");
+  revalidatePath("/feed.xml");
   revalidatePath("/");
   revalidatePath(`/jaunumi/${existing.slug}`);
   redirect("/admin/jaunumi");
@@ -213,8 +217,10 @@ export async function deleteArticle(id: number) {
   }
 
   await db.delete(articles).where(eq(articles.id, id));
+  revalidatePath("/jaunumi/[slug]", "page");
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
   revalidatePath("/sitemap.xml");
+  revalidatePath("/feed.xml");
   revalidatePath("/");
 }

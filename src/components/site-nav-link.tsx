@@ -23,7 +23,7 @@ export function SiteNavLink({
       href={href}
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className={`${className} transition-colors hover:text-[#fbb040] ${active ? "text-[#fbb040]" : ""}`}
+      className={`${className} site-nav-link transition-colors hover:text-[#fbb040] ${active ? "text-[#fbb040]" : ""}`}
     >
       {children}
     </Link>

@@ -15,7 +15,7 @@ export default async function AdminClubPagesPage() {
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-club-navy">Kluba lapas</h1>
-          <p className="mt-1 text-sm text-slate-500">Pārvaldi lapas, kas redzamas izvēlnē “Klubs”.</p>
+          <p className="mt-1 text-sm text-slate-500">Pārvaldi lapas, kas redzamas galvenajā navigācijā.</p>
         </div>
         <Link href="/admin/club-pages/new" className="shrink-0 rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark">+ Pievienot</Link>
       </div>

@@ -40,4 +40,37 @@ Set both env vars (plus `SESSION_SECRET`, `ADMIN_PASSWORD`, `CRON_SECRET`, `SITE
 
 `SITE_URL` should be the real public domain (`https://fkolaine.com`, no trailing slash) — `robots.txt` and `sitemap.xml` build their absolute links from it.
 
+For an existing database, add league-source logo and main-league fields before deploying this version:
+
+```sh
+NODE_ENV=production node scripts/migrate-league-source-metadata.mjs
+```
+
+The migration is safe to rerun and only adds `logo_url` and `is_main_league`. Existing sources start with no logo and `is_main_league = false`; set the values under **Līgu avoti**. Uploaded league logos use the existing uploads directory and image limits. The main-league flag is stored per source and does not enforce uniqueness. The homepage sponsor strip uses the first marked source in display order for its league logo. Match cards use the logo of the source matching their team and league name. If no logo is saved, the sponsor strip omits the league mark and match cards show the league name.
+
 - **Outgoing email** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) — used for notification emails (e.g. the LFF sync alerting an admin that a game needs review). In cPanel: Email Accounts → pick/create a mailbox (e.g. `info@yourdomain.com`) → "Connect Devices" next to it shows the exact host/port to use (typically `mail.yourdomain.com`, port `465` for SSL or `587` for STARTTLS). `SMTP_USER`/`SMTP_PASSWORD` are that mailbox's full address and password. Leave unset to disable email sending entirely — `src/lib/mailer.ts` just logs a warning and skips it rather than failing whatever triggered the notification.
+
+## Shared database package
+
+The source of truth is the private repository https://github.com/dantol29/olaine-database
+(local checkout: ../olaine_database). Both websites install the same exact release from
+GitHub Packages using the npm alias `@olaine/database` → `@dantol29/database`.
+Do not edit the installed package or maintain a separate schema in either website.
+
+### Installing and deploying
+
+Configure `NODE_AUTH_TOKEN` with a GitHub classic token granting `read:packages`
+on your development machine and in the cPanel deployment shell. The committed
+`.npmrc` contains only an environment-variable placeholder; never commit a token.
+For cPanel, the token must be available to the shell running `npm install`,
+not just the running Node application. Both deployments run `npm run db:migrate`
+before building. Both apps need the same database URL to share actual data.
+
+### Releasing a database change
+
+Edit the standalone repository, add any required idempotent migration, bump its
+package version, commit, and push a matching `vVERSION` tag. GitHub Actions
+publishes the private release using its own `GITHUB_TOKEN`.
+From FK Olaine, run `npm run db:update-shared -- VERSION` to install that exact
+release in both websites, then commit both manifests and lockfiles.
+Website database schema/client files are only compatibility imports.
