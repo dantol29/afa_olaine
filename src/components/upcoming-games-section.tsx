@@ -10,11 +10,13 @@ export async function UpcomingGamesSection() {
     : [];
   const games = upcomingGames.length > 0 ? upcomingGames : previousGames;
   const gamesWithBorderStripes = await Promise.all(
-    games.map(async (game) => ({
-      game,
-      homeBorderStripe: await getLogoBorderStripe(game.home.logo),
-      awayBorderStripe: await getLogoBorderStripe(game.away.logo),
-    })),
+    games.map(async (game) => {
+      const [homeBorderStripe, awayBorderStripe] = await Promise.all([
+        getLogoBorderStripe(game.home.logo),
+        getLogoBorderStripe(game.away.logo),
+      ]);
+      return { game, homeBorderStripe, awayBorderStripe };
+    }),
   );
 
   return (

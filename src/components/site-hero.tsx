@@ -157,6 +157,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
           alt={article?.title ?? "AFA Olaine komanda"}
           width={1920}
           height={1080}
+          sizes="100vw"
           priority
           className="site-hero-photo absolute inset-0 size-full object-cover"
         />

@@ -15,6 +15,7 @@ export async function getYouTubeViewCounts(): Promise<{ counts: Record<string, n
   try {
     const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`, {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(3000),
     });
     if (!response.ok) throw new Error(`YouTube API returned ${response.status}`);
     const data = await response.json();

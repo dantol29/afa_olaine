@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { LeagueStandingsSection } from "@/components/league-standings-section";
 import { SiteHero } from "@/components/site-hero";
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [articles, games] = await Promise.all([getArticles(), getAllGamesFromDb()]);
+  const [articles, games] = await Promise.all([getArticles(3), getAllGamesFromDb()]);
   const lastGame = games.filter((game) => game.isPast).at(-1);
 
   return (
@@ -48,13 +49,23 @@ export default async function HomePage() {
       />
       <SponsorsTicker />
       <div className="relative z-0">
-        <UpcomingGamesSection />
+        <Suspense fallback={<div aria-label="Ielādē spēles" className="min-h-[1360px] md:min-h-[980px] xl:min-h-[680px]" />}>
+          <UpcomingGamesSection />
+        </Suspense>
       </div>
-      <LeagueStandingsSection />
-      <TeamSection />
-      <AfaOlaineTvSection />
+      <Suspense fallback={<div aria-label="Ielādē līgas tabulu" className="min-h-[420px]" />}>
+        <LeagueStandingsSection />
+      </Suspense>
+      <Suspense fallback={<div aria-label="Ielādē komandu" className="min-h-[640px]" />}>
+        <TeamSection />
+      </Suspense>
+      <Suspense fallback={<div aria-label="Ielādē video" className="min-h-[480px]" />}>
+        <AfaOlaineTvSection />
+      </Suspense>
       <TiktokVideosRail />
-      <SiteEnding />
+      <Suspense fallback={<div aria-label="Ielādē kājeni" className="min-h-[480px]" />}>
+        <SiteEnding />
+      </Suspense>
     </main>
   );
 }

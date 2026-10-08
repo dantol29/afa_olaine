@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
@@ -34,7 +35,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
 const SETTINGS_ID = 1;
 
 /** Public contact details must reflect the saved database row exactly. */
-export async function getPublicSiteSettings(): Promise<SiteSettings> {
+export const getPublicSiteSettings = cache(async function getPublicSiteSettings(): Promise<SiteSettings> {
   const [row] = await db
     .select()
     .from(siteSettings)
@@ -42,7 +43,7 @@ export async function getPublicSiteSettings(): Promise<SiteSettings> {
 
   if (!row) throw new Error("Site settings are missing from the database.");
   return row;
-}
+});
 
 /** The club's editable legal/bank/contact details shown in the site
  *  footer. Singleton — always row id 1, created on first read if missing. */

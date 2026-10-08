@@ -32,10 +32,11 @@ function rowToArticle(row: ArticleRow, teamName: string | null, authorCoach: Aut
 }
 
 /** All articles for the /jaunumi directory, newest first. */
-export async function getArticles(): Promise<Article[]> {
+export async function getArticles(limit?: number): Promise<Article[]> {
   const rows = await db.query.articles.findMany({
     with: { team: true, authorCoach: true },
     orderBy: [desc(articles.date), desc(articles.createdAt)],
+    ...(limit === undefined ? {} : { limit }),
   });
   return rows.map((row) => rowToArticle(row, row.team?.name ?? null, row.authorCoach));
 }

@@ -16,7 +16,7 @@ async function logoBuffer(logo: string) {
     return readFile(assetPath);
   }
 
-  const response = await fetch(logo);
+  const response = await fetch(logo, { signal: AbortSignal.timeout(2000), next: { revalidate: 86400 } });
   if (!response.ok) throw new Error(`Could not fetch logo: ${response.status}`);
   return Buffer.from(await response.arrayBuffer());
 }
