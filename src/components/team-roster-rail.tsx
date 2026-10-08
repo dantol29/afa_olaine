@@ -30,7 +30,7 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
 
   return (
     <section id={sectionId} aria-labelledby={`${sectionId}-heading`} className="relative isolate z-0 overflow-hidden bg-[#050505] py-14 text-white xl:py-20">
-      <div className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] md:w-[calc(100%-10rem)]">
+      <div className="relative z-40 mx-auto w-[calc(100%-3rem)] max-w-[1500px] md:w-[calc(100%-10rem)]">
         <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-3">
             <h2 id={`${sectionId}-heading`} className="font-heading text-[32px] font-semibold uppercase leading-none sm:text-[42px]">{title}</h2>
@@ -47,7 +47,7 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative z-0">
         <FullWidthGallery
         className="mt-5 !overflow-visible pb-0 pt-8 sm:mt-20 sm:pb-10 sm:pt-28"
         slideWidth={(width) => width >= 640 ? 280 : 260}
@@ -63,8 +63,8 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
         onResize={updateNavigation}
         >
         {players.map((player, index) => (
-          <SwiperSlide key={player.id} className={`!h-[420px] !w-[260px] sm:!h-[460px] sm:!w-[280px] ${index > 0 ? "-ml-7 sm:-ml-10" : ""}`}>
-            <article className={`relative h-full min-w-0 transition-transform duration-300 motion-reduce:transition-none ${index === 0 ? "origin-bottom-left" : "origin-bottom"} ${selectedIndex === index ? "z-10 scale-[1.16] sm:scale-[1.23]" : "scale-[0.94]"}`}>
+          <SwiperSlide key={player.id} className={`!h-[420px] !w-[260px] sm:!h-[460px] sm:!w-[280px] ${selectedIndex === index ? "!z-30" : "!z-0"} ${index > 0 ? "-ml-7 sm:-ml-10" : ""}`}>
+            <article className={`relative h-full min-w-0 transition-transform duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${index === 0 ? "origin-bottom-left" : "origin-bottom"} ${selectedIndex === index ? "z-10 scale-[1.16] sm:scale-[1.23]" : "scale-[0.94]"}`}>
               <button
                 type="button"
                 aria-label={`Rādīt ${player.name} profilu`}
@@ -81,13 +81,13 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_32%,#333_0%,#111_50%,#050505_100%)]" />
                 )}
               </button>
-                <div className={`pointer-events-none absolute left-[86%] top-12 z-20 hidden items-start whitespace-nowrap transition-[transform,opacity] duration-300 motion-reduce:transition-none sm:flex ${selectedIndex === index ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"}`}>
+                <div className={`pointer-events-none absolute left-[86%] top-12 z-20 hidden items-start whitespace-nowrap transition-[transform,opacity] duration-[360ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none sm:flex ${selectedIndex === index ? "translate-x-0 opacity-100 delay-75 motion-reduce:delay-0" : "translate-x-3 opacity-0"}`}>
                   {player.number !== null && <p className="font-heading text-[94px] font-semibold leading-[0.82] tracking-[-0.08em] text-white sm:text-[142px]">{player.number}</p>}
                   <div className={`${player.number !== null ? "ml-8 sm:ml-10" : "ml-0"} pt-1 sm:pt-2`}>
                     <h3 className="font-heading text-[22px] font-semibold uppercase leading-[0.88] sm:text-[30px]">{player.name}</h3>
                     <p className="mt-2 text-sm text-white/90 sm:text-base">{player.position}</p>
                     {profileHrefBase ? (
-                      <Link href={`${profileHrefBase}/${player.id}`} className="pointer-events-auto mt-3 inline-flex bg-white px-3 py-2 font-heading text-[11px] font-semibold uppercase tracking-wide text-[#050505] hover:bg-[#fbb040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:px-4 sm:text-xs">Profils</Link>
+                      <Link href={`${profileHrefBase}/${player.id}`} tabIndex={selectedIndex === index ? 0 : -1} aria-hidden={selectedIndex !== index} className={`${selectedIndex === index ? "pointer-events-auto" : "pointer-events-none"} swiper-no-swiping mt-3 inline-flex bg-white px-3 py-2 font-heading text-[11px] font-semibold uppercase tracking-wide text-[#050505] hover:bg-[#fbb040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:px-4 sm:text-xs`}>Profils</Link>
                     ) : (
                       <span className="mt-3 inline-flex bg-white px-3 py-2 font-heading text-[11px] font-semibold uppercase tracking-wide text-[#050505] sm:px-4 sm:text-xs">Profils</span>
                     )}
@@ -101,7 +101,7 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
       </div>
       {selectedPlayer && (
         <div className="relative z-30 mx-auto -mt-[120px] w-[calc(100%-3rem)] sm:hidden">
-          <div className="flex min-h-[96px] items-end gap-5">
+          <div key={selectedPlayer.id} className="site-player-info-enter flex min-h-[96px] items-end gap-5">
             {selectedPlayer.number !== null && <span className="font-heading text-[78px] font-semibold leading-[0.85] tracking-[-0.06em]">{selectedPlayer.number}</span>}
             <div className="min-w-0 pb-1">
               <h3 className="font-heading text-[27px] font-semibold uppercase leading-[0.95]">{selectedPlayer.name}</h3>

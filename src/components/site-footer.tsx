@@ -18,7 +18,7 @@ export async function SiteFooter() {
     <footer id="contact" className="bg-[#050505] text-white">
       <div className="relative overflow-hidden">
         <div className="relative mx-auto w-[calc(100%-3rem)] max-w-[1500px] md:w-[calc(100%-10rem)]">
-          <div className="pointer-events-none absolute -bottom-16 left-[2%] hidden h-[330px] w-[330px] opacity-[0.055] lg:block lg:-bottom-20 lg:left-[7%] lg:h-[420px] lg:w-[420px]" aria-hidden="true">
+          <div className="pointer-events-none absolute inset-y-6 left-[7%] hidden w-[420px] opacity-[0.055] lg:block" aria-hidden="true">
             <Image src="/afaolaine-logo-outline.png" alt="" fill sizes="420px" className="object-contain" />
           </div>
 
@@ -74,7 +74,7 @@ export async function SiteFooter() {
         </div>
       </div>
 
-      <div className="relative border-t border-white/20">
+      <div className="relative">
         <div className="mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 py-5 font-sans text-[12px] leading-5 text-[#999] sm:text-[14px] sm:items-center sm:justify-between md:w-[calc(100%-10rem)]">
           <p>© 2026. ALL RIGHTS RESERVED</p>
           <a href="https://42days.eu/lv" target="_blank" rel="noopener noreferrer" className="flex w-fit items-center gap-2 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">

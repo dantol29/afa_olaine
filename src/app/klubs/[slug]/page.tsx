@@ -36,7 +36,7 @@ export default async function CustomClubPage({ params }: PageProps) {
     <StructuredData data={webPageData({ name: page.title, description: page.description, path: `/klubs/${encodeURIComponent(page.slug)}`, dateModified: new Date(page.updatedAt).toISOString() })} />
     <SiteHeader />
     <InnerPageHero title={page.title} id="custom-page-title" />
-    <div className={`mx-auto grid w-[calc(100%-3rem)] max-w-[1500px] gap-10 pb-16 md:w-[calc(100%-10rem)] md:pb-24 ${images.length ? "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]" : ""}`}>
+    <div className={`mx-auto grid w-[calc(100%-3rem)] max-w-[1500px] gap-10 pb-16 pt-10 md:w-[calc(100%-10rem)] md:pb-24 md:pt-16 ${images.length ? "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]" : ""}`}>
       <article className="min-w-0 max-w-[75ch] font-sans text-lg leading-relaxed">
         <p className="mb-8 text-xl text-white/75">{page.description}</p>
         <div className="rich-page-content custom-page-body" dangerouslySetInnerHTML={{ __html: sanitizeRichText(page.body) }} />

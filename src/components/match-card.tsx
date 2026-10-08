@@ -48,9 +48,7 @@ export function MatchCard({
           <div className="flex items-center gap-5">
             <MatchCrest team={game.home} />
             {game.homeScore != null && game.awayScore != null && (
-              <span aria-label={`Rezultāts ${game.homeScore} pret ${game.awayScore}`} className="whitespace-nowrap font-heading text-[34px] font-semibold leading-none tabular-nums sm:text-[40px]">
-                {game.homeScore} : {game.awayScore}
-              </span>
+              <span aria-label={`Rezultāts ${game.homeScore} pret ${game.awayScore}`} className="whitespace-nowrap font-heading text-[34px] font-semibold leading-none tabular-nums sm:text-[40px]">{game.homeScore} : {game.awayScore}</span>
             )}
             {(game.homeScore == null || game.awayScore == null) && <span className="h-10 w-px bg-white/70" />}
             <MatchCrest team={game.away} />

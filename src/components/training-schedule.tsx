@@ -97,10 +97,10 @@ export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingL
         ))}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(350px,440px)] lg:gap-12">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="min-w-0">
           {visibleItems.length > 0 ? (
-            <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,280px))] gap-5 sm:gap-6" aria-label={selectedDate ? "Izvēlētās dienas treniņi" : "Visi treniņi"}>
+            <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-5" aria-label={selectedDate ? "Izvēlētās dienas treniņi" : "Visi treniņi"}>
               {visibleItems.map((training) => (
                 <li key={training.id} className="flex min-w-0 flex-col bg-[#19191B] p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-2">
@@ -128,9 +128,9 @@ export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingL
           )}
         </div>
 
-        <div className="self-start bg-[#1b1b1b] p-5 sm:p-7" aria-label="Treniņu kalendārs">
+        <div className="self-start bg-[#1b1b1b] p-5 sm:p-7 lg:p-5 xl:p-7" aria-label="Treniņu kalendārs">
           <div className="mb-6 flex items-center justify-between gap-3">
-            <h2 className="font-heading text-[29px] font-semibold uppercase leading-none sm:text-[35px]">{displayMonth(visibleMonth)}</h2>
+            <h2 className="font-heading text-[29px] font-semibold uppercase leading-none sm:text-[35px] lg:text-[29px] xl:text-[35px]">{displayMonth(visibleMonth)}</h2>
             <div className="flex gap-2">
               <button type="button" aria-label="Iepriekšējais mēnesis" onClick={() => navigateMonth(-1)} className="grid size-10 place-items-center border border-white/35 transition-colors hover:border-white hover:bg-white hover:text-[#050505] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fbb040]"><ArrowLeft className="size-4" aria-hidden="true" /></button>
               <button type="button" aria-label="Nākamais mēnesis" onClick={() => navigateMonth(1)} className="grid size-10 place-items-center border border-white/35 transition-colors hover:border-white hover:bg-white hover:text-[#050505] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fbb040]"><ArrowRight className="size-4" aria-hidden="true" /></button>
@@ -150,7 +150,7 @@ export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingL
                   aria-label={`${displayDate(day)}${count ? `, ${count} treniņ${count === 1 ? "š" : "i"}` : ""}`}
                   aria-pressed={isSelected}
                   onClick={() => selectDay(day)}
-                  className={`relative mx-auto flex size-10 flex-col items-center justify-center rounded-full font-sans text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fbb040] sm:size-12 sm:text-base ${isSelected ? "bg-[#fbb040] text-[#050505]" : isCurrentMonth ? "text-white hover:bg-white/15" : "text-white/25 hover:bg-white/10"}`}
+                  className={`relative mx-auto flex size-10 flex-col items-center justify-center rounded-full font-sans text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fbb040] sm:size-12 sm:text-base lg:size-10 xl:size-12 ${isSelected ? "bg-[#fbb040] text-[#050505]" : isCurrentMonth ? "text-white hover:bg-white/15" : "text-white/25 hover:bg-white/10"}`}
                 >
                   {day.getUTCDate()}
                   {count > 0 && <span className={`absolute bottom-1 size-1 rounded-full ${isSelected ? "bg-[#050505]" : "bg-[#fbb040]"}`} aria-hidden="true" />}

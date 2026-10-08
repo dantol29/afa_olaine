@@ -15,12 +15,6 @@ export function SponsorShowcase({ partners }: { partners: Sponsor[] }) {
           <a href="mailto:info@afaolaine.lv" className="border border-white/35 px-5 py-3 font-heading text-sm font-semibold uppercase transition-colors hover:border-white hover:bg-white hover:text-[#050505] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Sazināties</a>
         </div>
 
-        <div className="mt-10 flex items-center gap-5 text-center font-sans text-sm font-semibold text-white/60 sm:mt-12">
-          <span className="h-px flex-1 bg-white/25" aria-hidden="true" />
-          <span>Mūsu atbalstītāji</span>
-          <span className="h-px flex-1 bg-white/25" aria-hidden="true" />
-        </div>
-
         <ul className="mt-10 grid grid-cols-2 items-center gap-x-8 gap-y-12 sm:mt-12 sm:grid-cols-3 sm:gap-y-16 lg:grid-cols-6">
           {partners.map((partner) => {
             const logo = (

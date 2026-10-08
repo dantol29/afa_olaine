@@ -63,7 +63,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
   }, [isMenuOpen]);
 
   return (
-    <section ref={heroRef} id="jaunumi" data-site-hero className="relative z-10 h-[88svh] min-h-[600px] w-full overflow-visible bg-[#050505] md:h-[90svh] md:min-h-[680px]" aria-label="AFA Olaine">
+    <section ref={heroRef} id="jaunumi" data-site-hero className="relative z-10 h-[82svh] min-h-[560px] w-full overflow-visible bg-[#050505] md:h-[84svh] md:min-h-[640px]" aria-label="AFA Olaine">
       <h1 className="sr-only">AFA Olaine — futbola klubs un akadēmija Olainē</h1>
       <header
         className={`fixed left-0 top-0 z-50 w-full overflow-visible text-white transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-out motion-reduce:transition-none ${hasScrolled || isMenuOpen ? "bg-[#050505]" : "bg-transparent"}`}

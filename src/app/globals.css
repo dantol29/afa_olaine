@@ -528,3 +528,35 @@
   .site-action:active { transform: none; }
   .site-nav-link::after { transition: none; }
 }
+@keyframes site-player-info-reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.site-player-info-enter {
+  animation: site-player-info-reveal 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.site-tv-play {
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), background-color 180ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .site-tv-card:hover .site-tv-play {
+    transform: translateX(3px) scale(1.06);
+    background-color: #ffc365;
+  }
+}
+
+.site-tv-card:focus-visible .site-tv-play {
+  transform: translateX(3px) scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-player-info-enter {
+    animation: none;
+  }
+  .site-tv-play { transition: none; }
+  .site-tv-card:hover .site-tv-play,
+  .site-tv-card:focus-visible .site-tv-play { transform: none; }
+}
