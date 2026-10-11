@@ -4,7 +4,7 @@ import { useActionState } from "react";
 
 import { createTeam, updateTeam } from "../actions";
 
-type Team = { id: number; name: string; groupPhotoUrl: string | null };
+type Team = { id: number; name: string; groupPhotoUrl: string | null; isMain: boolean };
 
 export function TeamForm(props: { mode: "create" } | { mode: "edit"; team: Team }) {
   const action = props.mode === "create" ? createTeam : updateTeam.bind(null, props.team.id);
@@ -26,6 +26,14 @@ export function TeamForm(props: { mode: "create" } | { mode: "edit"; team: Team 
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
         />
       </label>
+
+      <div className="mt-5">
+        <label className="flex items-center gap-2 text-sm font-semibold text-club-navy">
+          <input type="checkbox" name="isMain" defaultChecked={props.mode === "edit" && props.team.isMain} />
+          Galvenā komanda
+        </label>
+        <p className="mt-2 text-sm text-slate-500">Galvenā komanda netiek rādīta Akadēmijā. Atzīmējot šo komandu, iepriekšējā galvenā komanda tiks aizstāta.</p>
+      </div>
 
       <label className="mt-5 block text-sm font-semibold text-club-navy">
         Komandas kopbilde (JPEG, PNG vai WebP, līdz 5 MB)

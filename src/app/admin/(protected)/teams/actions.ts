@@ -21,13 +21,17 @@ export async function createTeam(
   await requireAdminSession();
 
   const name = String(formData.get("name") ?? "").trim();
+  const isMain = formData.get("isMain") === "on";
   if (!name) return { error: "Nosaukums ir obligāts." };
 
   let groupPhotoUrl: string | null = null;
   try {
     const photo = teamPhoto(formData);
     if (photo) groupPhotoUrl = await saveUploadedPhoto(photo, "clubs");
-    await db.insert(teams).values({ name, groupPhotoUrl, createdAt: Date.now() });
+    await db.transaction(async (tx) => {
+      if (isMain) await tx.update(teams).set({ isMain: false }).where(eq(teams.isMain, true));
+      await tx.insert(teams).values({ name, groupPhotoUrl, isMain, createdAt: Date.now() });
+    });
   } catch (error) {
     await deleteUploadedPhoto(groupPhotoUrl);
     return { error: error instanceof Error ? error.message : "Komandu neizdevās saglabāt." };
@@ -36,6 +40,7 @@ export async function createTeam(
   revalidatePath("/komanda");
   revalidatePath("/sitemap.xml");
   revalidatePath("/akademija");
+  revalidatePath("/");
   redirect("/admin/teams");
 }
 
@@ -47,6 +52,7 @@ export async function updateTeam(
   await requireAdminSession();
 
   const name = String(formData.get("name") ?? "").trim();
+  const isMain = formData.get("isMain") === "on";
   if (!name) return { error: "Nosaukums ir obligāts." };
 
   const [existing] = await db.select().from(teams).where(eq(teams.id, id));
@@ -61,7 +67,10 @@ export async function updateTeam(
     } else if (formData.get("removeGroupPhoto") === "on") {
       groupPhotoUrl = null;
     }
-    await db.update(teams).set({ name, groupPhotoUrl }).where(eq(teams.id, id));
+    await db.transaction(async (tx) => {
+      if (isMain) await tx.update(teams).set({ isMain: false }).where(eq(teams.isMain, true));
+      await tx.update(teams).set({ name, groupPhotoUrl, isMain }).where(eq(teams.id, id));
+    });
   } catch (error) {
     await deleteUploadedPhoto(uploadedPhotoUrl);
     return { error: error instanceof Error ? error.message : "Komandu neizdevās saglabāt." };
@@ -71,6 +80,7 @@ export async function updateTeam(
   revalidatePath("/komanda");
   revalidatePath("/sitemap.xml");
   revalidatePath("/akademija");
+  revalidatePath("/");
   redirect("/admin/teams");
 }
 

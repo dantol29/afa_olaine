@@ -11,7 +11,9 @@ export async function TeamSection() {
   const rows = await db.query.players.findMany({
     with: { playerTeams: { with: { team: true } } },
   });
-  const players = orderTeamShowcasePlayers(rows);
+  const players = orderTeamShowcasePlayers(
+    rows.filter((player) => player.playerTeams.some(({ team }) => team?.isMain)),
+  );
 
   if (players.length === 0) return null;
 

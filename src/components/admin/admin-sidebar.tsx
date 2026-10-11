@@ -124,7 +124,7 @@ export function AdminSidebar() {
       </div>
 
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between overflow-y-auto border-r border-white/15 bg-[#111] p-6 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col justify-between overflow-y-auto border-r border-white/15 bg-[#111] p-6 lg:flex">
         <SidebarContent />
       </aside>
 

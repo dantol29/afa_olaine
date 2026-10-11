@@ -14,10 +14,11 @@ export const metadata = pageMetadata({
 
 export default async function AcademyPage() {
   const rows = await db.query.teams.findMany({
+    where: (teams, { eq }) => eq(teams.isMain, false),
     orderBy: (teams, { asc }) => [asc(teams.id)],
     with: { playerTeams: { with: { player: true } } },
   });
-  const academyTeams = rows.slice(1).map((team) => ({
+  const academyTeams = rows.map((team) => ({
     id: team.id,
     name: team.name,
     groupPhotoUrl: team.groupPhotoUrl,

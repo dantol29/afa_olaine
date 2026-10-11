@@ -34,7 +34,10 @@ export default async function AdminTeamsPage() {
         <tbody>
           {rows.map((team) => (
             <tr data-admin-search-item={team.name} key={team.id} className="border-b border-slate-100 last:border-0">
-              <td className="p-4 font-semibold text-club-navy">{team.name}</td>
+              <td className="p-4 font-semibold text-club-navy">
+                {team.name}
+                {team.isMain && <span className="mt-1 block text-xs font-semibold text-club-red">Galvenā komanda</span>}
+              </td>
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-4">
                   <Link
