@@ -1,12 +1,12 @@
 import "server-only";
-import { cache } from "react";
+import { cachePublicData } from "@/lib/public-data-cache";
 
 import { asc, eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { clubPages } from "@/db/schema";
 
-export const getPublishedClubPages = cache(async function getPublishedClubPages() {
+export const getPublishedClubPages = cachePublicData("published-club-pages", async function getPublishedClubPages() {
   return db
     .select({
       title: clubPages.title,

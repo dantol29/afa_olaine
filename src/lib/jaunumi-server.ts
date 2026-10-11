@@ -1,5 +1,5 @@
 import "server-only";
-import { cache } from "react";
+import { cachePublicData } from "@/lib/public-data-cache";
 import { desc, eq, ne } from "drizzle-orm";
 
 import { db } from "@/db/client";
@@ -32,18 +32,18 @@ function rowToArticle(row: ArticleRow, teamName: string | null, authorCoach: Aut
 }
 
 /** All articles for the /jaunumi directory, newest first. */
-export async function getArticles(limit?: number): Promise<Article[]> {
+export const getArticles = cachePublicData("articles", async function getArticles(limit?: number): Promise<Article[]> {
   const rows = await db.query.articles.findMany({
     with: { team: true, authorCoach: true },
     orderBy: [desc(articles.date), desc(articles.createdAt)],
     ...(limit === undefined ? {} : { limit }),
   });
   return rows.map((row) => rowToArticle(row, row.team?.name ?? null, row.authorCoach));
-}
+});
 
-/** Cached per-request so generateMetadata and the page body share one
- *  DB lookup instead of querying the same article twice. */
-export const getArticleBySlug = cache(
+/** Public article data is shared across requests for 60 seconds and expires
+ *  immediately after an admin content update. */
+export const getArticleBySlug = cachePublicData("article-by-slug",
   async (slug: string): Promise<Article | null> => {
     const row = await db.query.articles.findFirst({
       where: eq(articles.slug, slug),
@@ -54,9 +54,9 @@ export const getArticleBySlug = cache(
 );
 
 /** Other recent articles shown on an article detail page. */
-export async function getRelatedArticles(
+export const getRelatedArticles = cachePublicData("related-articles", async function getRelatedArticles(
   excludeSlug: string,
-  limit = 4,
+  limit: number = 4,
 ): Promise<{ slug: string; title: string; date: string; image: string }[]> {
   const rows = await db.query.articles.findMany({
     where: ne(articles.slug, excludeSlug),
@@ -69,4 +69,4 @@ export async function getRelatedArticles(
     date: formatArticleDate(row.date),
     image: row.image,
   }));
-}
+});

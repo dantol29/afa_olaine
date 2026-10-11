@@ -1,7 +1,8 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db/client";
@@ -129,6 +130,7 @@ export async function createArticle(
   });
 
   revalidatePath("/jaunumi/[slug]", "page");
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
   revalidatePath("/sitemap.xml");
@@ -194,6 +196,7 @@ export async function updateArticle(
     .where(eq(articles.id, id));
 
   revalidatePath("/jaunumi/[slug]", "page");
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
   revalidatePath("/sitemap.xml");
@@ -218,6 +221,7 @@ export async function deleteArticle(id: number) {
 
   await db.delete(articles).where(eq(articles.id, id));
   revalidatePath("/jaunumi/[slug]", "page");
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/jaunumi");
   revalidatePath("/jaunumi");
   revalidatePath("/sitemap.xml");

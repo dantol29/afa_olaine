@@ -1,7 +1,8 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db/client";
@@ -36,6 +37,7 @@ export async function createTeam(
     await deleteUploadedPhoto(groupPhotoUrl);
     return { error: error instanceof Error ? error.message : "Komandu neizdevās saglabāt." };
   }
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/teams");
   revalidatePath("/komanda");
   revalidatePath("/sitemap.xml");
@@ -76,6 +78,7 @@ export async function updateTeam(
     return { error: error instanceof Error ? error.message : "Komandu neizdevās saglabāt." };
   }
   if (groupPhotoUrl !== existing.groupPhotoUrl) await deleteUploadedPhoto(existing.groupPhotoUrl);
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/teams");
   revalidatePath("/komanda");
   revalidatePath("/sitemap.xml");
@@ -90,6 +93,7 @@ export async function deleteTeam(id: number) {
   const [existing] = await db.select().from(teams).where(eq(teams.id, id));
   await db.delete(teams).where(eq(teams.id, id));
   await deleteUploadedPhoto(existing?.groupPhotoUrl ?? null);
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/teams");
   revalidatePath("/komanda");
   revalidatePath("/sitemap.xml");

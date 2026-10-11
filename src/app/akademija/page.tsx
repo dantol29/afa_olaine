@@ -4,7 +4,7 @@ import { AcademyContent } from "@/components/academy-content";
 import { InnerPageHero } from "@/components/inner-page-hero";
 import { SiteEnding } from "@/components/site-ending";
 import { SiteHeader } from "@/components/site-header";
-import { db } from "@/db/client";
+import { getPublicAcademyTeams } from "@/lib/public-team-data";
 
 export const metadata = pageMetadata({
   title: "AFA Olaine akadēmija | Jauniešu futbola komandas",
@@ -13,11 +13,7 @@ export const metadata = pageMetadata({
 });
 
 export default async function AcademyPage() {
-  const rows = await db.query.teams.findMany({
-    where: (teams, { eq }) => eq(teams.isMain, false),
-    orderBy: (teams, { asc }) => [asc(teams.id)],
-    with: { playerTeams: { with: { player: true } } },
-  });
+  const rows = await getPublicAcademyTeams();
   const academyTeams = rows.map((team) => ({
     id: team.id,
     name: team.name,

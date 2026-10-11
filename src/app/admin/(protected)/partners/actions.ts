@@ -2,7 +2,8 @@
 
 import { eq } from "drizzle-orm";
 import { disableTypes, imageSize } from "image-size";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db/client";
@@ -42,6 +43,7 @@ disableTypes([
 const PARTNER_VISIBLE_PATHS = ["/", "/treneri", "/jaunumi", "/komandas"] as const;
 
 function revalidatePartnerPaths() {
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/partners");
   for (const path of PARTNER_VISIBLE_PATHS) revalidatePath(path);
 }

@@ -1,7 +1,8 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db/client";
@@ -55,6 +56,7 @@ export async function createClubLogo(
     .returning({ id: clubLogos.id });
   await syncClubLogoNames(inserted.id, names);
 
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/club-logos");
   redirect("/admin/club-logos");
 }
@@ -88,6 +90,7 @@ export async function updateClubLogo(
 
   await syncClubLogoNames(id, names);
 
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/club-logos");
   redirect("/admin/club-logos");
 }
@@ -102,5 +105,6 @@ export async function deleteClubLogo(id: number) {
   await deleteUploadedPhoto(existing?.logoUrl ?? null);
 
   await db.delete(clubLogos).where(eq(clubLogos.id, id));
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/club-logos");
 }

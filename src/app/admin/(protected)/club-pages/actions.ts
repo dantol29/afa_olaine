@@ -1,7 +1,8 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db/client";
@@ -65,6 +66,7 @@ async function slugIsTaken(slug: string, excludedId?: number) {
 
 function revalidateClubPages(slugs: string[]) {
   revalidatePath("/", "layout");
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/club-pages");
   revalidatePath("/sitemap.xml");
   for (const slug of slugs) revalidatePath(`/klubs/${slug}`);

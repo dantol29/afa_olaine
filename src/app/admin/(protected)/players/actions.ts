@@ -1,7 +1,8 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db/client";
@@ -71,6 +72,7 @@ export async function createPlayer(
   await syncPlayerTeams(inserted.id, teamGoals);
 
   revalidatePath("/komanda/speletaji/[id]", "page");
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/players");
   revalidatePath("/komanda");
   revalidatePath("/akademija");
@@ -121,6 +123,7 @@ export async function updatePlayer(
   await syncPlayerTeams(id, teamGoals);
 
   revalidatePath("/komanda/speletaji/[id]", "page");
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/players");
   revalidatePath("/komanda");
   revalidatePath("/akademija");
@@ -140,6 +143,7 @@ export async function deletePlayer(id: number) {
 
   await db.delete(players).where(eq(players.id, id));
   revalidatePath("/komanda/speletaji/[id]", "page");
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/players");
   revalidatePath("/komanda");
   revalidatePath("/akademija");

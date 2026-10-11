@@ -1,5 +1,5 @@
 import "server-only";
-import { cache } from "react";
+import { cachePublicData } from "@/lib/public-data-cache";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
@@ -35,7 +35,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
 const SETTINGS_ID = 1;
 
 /** Public contact details must reflect the saved database row exactly. */
-export const getPublicSiteSettings = cache(async function getPublicSiteSettings(): Promise<SiteSettings> {
+export const getPublicSiteSettings = cachePublicData("site-settings", async function getPublicSiteSettings(): Promise<SiteSettings> {
   const [row] = await db
     .select()
     .from(siteSettings)

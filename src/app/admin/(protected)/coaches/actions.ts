@@ -1,7 +1,8 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db/client";
@@ -65,6 +66,7 @@ export async function createCoach(
     .returning({ id: coaches.id });
   await syncCoachTeams(inserted.id, teamIds);
 
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/coaches");
   revalidatePath("/treneri");
   redirect("/admin/coaches");
@@ -111,6 +113,7 @@ export async function updateCoach(
   await db.update(coaches).set(updates).where(eq(coaches.id, id));
   await syncCoachTeams(id, teamIds);
 
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/coaches");
   revalidatePath("/treneri");
   redirect("/admin/coaches");
@@ -126,6 +129,7 @@ export async function deleteCoach(id: number) {
   await deleteUploadedPhoto(existing?.photoUrl ?? null);
 
   await db.delete(coaches).where(eq(coaches.id, id));
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/coaches");
   revalidatePath("/treneri");
 }

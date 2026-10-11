@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
+// Admin screens must always read current database state.
+export const dynamic = "force-dynamic";
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="admin-theme flex min-h-screen flex-col bg-[#050505] text-white lg:flex-row lg:pl-64">

@@ -4,7 +4,7 @@ import { TeamPageContent } from "@/components/team-page-content";
 import { SiteEnding } from "@/components/site-ending";
 import { SiteHeader } from "@/components/site-header";
 import { InnerPageHero } from "@/components/inner-page-hero";
-import { db } from "@/db/client";
+import { getPublicCoaches, getPublicPlayers } from "@/lib/public-team-data";
 import { groupTeamPagePlayers, teamTabFromSearchParam } from "@/lib/team-page";
 
 export const metadata = pageMetadata({
@@ -16,8 +16,8 @@ export const metadata = pageMetadata({
 export default async function TeamPage({ searchParams }: { searchParams: Promise<{ skats?: string | string[] }> }) {
   const { skats } = await searchParams;
   const [playerRows, coachRows] = await Promise.all([
-    db.query.players.findMany({ orderBy: (players, { asc }) => [asc(players.name)] }),
-    db.query.coaches.findMany({ orderBy: (coaches, { asc }) => [asc(coaches.name)] }),
+    getPublicPlayers(),
+    getPublicCoaches(),
   ]);
   const playerGroups = groupTeamPagePlayers(playerRows.map((player) => ({
     id: player.id,

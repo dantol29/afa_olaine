@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { eq, isNotNull } from "drizzle-orm";
 
 import { db } from "@/db/client";
@@ -52,6 +54,7 @@ async function runSync(request: NextRequest) {
       })),
     );
     const updatedCount = results.reduce((sum, result) => sum + result.updated, 0);
+    if (updatedCount > 0) revalidateTag(PUBLIC_CONTENT_CACHE_TAG, { expire: 0 });
     const errors = results.filter((result) => result.error);
     const finishedAt = Date.now();
     const status = errors.length === 0 ? "success" : errors.length === results.length ? "error" : "partial";

@@ -4,12 +4,12 @@ import Link from "next/link";
 
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
-import { getPartners } from "@/lib/partners-server";
+import { getPartnersForAdmin } from "@/lib/partners-server";
 
 import { deletePartner } from "./actions";
 
 export default async function AdminPartnersPage() {
-  const rows = await getPartners();
+  const rows = await getPartnersForAdmin();
 
   return (
     <div>

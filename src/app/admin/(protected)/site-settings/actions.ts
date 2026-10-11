@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 
 import { db } from "@/db/client";
 import { siteSettings } from "@/db/schema";
@@ -60,6 +61,7 @@ export async function updateSiteSettings(
     });
 
   // The footer renders on every public page via the root layout.
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/", "layout");
 
   return { success: true } as const;
