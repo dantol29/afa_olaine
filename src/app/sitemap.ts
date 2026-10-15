@@ -4,6 +4,7 @@ import { asc, desc } from "drizzle-orm";
 import { db } from "@/db/client";
 import { articles, players, teams } from "@/db/schema";
 import { getPublishedClubPages } from "@/lib/club-pages-server";
+import { parseClubPageMedia } from "@/lib/club-page-media";
 import { absoluteSiteUrl, getSiteUrl } from "@/lib/site-url";
 
 export const revalidate = 3600;
@@ -43,7 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...customPages.map((page) => ({
       url: `${siteUrl}/klubs/${encodeURIComponent(page.slug)}`,
       lastModified: new Date(page.updatedAt),
-      images: imagesFor(page.images?.split("\n") ?? []),
+      images: imagesFor(parseClubPageMedia(page.images).photos.map(photo => photo.src)),
     })),
   ];
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Image from "next/image";
 
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { createClubPage, updateClubPage } from "../actions";
+import { parseClubPageMedia } from "@/lib/club-page-media";
+import { PageActionsEditor } from "@/components/admin/page-actions-editor";
+import { PagePhotosEditor } from "@/components/admin/page-photos-editor";
 
 type ClubPage = {
   id: number;
@@ -30,7 +32,7 @@ export function ClubPageForm(props: { mode: "create" } | { mode: "edit"; page: C
   const [state, formAction, pending] = useActionState(action, undefined);
   const [slug, setSlug] = useState(page?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(props.mode === "edit");
-  const images = page?.images?.split("\n").filter(Boolean) ?? [];
+  const media = parseClubPageMedia(page?.images);
 
   return (
     <form action={formAction} className="max-w-2xl">
@@ -60,26 +62,10 @@ export function ClubPageForm(props: { mode: "create" } | { mode: "edit"; page: C
       </label>
       <div className="mt-4 text-sm font-semibold text-club-navy">
         Lapas teksts
-        <RichTextEditor name="body" defaultValue={page?.body ?? ""} />
+        <RichTextEditor name="body" defaultValue={page?.body ?? ""} enableTables />
       </div>
-      <div className="mt-4">
-        <span className="block text-sm font-semibold text-club-navy">Labās kolonnas attēli</span>
-        {images.length > 0 && (
-          <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {images.map((url) => (
-              <label key={url} className="relative overflow-hidden rounded-lg border border-slate-200 bg-white">
-                <span className="relative block aspect-[4/3]"><Image src={url} alt="" fill sizes="180px" className="object-cover" /></span>
-                <span className="flex items-center gap-2 p-2 text-xs font-medium text-slate-600">
-                  <input type="checkbox" name="removeImages" value={url} className="accent-club-red" /> Noņemt
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
-        <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple
-          className="mt-2 block w-full text-sm text-club-navy file:mr-3 file:rounded-lg file:border-0 file:bg-club-gray-light file:px-3 file:py-2 file:text-sm file:font-semibold file:text-club-navy hover:file:bg-slate-200" />
-        <span className="mt-1 block text-xs text-slate-400">Līdz 6 attēliem, katrs ne lielāks par 5 MB.</span>
-      </div>
+      <PageActionsEditor initialActions={media.actions} />
+      <PagePhotosEditor media={media} />
       <label className="mt-4 block max-w-40 text-sm font-semibold text-club-navy">
         Secība izvēlnē
         <input type="number" name="displayOrder" step={1} defaultValue={page?.displayOrder ?? 0} className={FIELD} />

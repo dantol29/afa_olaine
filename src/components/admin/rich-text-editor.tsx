@@ -1,18 +1,19 @@
 "use client";
 
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
+import { TableKit } from "@tiptap/extension-table";
 import UnderlineExtension from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import {
   Bold, Heading2, Heading3, Italic, Link2, List, ListOrdered,
-  Pilcrow, Quote, Redo2, RemoveFormatting, Underline, Undo2,
+  Pilcrow, Quote, Redo2, RemoveFormatting, Table2, Underline, Undo2,
 } from "lucide-react";
 import { useState } from "react";
 
 const BUTTON = "flex h-9 w-9 items-center justify-center rounded-md text-club-navy transition hover:bg-white hover:text-club-red disabled:pointer-events-none disabled:opacity-35";
 
-export function RichTextEditor({ name, defaultValue }: { name: string; defaultValue: string }) {
+export function RichTextEditor({ name, defaultValue, enableTables = false }: { name: string; defaultValue: string; enableTables?: boolean }) {
   const [value, setValue] = useState(defaultValue);
   const editor = useEditor({
     immediatelyRender: false,
@@ -23,6 +24,7 @@ export function RichTextEditor({ name, defaultValue }: { name: string; defaultVa
       }),
       UnderlineExtension,
       Placeholder.configure({ placeholder: "Sāc rakstīt…" }),
+      ...(enableTables ? [TableKit.configure({ table: { resizable: false, renderWrapper: true } })] : []),
     ],
     content: defaultValue || "<p></p>",
     editorProps: {
@@ -33,6 +35,20 @@ export function RichTextEditor({ name, defaultValue }: { name: string; defaultVa
     },
     onUpdate: ({ editor: currentEditor }) => setValue(currentEditor.getHTML()),
   });
+  const tableState = useEditorState({ editor, selector: ({ editor: current }) => ({ inTable: current?.isActive("table") ?? false }) });
+
+  function insertLeagueTable() {
+    if (!editor) return;
+    const headings = ["Vieta", "Komanda", "Spēles", "U", "N", "Z", "GV", "IV", "+/−", "Punkti"];
+    const cell = (type: string, text = "") => ({ type, content: [{ type: "paragraph", ...(text ? { content: [{ type: "text", text }] } : {}) }] });
+    editor.chain().focus().insertContent([
+      { type: "table", content: [
+        { type: "tableRow", content: headings.map(heading => cell("tableHeader", heading)) },
+        ...Array.from({ length: 3 }, (_, index) => ({ type: "tableRow", content: headings.map((_, column) => cell("tableCell", column === 0 ? String(index + 1) : "")) })),
+      ] },
+      { type: "paragraph" },
+    ]).run();
+  }
 
   function setLink() {
     if (!editor) return;
@@ -76,8 +92,24 @@ export function RichTextEditor({ name, defaultValue }: { name: string; defaultVa
         <span className="mx-1 h-5 w-px bg-slate-200" />
         {tool("Atsaukt", Undo2, () => editor?.chain().focus().undo().run(), false, !editor?.can().undo())}
         {tool("Atkārtot", Redo2, () => editor?.chain().focus().redo().run(), false, !editor?.can().redo())}
+        {enableTables && <>
+          <span className="mx-1 h-5 w-px bg-slate-200" />
+          <button type="button" disabled={!editor} onClick={() => editor?.chain().focus().insertTable({ rows: 4, cols: 3, withHeaderRow: true }).run()} className={`${BUTTON} w-auto gap-2 px-3`}><Table2 className="size-4" />Tabula</button>
+          <button type="button" disabled={!editor} onClick={insertLeagueTable} className={`${BUTTON} w-auto px-3`}>Līgas tabula</button>
+        </>}
       </div>
+      {enableTables && tableState?.inTable && <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-50 p-2" aria-label="Tabulas darbības">
+        {([
+          ["+ Rinda", () => editor?.chain().focus().addRowAfter().run()],
+          ["− Rinda", () => editor?.chain().focus().deleteRow().run()],
+          ["+ Kolonna", () => editor?.chain().focus().addColumnAfter().run()],
+          ["− Kolonna", () => editor?.chain().focus().deleteColumn().run()],
+          ["Virsraksta rinda", () => editor?.chain().focus().toggleHeaderRow().run()],
+          ["Dzēst tabulu", () => { if (window.confirm("Dzēst šo tabulu?")) editor?.chain().focus().deleteTable().run(); }],
+        ] as const).map(([label, action]) => <button key={label} type="button" onClick={action} className="min-h-10 border border-slate-200 px-3 text-xs font-medium text-club-navy transition hover:bg-white hover:text-club-red">{label}</button>)}
+      </div>}
       <EditorContent editor={editor} />
+      {enableTables && <p className="border-t border-slate-200 px-4 py-2 text-xs font-normal text-slate-500">“Līgas tabula” ievieto gatavas kolonnas. Visas vērtības ievadi manuāli. Ieklikšķini šūnā, lai pievienotu vai dzēstu rindas un kolonnas.</p>}
       <input type="hidden" name={name} value={value} />
     </div>
   );
