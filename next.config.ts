@@ -9,11 +9,6 @@ const nextConfig: NextConfig = {
         has: [{ type: "host", value: "test.afaolaine.lv" }],
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
-      {
-        // Marker to confirm which build is live after a deploy.
-        source: "/:path*",
-        headers: [{ key: "X-Deploy-Check", value: "2026-11-06-1" }],
-      },
     ];
   },
   experimental: {
