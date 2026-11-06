@@ -10,7 +10,11 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "node node_modules/@olaine/database/migrate.mjs"
+    "db:migrate": "node node_modules/@olaine/database/migrate.mjs",
+    "local:setup": "node scripts/local/run.mjs drizzle-kit push && node scripts/local/run.mjs node node_modules/@olaine/database/migrate.mjs && node scripts/local/run.mjs tsx scripts/local/seed.mjs",
+    "local:dev": "node scripts/local/run.mjs --with-mail-sink next dev",
+    "local:sync": "node scripts/local/run.mjs node scripts/local/sync.mjs",
+    "local:snapshot": "node scripts/local/run.mjs node scripts/local/snapshot.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -48,3 +48,6 @@ local.db-*
 # locally-uploaded photos (admin backoffice dev) — served dynamically via
 # src/app/uploads/[...path]/route.ts, deliberately kept out of public/
 /uploads/
+
+# private local data: full demo seed and database/photo snapshots
+/.local/
