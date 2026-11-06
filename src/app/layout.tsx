@@ -39,6 +39,8 @@ export const metadata: Metadata = {
     description: "AFA Olaine futbola klubs un akadēmija Olainē — komandas, spēles, treniņi un jaunumi.",
     images: ["/match-stadium.jpg"],
   },
+  // Marker to confirm which build is live after a deploy.
+  other: { "deploy-check": "2026-11-06-1" },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
