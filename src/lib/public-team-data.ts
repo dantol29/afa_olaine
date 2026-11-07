@@ -11,7 +11,10 @@ export const getPublicPlayers = cachePublicData("players", async () =>
 );
 
 export const getPublicCoaches = cachePublicData("coaches", async () =>
-  db.query.coaches.findMany({ orderBy: (coaches, { asc }) => [asc(coaches.name)] }),
+  db.query.coaches.findMany({
+    orderBy: (coaches, { asc }) => [asc(coaches.name)],
+    with: { coachTeams: { with: { team: true } } },
+  }),
 );
 
 export const getPublicAcademyTeams = cachePublicData("academy-teams", async () =>
