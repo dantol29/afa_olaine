@@ -265,7 +265,7 @@ function weekBrowsingWindow() {
   return { after, before };
 }
 
-/** Merges FK Olaine's admin-managed trainings, events, and games for the
+/** Merges AFA Olaine's admin-managed trainings, events, and games for the
  *  week-browsing calendar widget. */
 export async function getScheduleForWeekBrowsing(): Promise<CalendarEvent[]> {
   const { after, before } = weekBrowsingWindow();

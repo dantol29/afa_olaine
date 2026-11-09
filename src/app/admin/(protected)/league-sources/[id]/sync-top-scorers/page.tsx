@@ -71,13 +71,13 @@ export default async function AdminLeagueSourceSyncTopScorersPage({
 
       {result.details.length === 0 ? (
         <p className="text-sm text-slate-400">
-          URL ielādējās, bet sarakstā neizdevās atrast nevienu FK Olaine spēlētāju. Pārbaudi, vai
+          URL ielādējās, bet sarakstā neizdevās atrast nevienu AFA Olaine spēlētāju. Pārbaudi, vai
           URL norāda uz &quot;Vārtu guvēji&quot; cilni.
         </p>
       ) : (
         <>
           <p className="mb-6 text-sm text-slate-500">
-            Atrasti {result.details.length} FK Olaine spēlētāji LFF sarakstā, atjaunināti{" "}
+            Atrasti {result.details.length} AFA Olaine spēlētāji LFF sarakstā, atjaunināti{" "}
             {result.updated}.
           </p>
           <table className="w-full overflow-hidden rounded-xl bg-white text-left text-sm shadow-sm">

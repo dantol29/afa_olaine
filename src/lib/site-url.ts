@@ -1,4 +1,4 @@
-const PRODUCTION_SITE_URL = "https://fkolaine.com";
+const PRODUCTION_SITE_URL = "https://afaolaine.lv";
 const LEGACY_HOSTS = new Set(["test.afaolaine.lv"]);
 
 export function getSiteUrl(): string {

@@ -25,7 +25,7 @@ export type TopScorerSyncResult = {
 };
 
 /** Fetches one league source's goal-scorers page and, for every scraped row
- *  whose club matches FK Olaine, updates that source's team's matching
+ *  whose club matches AFA Olaine, updates that source's team's matching
  *  player's `goals` count by exact (case-insensitive) name match. Never
  *  creates players, never touches photos or any other field — a name that
  *  doesn't match an existing player on the team is just reported back,
