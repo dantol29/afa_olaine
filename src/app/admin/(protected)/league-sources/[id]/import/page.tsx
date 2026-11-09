@@ -102,6 +102,7 @@ export default async function AdminLeagueSourceImportPage({
   });
 
   const differingCount = rows.filter((row) => row.differs).length;
+  const hasNewGames = rows.some((row) => !row.alreadyImported);
 
   const lffUpdates = rows
     .filter((row) => row.differs)
@@ -200,26 +201,33 @@ export default async function AdminLeagueSourceImportPage({
                     <td className="p-4 text-club-navy">{fixture.date}</td>
                     <td className="p-4 text-slate-500">
                       {timeDiffers && (
-                        <span className="mr-1.5 text-slate-400 line-through">
+                        <span className="block text-slate-400 line-through">
                           {existing.startTime}
                         </span>
                       )}
-                      <span className={timeDiffers ? "font-semibold text-amber-700" : undefined}>
+                      <span className={timeDiffers ? "block font-semibold text-amber-700" : undefined}>
                         {fixture.time}
                       </span>
                     </td>
                     <td className="p-4 text-slate-500">{fixture.home}</td>
                     <td className="p-4 text-slate-500">{fixture.away}</td>
-                    <td className={scoreDiffers ? "p-4 font-semibold text-amber-700" : "p-4 text-slate-500"}>
-                      {fixture.homeScore ?? "—"} : {fixture.awayScore ?? "—"}
+                    <td className="p-4 text-slate-500">
+                      {scoreDiffers && (
+                        <span className="block text-slate-400 line-through">
+                          {existing.homeScore ?? "—"} : {existing.awayScore ?? "—"}
+                        </span>
+                      )}
+                      <span className={scoreDiffers ? "block font-semibold text-amber-700" : undefined}>
+                        {fixture.homeScore ?? "—"} : {fixture.awayScore ?? "—"}
+                      </span>
                     </td>
                     <td className="p-4 text-slate-500">
                       {locationDiffers && (
-                        <span className="mr-1.5 text-slate-400 line-through">
+                        <span className="block text-slate-400 line-through">
                           {existing.location}
                         </span>
                       )}
-                      <span className={locationDiffers ? "font-semibold text-amber-700" : undefined}>
+                      <span className={locationDiffers ? "block font-semibold text-amber-700" : undefined}>
                         {fixture.stadium || "—"}
                       </span>
                     </td>
@@ -238,12 +246,18 @@ export default async function AdminLeagueSourceImportPage({
             </tbody>
           </table>
 
-          <button
-            type="submit"
-            className="mt-6 rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark"
-          >
-            Apstiprināt
-          </button>
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <button
+              type="submit"
+              disabled={!hasNewGames}
+              className="rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-club-red"
+            >
+              Apstiprināt
+            </button>
+            {!hasNewGames && (
+              <p className="text-sm text-slate-500">Jaunu spēļu nav, visas spēles jau importētas.</p>
+            )}
+          </div>
         </form>
       )}
     </div>

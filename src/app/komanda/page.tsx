@@ -22,13 +22,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   // TODO: move the main-team filter into getPublicPlayers/getPublicCoaches (a `where` on
   // the team relation) so the queries stop reading academy rows that this page discards.
   const mainTeamPlayers = playerRows.filter((player) => player.playerTeams.some(({ team }) => team?.isMain));
-  // Cache entries written before coachTeams was loaded lack it; keep those rows until the
-  // cache refreshes (up to a minute) instead of crashing the page.
-  // TODO: remove the `!coach.coachTeams ||` check after the first deploy of this change;
-  // once the old cache has expired, coachTeams is always present.
-  const mainTeamCoaches = coachRows.filter(
-    (coach) => !coach.coachTeams || coach.coachTeams.some(({ team }) => team?.isMain),
-  );
+  const mainTeamCoaches = coachRows.filter((coach) => coach.coachTeams.some(({ team }) => team?.isMain));
   const playerGroups = groupTeamPagePlayers(mainTeamPlayers.map((player) => ({
     id: player.id,
     name: player.name,
