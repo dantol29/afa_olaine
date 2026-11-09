@@ -418,7 +418,8 @@
 .admin-theme .bg-slate-100 { background-color: #242424; }
 .admin-theme .bg-slate-200 { background-color: #383838; }
 .admin-theme .bg-amber-50,
-.admin-theme .bg-amber-100 { background-color: #352816; }
+.admin-theme .bg-amber-100,
+.admin-theme .bg-amber-50\/60 { background-color: #352816; }
 .admin-theme .bg-red-50 { background-color: #321b1b; }
 .admin-theme .bg-emerald-50 { background-color: #183026; }
 .admin-theme .bg-blue-50 { background-color: #172a3d; }
