@@ -46,7 +46,7 @@ async function notifyReviewNeeded(
 
   const result = await sendNotificationEmail({
     to: settings.email,
-    subject: `FK Olaine: ${totalCount} spēlei(ēm) LFF dati atšķiras no datubāzes`,
+    subject: `AFA Olaine: ${totalCount} spēlei(ēm) LFF dati atšķiras no datubāzes`,
     text: [
       `LFF sinhronizācija atrada ${totalCount} jau importētu spēli(es), kurām LFF tagad rāda citu laiku vai stadionu.`,
       "Šīs izmaiņas NAV automātiski piemērotas — apskati un apstiprini katrā līgas avota \"Ielādēt spēles\" lapā.",

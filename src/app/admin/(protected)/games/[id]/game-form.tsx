@@ -61,7 +61,7 @@ export function GameForm(
             type="text"
             name="homeTeam"
             required
-            placeholder="FK Olaine"
+            placeholder="AFA Olaine"
             defaultValue={game?.homeTeam ?? ""}
             className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
           />

@@ -26,7 +26,7 @@ export type ReviewNeededGame = {
 };
 
 /** Fetches one league source's fixtures, backfills any club logos LFF has
- *  on file, and inserts every not-yet-imported FK Olaine fixture straight
+ *  on file, and inserts every not-yet-imported AFA Olaine fixture straight
  *  into `games` — no admin review step. This is what the scheduled cron
  *  sync calls for every league source; the manual "Ielādēt spēles" review
  *  screen has its own confirm-based flow and doesn't use this.
@@ -54,7 +54,7 @@ export async function syncLeagueSource(source: {
     return {
       imported: 0,
       reviewNeeded: [],
-      error: `LFF returned ${fixtures.length} fixtures, but none with a valid time matched FK Olaine`,
+      error: `LFF returned ${fixtures.length} fixtures, but none with a valid time matched AFA Olaine`,
     };
   }
 

@@ -14,7 +14,7 @@ const NO_STORE_HEADERS = {
   Pragma: "no-cache",
 };
 
-/** Hit on a schedule to refresh every league source's FK Olaine players'
+/** Hit on a schedule to refresh every league source's AFA Olaine players'
  *  `goals` count from LFF's goal-scorers page — see syncTopScorersForSource.
  *  Requires `?secret=` matching CRON_SECRET, same as sync-fixtures. Reuses
  *  the `importedCount` cronJobStatuses column to mean "players updated"

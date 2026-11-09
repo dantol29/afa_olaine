@@ -5,7 +5,7 @@ import { db } from "@/db/client";
 import { clubLogoNames, clubLogos } from "@/db/schema";
 
 /** Resolves a batch of club names to their logo image via an exact name
- *  match against club_logo_names — FK Olaine included, no special-casing.
+ *  match against club_logo_names — AFA Olaine included, no special-casing.
  *  A logo can be known by several names (the same club is often spelled
  *  differently across competitions), so this joins through the names
  *  table rather than matching on club_logos directly. Returns null for

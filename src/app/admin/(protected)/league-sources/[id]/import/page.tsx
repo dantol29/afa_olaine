@@ -123,7 +123,7 @@ export default async function AdminLeagueSourceImportPage({
         Ielādēt spēles: {source.label}
       </h1>
       <p className="mb-2 text-sm text-slate-500">
-        Atrastas {candidates.length} FK Olaine spēles. Atzīmē, kuras pievienot, un apstiprini.
+        Atrastas {candidates.length} AFA Olaine spēles. Atzīmē, kuras pievienot, un apstiprini.
       </p>
       {differingCount > 0 && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700">
@@ -145,7 +145,7 @@ export default async function AdminLeagueSourceImportPage({
 
       {candidates.length === 0 ? (
         <p className="text-sm text-slate-400">
-          Šajā URL neizdevās atrast nevienu FK Olaine spēli ar apstiprinātu laiku.
+          Šajā URL neizdevās atrast nevienu AFA Olaine spēli ar apstiprinātu laiku.
         </p>
       ) : (
         <form action={boundConfirm}>
