@@ -124,7 +124,7 @@ export function TeamPageContent({ playerGroups, coaches, initialTab = "players" 
               title="Treneri"
               sectionId="coaches"
               showViewAll={false}
-              profileHrefBase={null}
+              profileHrefBase="/komanda/treneri"
               players={coaches.map((coach) => ({
                 id: coach.id,
                 name: coach.name,
