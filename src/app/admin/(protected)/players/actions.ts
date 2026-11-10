@@ -8,18 +8,22 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { playerTeams, players } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { parseBirthdate } from "@/lib/birthdate";
 import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 
 function parsePlayerInput(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
-  const birthdate = String(formData.get("birthdate") ?? "").trim();
+  const birthdateRaw = String(formData.get("birthdate") ?? "").trim();
   const teamIds = formData.getAll("teamIds").map(Number).filter((n) => Number.isFinite(n));
   const numberRaw = String(formData.get("number") ?? "").trim();
   const number = numberRaw === "" ? null : Number(numberRaw);
   const position = String(formData.get("position") ?? "").trim() || null;
 
   if (!name) return { error: "Vārds, uzvārds ir obligāts." } as const;
-  if (!birthdate) return { error: "Dzimšanas datums ir obligāts." } as const;
+  if (!birthdateRaw) return { error: "Dzimšanas datums ir obligāts." } as const;
+  const parsedBirthdate = parseBirthdate(birthdateRaw);
+  if (!parsedBirthdate.ok) return { error: parsedBirthdate.error } as const;
+  const birthdate = parsedBirthdate.value;
   if (teamIds.length === 0) return { error: "Jāizvēlas vismaz viena komanda." } as const;
   if (number !== null && (!Number.isFinite(number) || number < 0)) {
     return { error: "Numuram jābūt pozitīvam skaitlim." } as const;
