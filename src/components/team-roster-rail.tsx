@@ -19,13 +19,15 @@ export type TeamShowcasePlayer = {
 export function TeamRosterRail({ players, title = "Komanda", sectionId = "komanda", showViewAll = true, profileHrefBase = "/komanda/speletaji" }: { players: TeamShowcasePlayer[]; title?: string; sectionId?: string; showViewAll?: boolean; profileHrefBase?: string | null }) {
   const [swiper, setSwiper] = useState<SwiperType | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(players.length > 1);
   const selectedPlayer = players[selectedIndex];
 
-  const updateNavigation = (instance: SwiperType) => {
-    setCanScrollPrev(!instance.isBeginning);
-    setCanScrollNext(!instance.isEnd);
+  // The arrows switch the selected (enlarged) player, so they work for any row with more than one
+  // player, including rows where every card fits on screen and the swiper itself has nothing to scroll.
+  const canSelectPrev = selectedIndex > 0;
+  const canSelectNext = selectedIndex < players.length - 1;
+  const selectPlayer = (index: number) => {
+    setSelectedIndex(index);
+    swiper?.slideTo(index);
   };
 
   return (
@@ -35,10 +37,10 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
           <div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-3">
             <h2 id={`${sectionId}-heading`} className="font-heading text-[32px] font-semibold uppercase leading-none sm:text-[42px]">{title}</h2>
             <div className="mt-5 flex items-center gap-2 sm:mt-0">
-              <button type="button" disabled={!canScrollPrev} onClick={() => swiper?.slidePrev()} aria-label="Iepriekšējie spēlētāji" className="grid size-11 place-items-center border border-white/50 transition-colors hover:border-white hover:bg-white hover:text-[#050505] disabled:cursor-not-allowed disabled:border-white/25 disabled:text-white/40 disabled:hover:border-white/25 disabled:hover:bg-transparent disabled:hover:text-white/40">
+              <button type="button" disabled={!canSelectPrev} onClick={() => selectPlayer(selectedIndex - 1)} aria-label="Iepriekšējie spēlētāji" className="grid size-11 place-items-center border border-white/50 transition-colors hover:border-white hover:bg-white hover:text-[#050505] disabled:cursor-not-allowed disabled:border-white/25 disabled:text-white/40 disabled:hover:border-white/25 disabled:hover:bg-transparent disabled:hover:text-white/40">
                 <ArrowLeft className="size-4" aria-hidden="true" />
               </button>
-              <button type="button" disabled={!canScrollNext} onClick={() => swiper?.slideNext()} aria-label="Nākamie spēlētāji" className="grid size-11 place-items-center border border-white/50 transition-colors hover:border-white hover:bg-white hover:text-[#050505] disabled:cursor-not-allowed disabled:border-white/25 disabled:text-white/40 disabled:hover:border-white/25 disabled:hover:bg-transparent disabled:hover:text-white/40">
+              <button type="button" disabled={!canSelectNext} onClick={() => selectPlayer(selectedIndex + 1)} aria-label="Nākamie spēlētāji" className="grid size-11 place-items-center border border-white/50 transition-colors hover:border-white hover:bg-white hover:text-[#050505] disabled:cursor-not-allowed disabled:border-white/25 disabled:text-white/40 disabled:hover:border-white/25 disabled:hover:bg-transparent disabled:hover:text-white/40">
                 <ArrowRight className="size-4" aria-hidden="true" />
               </button>
             </div>
@@ -54,13 +56,10 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
         onSwiper={(instance) => {
           setSwiper(instance);
           setSelectedIndex(instance.activeIndex);
-          updateNavigation(instance);
         }}
         onSlideChange={(instance) => {
           setSelectedIndex(instance.activeIndex);
-          updateNavigation(instance);
         }}
-        onResize={updateNavigation}
         >
         {players.map((player, index) => (
           <SwiperSlide key={player.id} className={`!h-[420px] !w-[260px] sm:!h-[460px] sm:!w-[280px] ${selectedIndex === index ? "!z-30" : "!z-0"} ${index > 0 ? "-ml-7 sm:-ml-10" : ""}`}>
@@ -69,10 +68,7 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
                 type="button"
                 aria-label={`Rādīt ${player.name} profilu`}
                 aria-pressed={selectedIndex === index}
-                onClick={() => {
-                  setSelectedIndex(index);
-                  swiper?.slideTo(index);
-                }}
+                onClick={() => selectPlayer(index)}
                 className="relative block h-full w-full cursor-pointer text-left"
               >
                 {player.imageUrl ? (
@@ -97,7 +93,8 @@ export function TeamRosterRail({ players, title = "Komanda", sectionId = "komand
           </SwiperSlide>
         ))}
         </FullWidthGallery>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[30%] bg-gradient-to-t from-[#050505] via-[#050505]/65 to-transparent" />
+        {/* Extends 4px below the cards: the scaled (active) photo rasterises one pixel row past its box, which would otherwise show as a faint line under the fade. */}
+        <div className="pointer-events-none absolute inset-x-0 -bottom-1 z-20 h-[calc(30%+4px)] bg-gradient-to-t from-[#050505] via-[#050505]/65 to-transparent" />
       </div>
       {selectedPlayer && (
         <div className="relative z-30 mx-auto -mt-[120px] w-[calc(100%-3rem)] sm:hidden">

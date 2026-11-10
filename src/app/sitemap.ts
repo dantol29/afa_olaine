@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { asc, desc } from "drizzle-orm";
 
 import { db } from "@/db/client";
-import { articles, players, teams } from "@/db/schema";
+import { articles, coaches, players, teams } from "@/db/schema";
 import { getPublishedClubPages } from "@/lib/club-pages-server";
 import { parseClubPageMedia } from "@/lib/club-page-media";
 import { absoluteSiteUrl, getSiteUrl } from "@/lib/site-url";
@@ -12,9 +12,10 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
   const pages = ["", "/jaunumi", "/komanda", "/akademija", "/speles", "/trenini", "/kontakti"];
-  const [articleRows, playerRows, customPages, teamRows] = await Promise.all([
+  const [articleRows, playerRows, coachRows, customPages, teamRows] = await Promise.all([
     db.select({ slug: articles.slug, image: articles.image }).from(articles).orderBy(desc(articles.date)),
     db.select({ id: players.id, photoUrl: players.photoUrl }).from(players),
+    db.select({ id: coaches.id, photoUrl: coaches.photoUrl }).from(coaches),
     getPublishedClubPages(),
     db.select({ groupPhotoUrl: teams.groupPhotoUrl }).from(teams).orderBy(asc(teams.id)),
   ]);
@@ -40,6 +41,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...playerRows.map((player) => ({
       url: `${siteUrl}/komanda/speletaji/${player.id}`,
       images: imagesFor([player.id === 67 ? "/player-cutouts/nikoloz-gujabidze.png" : player.photoUrl]),
+    })),
+    ...coachRows.map((coach) => ({
+      url: `${siteUrl}/komanda/treneri/${coach.id}`,
+      images: imagesFor([coach.photoUrl]),
     })),
     ...customPages.map((page) => ({
       url: `${siteUrl}/klubs/${encodeURIComponent(page.slug)}`,
