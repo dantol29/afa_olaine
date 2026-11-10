@@ -3,6 +3,7 @@ import { and, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db/client";
 import { events, games, teams, trainings } from "@/db/schema";
 import { resolveClubLogos } from "@/lib/club-logos";
+import { getTeamNamesByTraining } from "@/lib/training-teams";
 
 export type CalendarEvent = {
   uid: string;
@@ -146,28 +147,30 @@ async function getAdminTrainingEvents(after: Date, before: Date): Promise<Calend
       startTime: trainings.startTime,
       endTime: trainings.endTime,
       location: trainings.location,
-      teamName: teams.name,
     })
     .from(trainings)
-    .innerJoin(teams, eq(trainings.teamId, teams.id))
     .where(and(gte(trainings.date, afterKey), lte(trainings.date, beforeKey)));
+  const teamNamesByTraining = await getTeamNamesByTraining();
 
-  return rows.map((row) => {
+  return rows.flatMap((row) => {
+    const teamName = teamNamesByTraining.get(row.id);
+    if (!teamName) return [];
+
     const [year, month, day] = dateKeyToParts(row.date);
     const start = rigaWallClockToUtc(year, month, day, ...timeToParts(row.startTime));
     const end = rigaWallClockToUtc(year, month, day, ...timeToParts(row.endTime));
 
-    return {
+    return [{
       uid: `training-${row.id}`,
-      title: `${row.teamName} treniņš`,
+      title: `${teamName} treniņš`,
       location: row.location,
       allDay: false,
       start,
       end,
-      eventType: "training",
-      team: row.teamName,
+      eventType: "training" as const,
+      team: teamName,
       ...formatLabels(start, false),
-    };
+    }];
   });
 }
 

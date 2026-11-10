@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db/client";
-import { trainingCoaches, trainings } from "@/db/schema";
+import { trainingCoaches, trainingTeams, trainings } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
 
 function parseTrainingInput(formData: FormData) {
@@ -34,13 +34,19 @@ function parseTrainingInput(formData: FormData) {
   } as const;
 }
 
-async function syncTrainingCoaches(trainingId: number, coachIds: number[]) {
-  await db.delete(trainingCoaches).where(eq(trainingCoaches.trainingId, trainingId));
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function syncTrainingCoaches(tx: Transaction, trainingId: number, coachIds: number[]) {
+  await tx.delete(trainingCoaches).where(eq(trainingCoaches.trainingId, trainingId));
   if (coachIds.length > 0) {
-    await db
-      .insert(trainingCoaches)
-      .values(coachIds.map((coachId) => ({ trainingId, coachId })));
+    await tx.insert(trainingCoaches).values(coachIds.map((coachId) => ({ trainingId, coachId })));
   }
+}
+
+// The form picks one team; the shared schema allows several per training.
+async function syncTrainingTeam(tx: Transaction, trainingId: number, teamId: number) {
+  await tx.delete(trainingTeams).where(eq(trainingTeams.trainingId, trainingId));
+  await tx.insert(trainingTeams).values({ trainingId, teamId });
 }
 
 export async function createTraining(
@@ -52,12 +58,15 @@ export async function createTraining(
   const parsed = parseTrainingInput(formData);
   if ("error" in parsed) return parsed;
 
-  const { coachIds, ...trainingFields } = parsed;
-  const [inserted] = await db
-    .insert(trainings)
-    .values({ ...trainingFields, createdAt: Date.now() })
-    .returning({ id: trainings.id });
-  await syncTrainingCoaches(inserted.id, coachIds);
+  const { teamId, coachIds, ...trainingFields } = parsed;
+  await db.transaction(async (tx) => {
+    const [inserted] = await tx
+      .insert(trainings)
+      .values({ ...trainingFields, createdAt: Date.now() })
+      .returning({ id: trainings.id });
+    await syncTrainingTeam(tx, inserted.id, teamId);
+    await syncTrainingCoaches(tx, inserted.id, coachIds);
+  });
 
   revalidatePath("/admin/trainings");
   revalidatePath("/trenini");
@@ -74,9 +83,12 @@ export async function updateTraining(
   const parsed = parseTrainingInput(formData);
   if ("error" in parsed) return parsed;
 
-  const { coachIds, ...trainingFields } = parsed;
-  await db.update(trainings).set(trainingFields).where(eq(trainings.id, id));
-  await syncTrainingCoaches(id, coachIds);
+  const { teamId, coachIds, ...trainingFields } = parsed;
+  await db.transaction(async (tx) => {
+    await tx.update(trainings).set(trainingFields).where(eq(trainings.id, id));
+    await syncTrainingTeam(tx, id, teamId);
+    await syncTrainingCoaches(tx, id, coachIds);
+  });
 
   revalidatePath("/admin/trainings");
   revalidatePath("/trenini");

@@ -57,6 +57,14 @@ npm run local:snapshot -- restore full-demo
   run while the dev server is up; stop it first.
 - Names may use letters, digits, `-` and `_`. Snapshots hold only the fake
   data you put in the local database; keep real data out of it.
+- A snapshot (or `local.db`) saved before a `@olaine/database` upgrade has the old
+  schema. After restoring it, run the shared migrations before starting the app
+  (do not run `drizzle-kit push` first: it would drop columns the migration still
+  needs to copy):
+
+  ```bash
+  node scripts/local/run.mjs node node_modules/@olaine/database/migrate.mjs
+  ```
 
 ## LFF sync
 
