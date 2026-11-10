@@ -23,7 +23,7 @@ export default async function AdminTrainingFormPage({
     const trainingId = Number(id);
     training = await db.query.trainings.findFirst({
       where: (trainings, { eq }) => eq(trainings.id, trainingId),
-      with: { trainingCoaches: true },
+      with: { trainingCoaches: true, trainingTeams: true },
     });
     if (!training) notFound();
   }
@@ -40,7 +40,7 @@ export default async function AdminTrainingFormPage({
       {training ? (
         <TrainingForm
           mode="edit"
-          training={training}
+          training={{ ...training, teamId: training.trainingTeams[0]?.teamId ?? 0 }}
           teamOptions={teamOptions}
           coachOptions={coachOptions}
         />

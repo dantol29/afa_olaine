@@ -7,9 +7,15 @@ import { db } from "@/db/client";
 
 import { deleteTraining } from "./actions";
 
+const teamNames = (training: { trainingTeams: { team: { name: string } | null }[] }) =>
+  training.trainingTeams
+    .map(({ team }) => team?.name)
+    .filter(Boolean)
+    .join(", ");
+
 export default async function AdminTrainingsPage() {
   const rows = await db.query.trainings.findMany({
-    with: { team: true, trainingCoaches: { with: { coach: true } } },
+    with: { trainingTeams: { with: { team: true } }, trainingCoaches: { with: { coach: true } } },
     orderBy: (trainings, { asc }) => [asc(trainings.date), asc(trainings.startTime)],
   });
 
@@ -39,12 +45,12 @@ export default async function AdminTrainingsPage() {
         </thead>
         <tbody>
           {rows.map((training) => (
-            <tr data-admin-search-item={`${training.date} ${training.startTime} ${training.team?.name ?? ""} ${training.trainingCoaches.map((tc) => tc.coach?.name).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
+            <tr data-admin-search-item={`${training.date} ${training.startTime} ${teamNames(training)} ${training.trainingCoaches.map((tc) => tc.coach?.name).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 text-club-navy">{training.date}</td>
               <td className="p-4 text-slate-500">
                 {training.startTime}–{training.endTime}
               </td>
-              <td className="p-4 font-semibold text-club-navy">{training.team?.name ?? "—"}</td>
+              <td className="p-4 font-semibold text-club-navy">{teamNames(training) || "—"}</td>
               <td className="p-4 text-slate-500">
                 {training.trainingCoaches.map((tc) => tc.coach?.name).join(", ") || "—"}
               </td>

@@ -5,12 +5,12 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   coaches as coachesTable,
-  teams as teamsTable,
   trainingCoaches as trainingCoachesTable,
   trainings as trainingsTable,
 } from "@/db/schema";
 import { toDateKey } from "@/lib/calendar";
 import { MONTHS } from "@/lib/games";
+import { getTeamNamesByTraining } from "@/lib/training-teams";
 
 export type TrainingCoach = { name: string; photoUrl: string | null };
 
@@ -40,11 +40,10 @@ export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(
         startTime: trainingsTable.startTime,
         endTime: trainingsTable.endTime,
         location: trainingsTable.location,
-        teamName: teamsTable.name,
       })
       .from(trainingsTable)
-      .innerJoin(teamsTable, eq(trainingsTable.teamId, teamsTable.id))
       .orderBy(trainingsTable.date, trainingsTable.startTime);
+    const teamNamesByTraining = await getTeamNamesByTraining();
 
     const coachRows = await db
       .select({
@@ -62,9 +61,12 @@ export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(
       coachesByTraining.set(row.trainingId, list);
     }
 
-    return rows.map((row) => {
+    return rows.flatMap((row) => {
+      const teamName = teamNamesByTraining.get(row.id);
+      if (!teamName) return [];
+
       const [year, month, day] = row.date.split("-").map(Number);
-      return {
+      return [{
         id: row.id,
         day: String(day).padStart(2, "0"),
         month: MONTHS[month - 1] ?? "",
@@ -73,10 +75,10 @@ export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(
         startTime: row.startTime,
         endTime: row.endTime,
         location: row.location,
-        teamName: row.teamName,
+        teamName,
         coaches: coachesByTraining.get(row.id) ?? [],
         isPast: row.date < todayKey,
-      };
+      }];
     });
   } catch {
     return [];
