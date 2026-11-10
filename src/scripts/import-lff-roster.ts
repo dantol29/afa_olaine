@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { playerTeams, players, teams } from "@/db/schema";
+import { parseBirthdate } from "@/lib/birthdate";
 import { parseLffRosterHtml } from "@/lib/lff-roster";
 
 async function main() {
@@ -21,11 +22,16 @@ async function main() {
   let added = 0;
   let linked = 0;
   for (const row of roster) {
+    const birthdate = parseBirthdate(row.birthdate);
+    if (!birthdate.ok) {
+      console.warn(`Skipped ${row.name}: invalid birthdate "${row.birthdate}".`);
+      continue;
+    }
     let player = await db.query.players.findFirst({ where: eq(players.name, row.name) });
     if (!player) {
       const [inserted] = await db.insert(players).values({
         name: row.name,
-        birthdate: row.birthdate,
+        birthdate: birthdate.value,
         photoUrl: row.photoUrl,
         number: null,
         position: row.position,

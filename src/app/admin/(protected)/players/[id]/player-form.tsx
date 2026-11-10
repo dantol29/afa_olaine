@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState } from "react";
+import { useActionState, useLayoutEffect, useRef, useState } from "react";
+
+import { parseBirthdate, replaceDateSeparators } from "@/lib/birthdate";
 
 import { createPlayer, updatePlayer } from "../actions";
 
@@ -26,6 +28,22 @@ export function PlayerForm(
   const player = props.mode === "edit" ? props.player : null;
   const selectedTeamIds = new Set(player?.playerTeams.map((pt) => pt.teamId) ?? []);
 
+  const [birthdate, setBirthdate] = useState(player?.birthdate ?? "");
+  // An existing player shows its error at once, so the admin sees why Save is disabled.
+  const [birthdateTouched, setBirthdateTouched] = useState(player !== null);
+  const birthdateInput = useRef<HTMLInputElement>(null);
+  const birthdateCaret = useRef<number | null>(null);
+  const birthdateResult = parseBirthdate(birthdate);
+  const showBirthdateError = !birthdateResult.ok && birthdate !== "" && (birthdateTouched || birthdate.length >= 10);
+
+  // Replacing a character makes the browser move the caret to the end, so put it back.
+  useLayoutEffect(() => {
+    if (birthdateCaret.current !== null) {
+      birthdateInput.current?.setSelectionRange(birthdateCaret.current, birthdateCaret.current);
+      birthdateCaret.current = null;
+    }
+  }, [birthdate]);
+
   return (
     <form action={formAction} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
@@ -46,13 +64,28 @@ export function PlayerForm(
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Dzimšanas datums (DD.MM.GGGG.)
         <input
+          ref={birthdateInput}
           type="text"
           name="birthdate"
+          inputMode="numeric"
+          maxLength={12}
           placeholder="12.04.1998."
           required
-          defaultValue={player?.birthdate ?? ""}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
+          value={birthdate}
+          onChange={(event) => {
+            birthdateCaret.current = event.target.selectionStart;
+            setBirthdate(replaceDateSeparators(event.target.value));
+          }}
+          onBlur={() => {
+            setBirthdateTouched(true);
+            if (birthdateResult.ok) setBirthdate(birthdateResult.value);
+          }}
+          aria-invalid={showBirthdateError}
+          className={`mt-1.5 w-full rounded-lg border px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red ${showBirthdateError ? "border-club-red" : "border-slate-200"}`}
         />
+        {showBirthdateError && !birthdateResult.ok && (
+          <span className="mt-1 block text-xs font-semibold text-club-red">{birthdateResult.error}</span>
+        )}
       </label>
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
@@ -142,7 +175,7 @@ export function PlayerForm(
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !birthdateResult.ok}
         className="mt-6 rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-club-red-dark disabled:opacity-50"
       >
         {pending ? "Saglabā..." : "Saglabāt"}
