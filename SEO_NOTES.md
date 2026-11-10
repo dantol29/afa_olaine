@@ -25,9 +25,9 @@ Source review included an independent technical SEO agent. No tests, build, brow
 
 ## Scope and remaining release work
 
-This was a source audit and implementation. No existing `.seo-cache` baseline was available. No tests or production build were run. The browsing tool could not access `https://fkolaine.com`, so production crawling, indexing, rich-result eligibility, and Core Web Vitals remain unmeasured.
+This was a source audit and implementation. No existing `.seo-cache` baseline was available. No tests or production build were run. The browsing tool could not access `https://afaolaine.lv`, so production crawling, indexing, rich-result eligibility, and Core Web Vitals remain unmeasured.
 
-After deployment, submit `/sitemap.xml` in the verified Google Search Console property and inspect representative home, news, player, and custom-page URLs. Validate article and breadcrumb data with Google's Rich Results Test. Keep `SITE_URL` set to the actual public origin; its current documented value is `https://fkolaine.com`.
+After deployment, submit `/sitemap.xml` in the verified Google Search Console property and inspect representative home, news, player, and custom-page URLs. Validate article and breadcrumb data with Google's Rich Results Test. Keep `SITE_URL` set to the actual public origin; its current documented value is `https://afaolaine.lv`.
 
 Image optimization is disabled for the existing shared-hosting compatibility requirement. Measure production loading performance before choosing a compatible image compression/delivery change. Rankings and traffic improvements require production measurement.
 
