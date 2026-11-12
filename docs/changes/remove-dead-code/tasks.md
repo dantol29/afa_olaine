@@ -2,7 +2,7 @@
 
 Status: approved by the user 2026-11-12. Branch `chore/remove-dead-code` created from `main` `dd263cb` the same day
 on the user's command. Commits, push and PR still need a separate command.
-Progress: T0 closed 2026-11-12 (baseline in [proof.md](proof.md)); T1 closed (`11b0ee5`); T2 closed (committed); T3 closed (committed); T4 closed (committed); T5 closed (committed; B1 = `app.db.20261112-124111`); next T6.
+Progress: T0 closed 2026-11-12 (baseline in [proof.md](proof.md)); T1 closed (`11b0ee5`); T2 closed (committed); T3 closed (committed); T4 closed (committed); T5 closed (committed; B1 = `app.db.20261112-124111`); T6 closed (committed here and in the private repo); next T7.
 
 ## Sources
 
@@ -29,6 +29,10 @@ Progress: T0 closed 2026-11-12 (baseline in [proof.md](proof.md)); T1 closed (`1
   `requestAnimationFrame` fires in the tab, i.e. the browser pane is visible; then wait until in-view images are
   complete and entry animations finished; a hidden pane is shown with the app's show-pane tool first; record the visual check as not done only if frames still do not render); check the browser console and dev log
   for new errors; stop the server. Admin login with `ADMIN_PASSWORD` from `.env.local` (local test value).
+- Local media (user request 2026-11-12): the 6 partner logos missing from local `uploads/partners/` were
+  downloaded from the public production URLs `https://afaolaine.lv/uploads/partners/…` (read-only GET, nothing
+  else read from production) and saved in the new snapshot `pre-dead-code-media` (database identical to
+  `pre-dead-code`). From T7 on, smoke runs restore `pre-dead-code-media`.
 - Visual coverage (user decision 2026-11-12): per-task screenshots are a sample of pages; the full pass (every page
   from the T0 list at desktop and 375 px, mobile menu and search drawer open, compared with T0) is done once in T7.
 - Second-order dead code: re-run the import graph and `npx tsc --noEmit --noUnusedLocals --noUnusedParameters`.

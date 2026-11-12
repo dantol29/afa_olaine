@@ -191,3 +191,35 @@ Source: branch `chore/remove-dead-code`, HEAD `954daab`, uncommitted: `src/app/g
 Doc reconciliation: no doc change (no doc mentions these classes).
 
 Proposed commit: `chore: remove unused CSS classes and keyframes`.
+
+## T6 assets (2026-11-12)
+
+Source: branch `chore/remove-dead-code`, HEAD `36f526f`; private repo `../afa_olaine_private_files` on `main`, clean
+before the copy.
+
+- Reference re-check for the 29 files (file name and name stem, `git grep` without `docs/changes` and the lock file):
+  0 matches. B1 dump: 0 matches. The only computed `/social/tiktok/` paths are the `-20261006` images in
+  `tiktok-videos-rail.tsx`, which stay.
+- Sources copied (`cp -n`) and SHA-256 identical:
+  `design-sources/brand/hero-wordmark-source.png` (`fffabb21…025d`),
+  `design-sources/social/tiktok-reels-reference.png` (`ab9bf550…8bc3`),
+  `design-sources/social/captures-20261006.json` (`b424a9dc…beb`). Private repo now shows `?? design-sources/`;
+  not committed there.
+- Deleted from `public/` (29 files, 3.3 MB): `partner-{daily,joma,lff,olaine,osc,zemgale}.png`, `birthday-bg-logo.png`,
+  `birthday-player.png`, `social/tiktok/{back-to-school,celebration,family-day,matchday,teammates,training}.png`,
+  `social/tiktok/{girls-tournament,indoor-match,league-action,league-highlight}.jpg`,
+  `footer-{facebook,phone,x}.svg`, `upcoming-{afa,liepaja}.png`, `upcoming-{calendar,map-pin}.svg`,
+  `altero-liga.png`, and the 3 moved sources.
+- Lint: 0 errors, the 3 baseline warnings. Build: exit 0, `build-T6-20261112-210326.log`, error grep empty, routes
+  identical to T5. `tsc --noEmit`: exit 0.
+- Smoke (data restored): statuses identical to T5; 33 browser pages with the expected h1 and no console errors. Each
+  public page scrolled to the bottom in the visible tab: no failed request and no broken image outside `/uploads/`
+  (the `/uploads/partners|leagues` files missing from local data, as in T0). Dev log: no 404 except the expected
+  `/lab`. Screenshots (pane shown): homepage TikTok rail and footer icons render. Database identical to
+  `pre-dead-code`.
+- Check note: the iframe runner does not load lazy images placed off screen, so image checks are done in the visible
+  tab.
+
+Doc reconciliation: no doc change (no doc mentions these files).
+
+Proposed commit: `chore: remove unused public assets`. Private repo: `design-sources/` committed there on the user's command.
