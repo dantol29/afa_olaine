@@ -42,18 +42,6 @@ export const MONTHS = [
   "DEC",
 ];
 
-export function gameDate(game: UpcomingGame): Date {
-  const monthIndex = MONTHS.indexOf(game.month);
-  const [hours, minutes] = game.time.split(":").map(Number);
-  return new Date(
-    Number(game.year),
-    monthIndex >= 0 ? monthIndex : 0,
-    Number(game.day),
-    hours || 0,
-    minutes || 0,
-  );
-}
-
 const FALLBACK_TEAM_COLORS = [
   "bg-club-navy",
   "bg-club-red",

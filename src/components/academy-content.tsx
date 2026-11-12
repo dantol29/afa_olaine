@@ -11,10 +11,6 @@ export type AcademyTeam = {
   players: { id: number; name: string; number: number | null; position: string | null }[];
 };
 
-export function selectAcademyTeams<T extends { id: number }>(teams: T[]): T[] {
-  return [...teams].sort((a, b) => a.id - b.id).slice(1);
-}
-
 export function AcademyContent({ teams }: { teams: AcademyTeam[] }) {
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const visibleTeams = selectedTeamId === null ? teams : teams.filter((team) => team.id === selectedTeamId);

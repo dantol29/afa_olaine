@@ -14,7 +14,6 @@ import {
   X,
 } from "lucide-react";
 
-import { OPEN_CALENDAR_EVENT_NAME } from "@/lib/calendar-bridge";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
@@ -452,9 +451,8 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
 
   /** A header nav link like "/?type=training#kalendars" pre-selects that
    *  event type filter when the calendar first comes into view, and a
-   *  "?event=<uid>" param (or a same-page "open this event" signal from
-   *  e.g. the homepage matches carousel — see calendar-bridge.ts) jumps
-   *  straight to that event's week/half and opens its popup. `window` is
+   *  "?event=<uid>" param jumps straight to that event's week/half and
+   *  opens its popup. `window` is
    *  only available post-mount, so this can't be a lazy useState initializer
    *  without breaking SSR — an effect reading an external browser API on
    *  mount is the legitimate case the set-state-in-effect rule can't tell
@@ -477,12 +475,6 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
       setActiveTypes(new Set([type]));
     }
     openEventByUid(params.get("event"));
-
-    const handleOpenEvent = (event: Event) => {
-      openEventByUid((event as CustomEvent<{ uid: string }>).detail?.uid ?? null);
-    };
-    window.addEventListener(OPEN_CALENDAR_EVENT_NAME, handleOpenEvent);
-    return () => window.removeEventListener(OPEN_CALENDAR_EVENT_NAME, handleOpenEvent);
   }, [events]);
 
   const teamOptions = useMemo(() => {

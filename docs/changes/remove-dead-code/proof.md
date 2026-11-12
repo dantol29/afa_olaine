@@ -68,4 +68,43 @@ so `tsc` must run after a build.
 
 Doc reconciliation: tasks.md check order updated (build before `tsc`). No other doc change.
 
-Proposed commit: `chore: delete unreachable components, routes and scripts`.
+Proposed commit: `chore: delete unreachable components, routes and scripts`. Committed as `11b0ee5`.
+
+## T2 unused functions and calendar bridge (2026-11-12)
+
+Source: branch `chore/remove-dead-code`, HEAD `11b0ee5`, uncommitted: 8 files (7 modified, 1 deleted).
+
+- Reference re-check: each removed symbol was found only at its own declaration; `OPEN_CALENDAR_EVENT_NAME` only in
+  `calendar-bridge.ts` and the listener in `week-calendar.tsx`.
+- Removed: `selectAcademyTeams` (`academy-content.tsx`), `PlayerRoleRail` (`team-page-content.tsx`), `gameDate`
+  (`games.ts`), `middleLogoStripe` (`logo-color-core.ts`), `formatYouTubeViews` (`youtube-view-count.ts`),
+  `src/lib/calendar-bridge.ts`, the bridge listener and its comment mention in `week-calendar.tsx`, and
+  `import * as React` in `ui/select.tsx`.
+- Second-order, removed in the same edited file: `team-page-content.tsx` imports `Image`, `useEmblaCarousel`,
+  `ArrowLeft`, `ArrowRight`, `UserRound`, `useCallback`, `useEffect` (used only by `PlayerRoleRail`). `hexColor` and
+  `DEFAULT_BORDER_COLOR` stay (used by `smoothLogoStripe`). `embla-carousel-react` now has no importer (T4).
+- Graph (`analyze-T2.txt`) differs from T1 only by the removed symbols. `tsc --noEmit` and
+  `tsc --noUnusedLocals --noUnusedParameters`: exit 0. Lint: 0 errors, the 3 baseline warnings.
+- Build: exit 0, `build-T2-20261112-135307.log`, error grep empty, routes identical to T1.
+- Smoke (data restored): statuses identical to T1. DOM probe on 38 pages identical to T1 (same h1, same click counts,
+  0 hits). `?event=training-1` on `/admin/trainings/1` opens the "2. liga treniņš" card; without the param no card
+  opens. Dev log: no errors; the same 7 missing local `/uploads/` files as before. Database unchanged.
+- Screenshots: `/komanda`, `/akademija`, `/speles` desktop match; on mobile `/komanda` the player and crest images do
+  not appear in the capture while the DOM shows all four player images loaded with opacity 1. The browser pane was
+  hidden (same capture limit as T1). The removed `PlayerRoleRail` was never rendered, so page output cannot differ.
+
+Screenshot diagnosis (same day, T2 tree, data restored): with the pane hidden, `requestAnimationFrame` did not fire
+within 3 s, entry animations (`site-panel-enter`, `site-player-info-reveal`) stayed `running`, and only 2 of 5
+in-view lazy images had loaded. A capture sometimes forces one frame, so some screenshots showed the images and some
+did not (the T1 homepage hero and the T2 mobile `/komanda` cases). Later captures of the same T2 pages showed the
+homepage hero team photo and the mobile `/komanda` player photo and crest. Cause: the hidden browser pane pauses
+rendering; not a site or code change. Rule added to tasks.md: visual comparison only when `requestAnimationFrame`
+fires; otherwise the visual check is recorded as not done and only the DOM evidence counts.
+
+Visual recheck with the pane visible (T2 tree, data restored): `requestAnimationFrame` fires; `/` and `/komanda` at
+pane width and at mobile 375 show the hero team photo, the crest and the player photos as in the baseline. Dev log: no
+new errors. Database identical to `pre-dead-code` afterwards (dump compare).
+
+Doc reconciliation: tasks.md smoke rule updated (render check before screenshots). No other doc change.
+
+Proposed commit: `chore: remove unused functions and the calendar event bridge`.

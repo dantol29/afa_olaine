@@ -4,45 +4,6 @@ function hexColor(red: number, green: number, blue: number) {
   return `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
 }
 
-/** Maps the crest's horizontal middle pixels to a crisp CSS border stripe. */
-export function middleLogoStripe(pixels: Buffer, width: number, height: number, fallback = DEFAULT_BORDER_COLOR): string {
-  if (width < 1 || height < 1 || pixels.length < width * height * 4) return fallback;
-
-  const rowStart = Math.floor(height / 2) * width * 4;
-  const visibleColors: string[] = [];
-
-  for (let column = 0; column < width; column += 1) {
-    const pixel = rowStart + column * 4;
-    if (pixels[pixel + 3] >= 96) {
-      visibleColors.push(hexColor(pixels[pixel], pixels[pixel + 1], pixels[pixel + 2]));
-    }
-  }
-
-  if (visibleColors.length === 0) return fallback;
-
-  const stops: string[] = [];
-  let previousColor = "";
-  let runStart = 0;
-
-  const appendRun = (color: string, start: number, end: number) => {
-    const startPercent = ((start / visibleColors.length) * 100).toFixed(3).replace(/\.0+$/, "");
-    const endPercent = ((end / visibleColors.length) * 100).toFixed(3).replace(/\.0+$/, "");
-    stops.push(`${color} ${startPercent}% ${endPercent}%`);
-  };
-
-  for (let column = 0; column < visibleColors.length; column += 1) {
-    const color = visibleColors[column];
-    if (column > 0 && color !== previousColor) {
-      appendRun(previousColor, runStart, column);
-      runStart = column;
-    }
-    previousColor = color;
-  }
-  appendRun(previousColor, runStart, visibleColors.length);
-
-  return `linear-gradient(90deg, ${stops.join(", ")})`;
-}
-
 /** Averages a shallow center band of a crest into smoothly interpolated color stops. */
 export function smoothLogoStripe(
   pixels: Buffer,

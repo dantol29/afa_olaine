@@ -2,7 +2,7 @@
 
 Status: approved by the user 2026-11-12. Branch `chore/remove-dead-code` created from `main` `dd263cb` the same day
 on the user's command. Commits, push and PR still need a separate command.
-Progress: T0 closed 2026-11-12 (baseline in [proof.md](proof.md)); T1 closed, not committed; next T2.
+Progress: T0 closed 2026-11-12 (baseline in [proof.md](proof.md)); T1 closed (`11b0ee5`); T2 closed (committed); next T3.
 
 ## Sources
 
@@ -25,7 +25,9 @@ Progress: T0 closed 2026-11-12 (baseline in [proof.md](proof.md)); T1 closed, no
 - Smoke check after the edit (shared resource: one `local.db`, one dev server on port 3000, one `.next/`):
   with the server stopped, `npm run local:snapshot -- restore pre-dead-code`; then `npm run local:dev`;
   skip `/admin/league-sources/[id]/sync-top-scorers` (it writes to the database on GET, see proof.md T0); in the built-in browser open every page from the T0 page list, desktop and mobile width; run
-  the T0 DOM probe; compare screenshots and probe output with the T0 baseline; check the browser console and dev log
+  the T0 DOM probe; compare screenshots and probe output with the T0 baseline (screenshots only count when
+  `requestAnimationFrame` fires in the tab, i.e. the browser pane is visible; then wait until in-view images are
+  complete and entry animations finished; with a hidden pane record the visual check as not done); check the browser console and dev log
   for new errors; stop the server. Admin login with `ADMIN_PASSWORD` from `.env.local` (local test value).
 - Second-order dead code: re-run the import graph and `npx tsc --noEmit --noUnusedLocals --noUnusedParameters`.
   Remove only non-exported locals/imports in files this task already edits; list anything else in proof.md and ask.

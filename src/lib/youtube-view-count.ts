@@ -21,10 +21,6 @@ export function parseYouTubeViewCounts(data: VideosListResponse): Record<string,
   }));
 }
 
-export function formatYouTubeViews(count: number): string {
-  return `${new Intl.NumberFormat("lv-LV").format(count)} ${count === 1 ? "skatījums" : "skatījumi"}`;
-}
-
 export function parseYouTubeDurations(data: VideosListResponse): Record<string, string> {
   return Object.fromEntries((data.items ?? []).flatMap((item) => {
     const match = /^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(item.contentDetails?.duration ?? "");
