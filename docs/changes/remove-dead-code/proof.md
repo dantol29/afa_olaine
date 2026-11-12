@@ -159,3 +159,35 @@ Source: branch `chore/remove-dead-code`, HEAD `0605a18`, uncommitted: `package.j
 Doc reconciliation: no doc change (README and docs do not list these packages).
 
 Proposed commit: `chore: drop unused dependencies and declare direct ones`.
+
+## B1 production backup (2026-11-12)
+
+The user chose the latest backup of the day: `../afa olaine backups/app.db.20261112-124111`, SHA-256
+`d7a2b647adf62a350f7e242d82c7aba5db797fb24492de70ff809ec40e8d11e3`. Opened read-only (`sqlite3 -readonly`, `mode=ro`);
+dump in the session scratchpad. Content at that time: 1 article, 1 club page, 6 partners, 73 players, 18 games,
+0 polls, 0 events.
+
+## T5 dead CSS (2026-11-12)
+
+Source: branch `chore/remove-dead-code`, HEAD `954daab`, uncommitted: `src/app/globals.css`.
+
+- B1 grep: the dump contains none of the 10 class names (`site-header-scroll`, `league-row-enter`, `news-text-fade-in`,
+  `poll-result-enter`, `partners-marquee-track`, `partners-marquee-mask`, `league-scroll`, `no-scrollbar`,
+  `article-gallery-frame`, `text-slate-800`).
+- Code re-check: each name appears only in `globals.css`; no dynamic class construction found.
+- Removed from `globals.css`: the 9 classes with their keyframes (`site-header-scroll-state`, `league-row-enter`,
+  `news-text-fade-in`, `poll-result-enter`, `partners-marquee`) and reduced-motion overrides, and the
+  `.admin-theme .text-slate-800` selector (the `.text-slate-700` rule stays). Tiptap and `sponsors-ticker-*` rules stay.
+  Diff: 1 insertion, 166 deletions.
+- Built CSS compared rule by rule (production build before and after, `cssrules.cjs` with postcss): only the removed
+  rules disappear; the shared reduced-motion rule becomes `.sponsors-ticker-track { animation: none }` and the admin
+  rule becomes `.admin-theme .text-slate-700`. Nothing else changes (the chunk split differs, the rules do not).
+- Lint: 0 errors, the 3 baseline warnings. Build: exit 0, `build-T5-20261112-204607.log`, error grep empty, routes
+  identical to T4. `tsc --noEmit`: exit 0.
+- Smoke (data restored): statuses identical to T4; browser 11 public and 22 admin pages with the expected h1, DOM
+  probe 0 hits, no console errors. Visual (pane shown, rAF fires): `/admin/teams`, the homepage scrolled (header with
+  background), `/speles` normal. Dev log: no errors. Database identical to `pre-dead-code`.
+
+Doc reconciliation: no doc change (no doc mentions these classes).
+
+Proposed commit: `chore: remove unused CSS classes and keyframes`.
