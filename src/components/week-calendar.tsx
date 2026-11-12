@@ -18,6 +18,7 @@ import { OPEN_CALENDAR_EVENT_NAME } from "@/lib/calendar-bridge";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
+import { compareByStart, uniqueSortedLabels } from "@/lib/ordering";
 import {
   Select,
   SelectContent,
@@ -246,11 +247,10 @@ type LaidOutEvent = CalendarEvent & {
 
 /** Groups a day's events into overlap clusters and assigns each a column
  *  (greedy interval coloring), so simultaneous events sit side by side
- *  instead of stacking on top of each other. */
+ *  instead of stacking on top of each other. `dayEvents` must be in start
+ *  order (`availableEvents` is sorted once after the merge); the clusters,
+ *  columns and overflow lists depend on it. */
 function layoutDayEvents(dayEvents: CalendarEvent[]): LaidOutEvent[] {
-  const sorted = [...dayEvents].sort(
-    (a, b) => a.start.getTime() - b.start.getTime(),
-  );
   const result: LaidOutEvent[] = [];
 
   let cluster: CalendarEvent[] = [];
@@ -279,7 +279,7 @@ function layoutDayEvents(dayEvents: CalendarEvent[]): LaidOutEvent[] {
     cluster = [];
   };
 
-  for (const event of sorted) {
+  for (const event of dayEvents) {
     if (cluster.length > 0 && event.start.getTime() >= clusterEnd) {
       flushCluster();
       clusterEnd = -Infinity;
@@ -437,7 +437,9 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     for (const loaded of Object.values(weekCache)) {
       for (const event of loaded) byUid.set(event.uid, event);
     }
-    return [...byUid.values()];
+    // The Map appends uids that only a fetched week has after the initial ones, so a day
+    // can come out of order; one stable sort here gives every view below start order.
+    return [...byUid.values()].sort(compareByStart);
   }, [events, weekCache]);
 
   const goToDate = (date: Date) => {
@@ -484,11 +486,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
   }, [events]);
 
   const teamOptions = useMemo(() => {
-    const names = new Set<string>();
-    for (const event of availableEvents) {
-      if (event.team) names.add(event.team);
-    }
-    return Array.from(names).sort((a, b) => a.localeCompare(b, "lv"));
+    return uniqueSortedLabels(availableEvents.map((event) => event.team));
   }, [availableEvents]);
 
   const toggleType = (type: EventType) => {
@@ -620,10 +618,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
   const mobileDay = useMemo(() => toDayInfo(mobileDate), [mobileDate]);
 
   const mobileDayEvents = useMemo(
-    () =>
-      [...(eventsByDay.get(mobileDay.dateKey) ?? [])].sort(
-        (a, b) => a.start.getTime() - b.start.getTime(),
-      ),
+    () => eventsByDay.get(mobileDay.dateKey) ?? [],
     [eventsByDay, mobileDay.dateKey],
   );
 
@@ -993,23 +988,17 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
 
                                     {isOpen && (
                                       <div className="absolute top-full left-0 z-20 mt-1 flex w-48 flex-col gap-1.5 rounded-lg border border-slate-100 bg-white p-1.5 shadow-lg">
-                                        {overflowEvents
-                                          .sort(
-                                            (a, b) =>
-                                              a.start.getTime() -
-                                              b.start.getTime(),
-                                          )
-                                          .map((event) => (
-                                            <EventCard
-                                              key={event.uid}
-                                              event={event}
-                                              onClick={() => {
-                                                setSelectedEvent(event);
-                                                setOpenOverflow(null);
-                                              }}
-                                              className="min-h-16 w-full"
-                                            />
-                                          ))}
+                                        {overflowEvents.map((event) => (
+                                          <EventCard
+                                            key={event.uid}
+                                            event={event}
+                                            onClick={() => {
+                                              setSelectedEvent(event);
+                                              setOpenOverflow(null);
+                                            }}
+                                            className="min-h-16 w-full"
+                                          />
+                                        ))}
                                       </div>
                                     )}
                                   </div>

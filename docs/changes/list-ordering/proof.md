@@ -223,3 +223,33 @@ Docs: plan status updated; tasks.md unchanged (mechanics only).
 - `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings). The `WeekCalendar` on the games/trainings forms is
   unchanged in this task (T7).
 - Docs: no doc describes select order.
+
+## T7 admin week calendar (Phase 4 calendar row; P9 calendar; R15, R17-R19)
+
+- Draft disposition: `calendar.ts` kept after review (comparator swap + tie comment); `week-calendar.tsx` re-derived
+  and re-applied: three sorts removed (`layoutDayEvents`, mobile day list, overflow popup, which also sorted in place
+  during render), one stable `sort(compareByStart)` after the `availableEvents` merge, team options via
+  `uniqueSortedLabels`, contract comment on `layoutDayEvents`.
+- Equality argument (checked in code): `filteredEvents` filters `availableEvents` in order; `eventsByDay` pushes in that
+  order; `layoutDayEvents` emits per cluster in input order; overflow items are a subset of one cluster in that order.
+  Baseline sorted each of these copies stably from the same Map order, so equal starts keep the same tie order.
+- Method: built-in browser on `/admin/games/new` (desktop 1024 px and 375 px mobile), admin session cookie set from
+  the local token; DOM card order, text, `top`, `left`, `width` per day column captured by a script. Raw records:
+  `.local/list-ordering/calendar/` (`before-*.json`, `after-*.json`).
+
+| # | Check | BEFORE (baseline calendar code) | AFTER |
+|---|---|---|---|
+| C1 | Overlap columns, F8 day 19.11 (5 items) | 15:00 L0, 16:00 L33, 16:30 L0, 17:00 L67 (W33), 19:00 L0 W100 | identical (whole 5-range desktop record byte-identical) |
+| C2 | `+N` overflow, F10 day 21.11 | 12:00, 12:10 visible, `+3`; popup 12:20, 12:30, 12:40 | identical |
+| C3 | Mobile 375 px day lists (F5/F6, F8, F10, F11 days) | by start | identical lists (the run started one day later; overlapping days compared) |
+| C4 | Same start, F11 24.11 18:00 | training L0, event L33, game L67; 20.11: event before game at 10:00 and 18:00 | identical |
+| C5 | Initial window vs fetched weeks (arrows through 16.11-2.12) | recorded | identical |
+| C6 | Merge case: page open, `list-ordering-merge.sql` applied, then week 19.11 fetched | 07:00 card first, L0 W100, grid starts 07:00; mobile list first | identical |
+| C7 | Negative control (merge sort removed temporarily, then restored) | n/a | 07:00 card last in DOM and placed at L50 W50 beside the 19:00 game; mobile list last: the merge sort is required |
+| C8 | Team filter options; filter U9 | 2. liga, 2. liga, U19, U11 … U19, U9; U9 layout recorded | U9 now after `2. liga, U19` and before U11; U9-filtered layout identical |
+| C9 | `?event=event-5` opens Pārpilde B (21.11) and jumps to 19.-22.11; Escape closes; card click opens | yes | identical |
+| C10 | `/api/calendar?date=2026-11-16` and `2026-11-23` JSON (order, uids) | T0 capture | byte-identical |
+
+- Temporary merge-case rows were deleted after each run; T8 restores snapshots anyway.
+- `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings).
+- Docs: plan Phase 4 calendar row confirmed by this record; the `week-calendar.tsx:997` in-place sort side finding is resolved.

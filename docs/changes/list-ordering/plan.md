@@ -269,7 +269,7 @@ parallel on the same files.
   from single-team filters (`training-schedule.tsx:62-63`, `week-calendar.tsx:486-492`).
 - The id-67 cutout is hard-coded in three places (`team-section.tsx:6-8`, `komanda/speletaji/[id]/page.tsx:35`,
   `sitemap.ts:43`) and points to a different person in local data.
-- `week-calendar.tsx:997` sorts a derived array in place during render.
+- `week-calendar.tsx:997` sorts a derived array in place during render. Resolved by T7 (sort removed; see proof.md T7).
 
 ## Authority and limits
 
