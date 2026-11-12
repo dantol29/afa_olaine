@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import type { Article, ArticleCategory } from "@/lib/jaunumi";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { uniqueSortedLabels } from "@/lib/ordering";
 
 const fallbackImages: Record<ArticleCategory, string> = {
   Klubs: "/hero-team.png",
@@ -61,8 +62,8 @@ export function NewsGrid({ articles }: { articles: Article[] }) {
   const [section, setSection] = useState("");
   const [category, setCategory] = useState("");
 
-  const sections = [...new Set(articles.map((article) => article.team ?? "Klubs"))].sort((a, b) => a.localeCompare(b, "lv"));
-  const categories = [...new Set(articles.map((article) => article.category))].sort((a, b) => a.localeCompare(b, "lv"));
+  const sections = uniqueSortedLabels(articles.map((article) => article.team ?? "Klubs"));
+  const categories = uniqueSortedLabels(articles.map((article) => article.category));
   const visibleArticles = articles.filter((article) =>
     (!section || (article.team ?? "Klubs") === section) &&
     (!category || article.category === category),

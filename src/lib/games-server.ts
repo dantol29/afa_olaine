@@ -48,7 +48,7 @@ export const getUpcomingGamesFromDb = cache(async function getUpcomingGamesFromD
       .select()
       .from(gamesTable)
       .where(gte(gamesTable.date, todayKey))
-      .orderBy(gamesTable.date, gamesTable.startTime)
+      .orderBy(gamesTable.date, gamesTable.startTime, gamesTable.id)
       .limit(limit);
 
     const [logos, sources] = await Promise.all([resolveClubLogos(rows.flatMap((row) => [row.homeTeam, row.awayTeam])), getLeagueSourceMetadata()]);
@@ -105,7 +105,7 @@ export const getAllGamesFromDb = cache(async function getAllGamesFromDb(): Promi
       })
       .from(gamesTable)
       .innerJoin(teamsTable, eq(gamesTable.teamId, teamsTable.id))
-      .orderBy(gamesTable.date, gamesTable.startTime);
+      .orderBy(gamesTable.date, gamesTable.startTime, gamesTable.id);
 
     const [logos, sources] = await Promise.all([resolveClubLogos(rows.flatMap((row) => [row.homeTeam, row.awayTeam])), getLeagueSourceMetadata()]);
 

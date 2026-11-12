@@ -148,3 +148,24 @@ Docs: plan status updated; tasks.md unchanged (mechanics only).
 - Not verified: production player id 67 photo (accepted by the user as not verified); if he has no stored photo he moves
   behind the photo players on `/`, keeping his cutout image.
 - Docs: no other doc describes roster order.
+
+## T3 public schedule and filter labels (P7-P9 public, P15, P16; R4 `/trenini`, R5/R16 public, R11, R14)
+
+- Draft disposition: all kept after review and re-applied; added a contract comment on `TrainingSchedule` (input order).
+  `uniqueSortedLabels` in `training-teams.ts` also de-duplicates; `training_teams` pairs are unique, so no visible effect.
+- Equality argument for removing the `/trenini` client sort: it compared ISO `rawDate` then `HH:MM` `startTime`; the
+  server now orders by the same text columns plus `id`, and the client sort was stable, so the sequence is identical.
+
+| # | BEFORE (browser, baseline files) | AFTER |
+|---|---|---|
+| R16 `/trenini` filter buttons | Visas komandas, 2. liga, 2. liga, U19, U11, U13, U15, U17, U19, U9 | Visas komandas, 2. liga, 2. liga, U19, U9, U11, U13, U15, U17, U19 |
+| R16 `/speles` team dropdown | Visas komandas, 2. liga, U11, U9 | Visas komandas, 2. liga, U9, U11 |
+| R16 `/jaunumi` team / category | Komanda, U17, U19 / Kategorija, Komandas, Spēles | identical (no numeric or diacritic case in the data) |
+| R4 `/trenini` F7 coaches | Zane Secība, Āris Secība | Āris Secība, Zane Secība |
+| R14 `/trenini` sequence for all teams and each of the 8 team filters, plus the month shown per filter | recorded in `.local/list-ordering/baseline/trenini-r14.json` | identical sequence and month for every filter; month switch Novembris → Decembris works |
+| R11 tie-breakers `id` (games, trainings) | n/a | code diff only; `/speles` and home games text identical to T0 |
+
+- Must-not-change: text captures identical to T0 except `/trenini` (coach names inside each training now in Latvian
+  order, e.g. `Ivars Paraugs, Mārtiņš Mentors`; filter buttons) and the T2 pages.
+- `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings).
+- Docs: no other doc describes these orders.
