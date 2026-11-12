@@ -113,3 +113,14 @@ Finding (changes T2 scope, see T2): the player profile team list (`komanda/spele
 `player-profile-content.tsx:30` only sums its goals, so it has no visible order.
 
 Docs: plan status updated; tasks.md unchanged (mechanics only).
+
+## T1 module (R13)
+
+- Draft disposition: `ordering.ts` rewritten from review (same five exports and rules; comments tightened); check script
+  fixed (BEFORE block, roster stability, no-mutation and equal-start cases added).
+- BEFORE: `src/lib/ordering.ts` absent at `a16b33f`; the check's BEFORE block confirms the baseline comparators are
+  wrong (`localeCompare(…,"lv")` gives `U11, U9`; code-point order puts `Ā`, `Ņ` after `Z`).
+- AFTER: `npx tsx .local/checks/ordering-check.mts` → `ordering-check ok (ICU 76.1, collator locale lv)` on local Node
+  v24 (production ICU 78.3 per the user). No caller uses the module yet, so no page changes (no browser proof needed).
+- `npx tsc --noEmit` ok; `npm run lint` 0 errors, 3 warnings, all pre-existing on `main` (`site-search.tsx:28` and two others).
+- Docs: no further change needed.
