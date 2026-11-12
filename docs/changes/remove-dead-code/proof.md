@@ -133,3 +133,29 @@ Source: branch `chore/remove-dead-code`, HEAD `b6433b2`, uncommitted: 18 source 
 Doc reconciliation: no doc change (no behaviour change).
 
 Proposed commit: `chore: stop exporting file-local symbols`.
+
+## T4 dependencies (2026-11-12)
+
+Source: branch `chore/remove-dead-code`, HEAD `0605a18`, uncommitted: `package.json`, `package-lock.json`.
+
+- Reference re-check: `motion`, `class-variance-authority`, `embla-carousel-react` appear only in `package.json`
+  (no import, no `cva`, no `framer`). `domhandler` is imported by `fixtures.ts`, `rich-text.ts`, `standings.ts`;
+  `sharp` by `logo-color.ts`; both were installed only as transitive packages (5.0.3 via cheerio, 0.35.4 via next).
+- `package.json`: removed the 3 packages; added `domhandler ^5.0.3` to `dependencies` and `sharp ^0.35.4` to
+  `optionalDependencies`.
+- First attempt with `npm install --save-optional sharp@^0.35.4` upgraded sharp and its platform binaries to 0.35.5
+  (libvips 1.3.4). Reverted: `package.json` and lock restored from HEAD, the 3 packages uninstalled, the 2 entries
+  written by hand, `npm install` against the existing lock. Result: sharp 0.35.4, domhandler 5.0.3 as before.
+- Lock diff vs HEAD: root dependency lists, plus removal of `class-variance-authority`, `embla-carousel`,
+  `embla-carousel-react`, `embla-carousel-reactive-utils`, `framer-motion`, `motion`, `motion-dom`, `motion-utils`. No
+  version change of any other package. `npm ls`: exit 0. `sharp` loads and encodes a PNG under Node.
+- Lint: 0 errors, the 3 baseline warnings. Build: exit 0, `build-T4-20261112-202507.log`, error grep empty, routes
+  identical to T3. `tsc --noEmit` and `tsc --noUnusedLocals --noUnusedParameters`: exit 0.
+- Smoke (data restored): statuses of the 20 listed pages identical to T3. Browser: 11 public and 22 admin pages
+  (`/klubs/futsal` this time) with the expected h1, clicks and scroll, DOM probe 0 hits, no console errors. Dev log:
+  no errors. Database identical to `pre-dead-code`. Visual check (pane shown, rAF fires, 800 px): `/`, `/komanda`, `/speles` and one article render with hero,
+  crest, player, logos and article photo as before.
+
+Doc reconciliation: no doc change (README and docs do not list these packages).
+
+Proposed commit: `chore: drop unused dependencies and declare direct ones`.
