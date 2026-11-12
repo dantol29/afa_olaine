@@ -49,25 +49,21 @@ League-source logos and the main-league flag (`is_main_league`) are set under **
 
 Deployment is manual, from the cPanel terminal (there is no automatic deploy hook).
 
-**Back up the database first.** This copies the SQLite file (and any `-journal`, `-wal` or `-shm` file next to it) into `afa_olaine-backups`, adding the current date and time to each name, e.g. `app.db.20261112-153045`. Adjust the data path if `TURSO_DATABASE_URL` points elsewhere.
+**Back up the database first.** `scripts/backup-db.sh` copies the SQLite file (and any `-journal`, `-wal` or `-shm` file next to it) into `/home3/afaolain/afa_olaine-backups`, adding the current date and time to each name, e.g. `app.db.20261112-153045`. It prints the `TS` value and the rollback command. Set `DATA_DIR` or `BACKUP_DIR` if `TURSO_DATABASE_URL` or the backups folder point elsewhere.
 
 ```sh
-mkdir -p /home3/afaolain/afa_olaine-backups
-TS=$(date +%Y%m%d-%H%M%S); echo "TS=$TS"
-for f in app.db app.db-journal app.db-wal app.db-shm; do
-  [ -e "/home3/afaolain/afa_olaine-data/$f" ] && cp -p "/home3/afaolain/afa_olaine-data/$f" "/home3/afaolain/afa_olaine-backups/$f.$TS"
-done
-ls -l /home3/afaolain/afa_olaine-backups/ | grep "$TS"
+cd /home3/afaolain/repositories/afa_olaine
+git pull
+bash scripts/backup-db.sh
 ```
 
-`app.db.<TS>` must appear and its size must match the original. Note the `TS` value: to roll the data back, stop the app in **Setup Node.js App**, then run `cp -p /home3/afaolain/afa_olaine-backups/app.db.$TS /home3/afaolain/afa_olaine-data/app.db` (set `TS` to the saved value first), and start the app again.
+`app.db.<TS>` must appear and its size must match the original (check against `/home3/afaolain/afa_olaine-data/app.db`). To roll the data back, stop the app in **Setup Node.js App**, copy `app.db.<TS>` over `/home3/afaolain/afa_olaine-data/app.db` with `cp -p`, and start the app again.
 
-Then update the code:
+Then build the update:
 
 ```sh
 source /home3/afaolain/nodevenv/repositories/afa_olaine/24/bin/activate
 cd /home3/afaolain/repositories/afa_olaine
-git pull
 npm install            # only if package.json or package-lock.json changed
 npm run db:migrate     # only if the @olaine/database version changed
 npm run build -- --webpack
