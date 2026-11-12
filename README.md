@@ -66,8 +66,11 @@ source /home3/afaolain/nodevenv/repositories/afa_olaine/24/bin/activate
 cd /home3/afaolain/repositories/afa_olaine
 npm install            # only if package.json or package-lock.json changed
 npm run db:migrate     # only if the @olaine/database version changed
-npm run build -- --webpack
+NODE_ENV=production npm run build -- --webpack 2>&1 | tee ~/build-$(date +%Y%m%d-%H%M%S).log
+grep -nE 'no such column|SQLITE|Error' $(ls -t ~/build-*.log | head -1) | tail    # must print nothing
 ```
+
+The build reads the database, so its output is also written to a log with the date and time in `~/`. Do not restart the app if the `grep` prints anything (a failure can show in the log even when the exit code is 0); check the log first.
 
 Then restart the app with the ⟳ button in **Setup Node.js App**.
 
