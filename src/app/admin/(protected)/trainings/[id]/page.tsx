@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { WeekCalendar } from "@/components/week-calendar";
 import { db } from "@/db/client";
+import { sortByName } from "@/lib/ordering";
 import { coaches, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
 
@@ -13,10 +14,12 @@ export default async function AdminTrainingFormPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [teamOptions, coachOptions] = await Promise.all([
-    db.select().from(teams).orderBy(teams.name),
-    db.select({ id: coaches.id, name: coaches.name }).from(coaches).orderBy(coaches.name),
+  const [teamRows, coachRows] = await Promise.all([
+    db.select().from(teams),
+    db.select({ id: coaches.id, name: coaches.name }).from(coaches),
   ]);
+  const teamOptions = sortByName(teamRows, (team) => team.name);
+  const coachOptions = sortByName(coachRows, (coach) => coach.name);
 
   let training = null;
   if (id !== "new") {

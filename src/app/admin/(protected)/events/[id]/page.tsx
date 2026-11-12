@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
 import { db } from "@/db/client";
+import { sortByName } from "@/lib/ordering";
 import { events, teams } from "@/db/schema";
 
 import { EventForm } from "./event-form";
@@ -12,7 +13,7 @@ export default async function AdminEventFormPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const teamOptions = await db.select().from(teams).orderBy(teams.name);
+  const teamOptions = sortByName(await db.select().from(teams), (team) => team.name);
 
   if (id === "new") {
     return <EventForm mode="create" teamOptions={teamOptions} />;

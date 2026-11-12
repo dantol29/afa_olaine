@@ -209,3 +209,17 @@ Docs: plan status updated; tasks.md unchanged (mechanics only).
 - Must-not-change: admin articles, league sources, club pages, partners and club logos text identical to T0.
 - `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings).
 - Docs: no doc describes admin list order.
+
+## T6 admin form selects (A4, A5; R5/R10 selects)
+
+- Draft disposition: kept after review and re-applied (`orderBy(name)` → `sortByName` after the query, 7 files).
+
+| # | BEFORE (T0) | AFTER |
+|---|---|---|
+| R5 team options on `players`, `coaches`, `games`, `events`, `league-sources`, `jaunumi`, `trainings` `/new` | 2. liga, U11, U13, U15, U17, U19, U7, U9 | 2. liga, U7, U9, U11, U13, U15, U17, U19 (all 7) |
+| R10 coach options on `jaunumi/new`, `trainings/new` | Zane, Āris, Čaks, Ķirsis | Āris, Čaks, Ķirsis, Zane |
+| Saved selection (view only, no submit) | n/a (selection is by id) | `/admin/players/106` checks team ids 7, 6 (= DB `U19, 2. liga`); `/admin/trainings/13` checks coach ids 15, 12 (= DB) |
+
+- `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings). The `WeekCalendar` on the games/trainings forms is
+  unchanged in this task (T7).
+- Docs: no doc describes select order.
