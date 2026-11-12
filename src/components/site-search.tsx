@@ -56,7 +56,7 @@ export function SiteSearch({ className = "", onOpen }: { className?: string; onO
     { title: "Jaunumi", items: results.articles.map((item) => ({ key: item.slug, title: item.title, detail: item.excerpt, href: `/jaunumi/${item.slug}` })) },
     { title: "Spēlētāji", items: results.players.map((item) => ({ key: String(item.id), title: item.name, detail: item.teamName, href: `/komanda/speletaji/${item.id}` })) },
     { title: "Treneri", items: results.coaches.map((item) => ({ key: String(item.id), title: item.name, detail: item.position, href: `/komanda/treneri/${item.id}` })) },
-    { title: "Komandas", items: results.teams.map((item) => ({ key: String(item.id), title: item.name, detail: null, href: item.id === 1 ? "/komanda" : `/akademija#team-${item.id}` })) },
+    { title: "Komandas", items: results.teams.map((item) => ({ key: String(item.id), title: item.name, detail: null, href: item.isMain ? "/komanda" : `/akademija#team-${item.id}` })) },
   ].filter((group) => group.items.length > 0) : [];
 
   return <>

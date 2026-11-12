@@ -169,3 +169,22 @@ Docs: plan status updated; tasks.md unchanged (mechanics only).
   order, e.g. `Ivars Paraugs, Mārtiņš Mentors`; filter buttons) and the T2 pages.
 - `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings).
 - Docs: no other doc describes these orders.
+
+## T4 search and sitemap (P10-P14; R6-R8)
+
+- Draft disposition: search logic fixed in review form (private `firstByName` helper, `isMain` added to the team
+  result, empty team label stays `null`); `site-search.tsx` and `sitemap.ts` kept after review.
+  `public-search-content.tsx` untouched and still type-checks (the type change is additive).
+
+| # | BEFORE (T0) | AFTER |
+|---|---|---|
+| R6 search `Sagatave` | Artūrs, Jānis, Kārlis, Roberts, Emīls (id order) | Artūrs, Dāvis, Edgars, Emīls, Ernests |
+| R6 search `Secība` players | Žanis, Ņikita, Nikolajs, Ļevs, Levs (insertion order) | Čaks, Levs, Ļevs, Nikolajs, Ņikita |
+| R7 search `Žanis Secība` label | `U19` | `2. liga, U19` |
+| R8 search `liga` / `U9` | no `isMain`; client linked `id === 1` to `/komanda` | `2. liga` `isMain: true`, browser link → `/komanda`; `U9` `isMain: false` (→ `/akademija#team-1`) |
+| R8 `/sitemap.xml` `/akademija` images | u11…u19, 2-liga, u7 | u9, u11, u13, u15, u17, u19, u7 (all non-main, id order); all `<loc>` URLs identical |
+| P11 articles | `date desc` | `date desc, createdAt desc` (no article matches in the fixture; code diff) |
+
+- Must-not-change: all other captures identical to T3.
+- `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings).
+- Docs: no doc describes search or sitemap order.
