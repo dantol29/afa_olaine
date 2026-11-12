@@ -8,6 +8,7 @@ import { SiteEnding } from "@/components/site-ending";
 import { SiteHeader } from "@/components/site-header";
 import { StructuredData } from "@/components/structured-data";
 import { db } from "@/db/client";
+import { uniqueSortedLabels } from "@/lib/ordering";
 import { pageMetadata } from "@/lib/page-metadata";
 import { absoluteSiteUrl, getSiteUrl } from "@/lib/site-url";
 import { webPageData } from "@/lib/web-page-data";
@@ -32,7 +33,7 @@ const getCoach = cache(async function getCoach(idParam: string) {
     license: row.license,
     authority: row.authority,
     photoUrl: row.photoUrl,
-    teams: row.coachTeams.map(({ team }) => team.name),
+    teams: uniqueSortedLabels(row.coachTeams.map(({ team }) => team.name)),
   };
 });
 

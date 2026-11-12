@@ -1,5 +1,4 @@
 import { getPublicPlayers } from "@/lib/public-team-data";
-import { orderTeamShowcasePlayers } from "@/lib/team-showcase";
 
 import { TeamRosterRail } from "./team-roster-rail";
 
@@ -9,9 +8,7 @@ const PLAYER_CUTOUTS: Record<number, string> = {
 
 export async function TeamSection() {
   const rows = await getPublicPlayers();
-  const players = orderTeamShowcasePlayers(
-    rows.filter((player) => player.playerTeams.some(({ team }) => team?.isMain)),
-  );
+  const players = rows.filter((player) => player.playerTeams.some(({ team }) => team?.isMain));
 
   if (players.length === 0) return null;
 

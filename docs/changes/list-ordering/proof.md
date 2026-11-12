@@ -121,6 +121,30 @@ Docs: plan status updated; tasks.md unchanged (mechanics only).
 - BEFORE: `src/lib/ordering.ts` absent at `a16b33f`; the check's BEFORE block confirms the baseline comparators are
   wrong (`localeCompare(…,"lv")` gives `U11, U9`; code-point order puts `Ā`, `Ņ` after `Z`).
 - AFTER: `npx tsx .local/checks/ordering-check.mts` → `ordering-check ok (ICU 76.1, collator locale lv)` on local Node
-  v24 (production ICU 78.3 per the user). No caller uses the module yet, so no page changes (no browser proof needed).
+  v22.13.0 (production: Node 24.22.3, ICU 78.3, per the user). No caller uses the module yet, so no page changes (no browser proof needed).
 - `npx tsc --noEmit` ok; `npm run lint` 0 errors, 3 warnings, all pre-existing on `main` (`site-search.tsx:28` and two others).
 - Docs: no further change needed.
+
+## T2 public people lists (P1-P6; R1-R4 public)
+
+- Draft disposition: all kept after review and re-applied (loaders order via `orderRoster`/`sortByName`, `/akademija`
+  page sort removed, `team-showcase.ts` deleted, coach profile teams via `uniqueSortedLabels`). `PLAYER_CUTOUTS` untouched.
+- Scope note: the player profile team list (approved addition) was not changed: `komanda/speletaji/[id]/page.tsx:36`
+  feeds only a goal sum (`player-profile-content.tsx:30`), nothing is listed, so there is no visible order to fix.
+- BEFORE = T0 rows (these files were untouched until T2).
+
+| # | AFTER |
+|---|---|
+| R1 `/komanda` Pussargi | Čaks, Levs, Nikolajs, Ņikita, Žanis, then Ļevs (no photo) |
+| R1 `/` carousel | Čaks, Levs, Nikolajs, Ņikita, Žanis, then no-photo players Emīls Sagatave, Ļevs, Valters Sagatave |
+| R2 coaches | Āris, Ķirsis, Zane, then Čaks (no photo) |
+| R3 `/akademija` | page text identical to T0 capture (team order U9…U19, U7; players already lv, no numeric case) |
+| R4 coach profile Zane | `2. liga, U19` |
+
+- Must-not-change: text captures of all other public and admin pages identical to T0; `/` differs only in order (same
+  word multiset); `/komanda` differs only in order plus the rail loop clone of each rail's first card (the first card
+  changed); same players, main team only.
+- `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings); no `orderBy` left in `public-team-data.ts`.
+- Not verified: production player id 67 photo (accepted by the user as not verified); if he has no stored photo he moves
+  behind the photo players on `/`, keeping his cutout image.
+- Docs: no other doc describes roster order.
