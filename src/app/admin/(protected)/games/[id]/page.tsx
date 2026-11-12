@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { WeekCalendar } from "@/components/week-calendar";
 import { db } from "@/db/client";
+import { sortByName } from "@/lib/ordering";
 import { games, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
 
@@ -14,7 +15,7 @@ export default async function AdminGameFormPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const teamOptions = await db.select().from(teams).orderBy(teams.name);
+  const teamOptions = sortByName(await db.select().from(teams), (team) => team.name);
 
   let game = null;
   if (id !== "new") {

@@ -5,23 +5,23 @@ import Link from "next/link";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
+import { sortByName } from "@/lib/ordering";
 
 import { deletePlayer } from "./actions";
 
 export default async function AdminPlayersPage() {
-  const teamRows = await db.query.teams.findMany({
-    with: { playerTeams: { with: { player: true } } },
-    orderBy: (teams, { asc }) => [asc(teams.name)],
-  });
+  const teamRows = sortByName(
+    await db.query.teams.findMany({ with: { playerTeams: { with: { player: true } } } }),
+    (team) => team.name,
+  );
 
   const teamsWithPlayers = teamRows.map((team) => ({
     id: team.id,
     name: team.name,
-    players: team.playerTeams
-      .map((pt) => pt.player)
-      .filter((player) => player !== null)
-      .slice()
-      .sort((a, b) => a.name.localeCompare(b.name, "lv")),
+    players: sortByName(
+      team.playerTeams.map((pt) => pt.player).filter((player) => player !== null),
+      (player) => player.name,
+    ),
   }));
 
   const totalPlayers = teamsWithPlayers.reduce((sum, team) => sum + team.players.length, 0);

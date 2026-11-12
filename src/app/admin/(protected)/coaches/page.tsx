@@ -5,14 +5,17 @@ import Link from "next/link";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
+import { sortByName, uniqueSortedLabels } from "@/lib/ordering";
 
 import { deleteCoach } from "./actions";
 
 export default async function AdminCoachesPage() {
-  const rows = await db.query.coaches.findMany({
-    with: { coachTeams: { with: { team: true } } },
-    orderBy: (coaches, { asc }) => [asc(coaches.name)],
-  });
+  const rows = sortByName(
+    await db.query.coaches.findMany({ with: { coachTeams: { with: { team: true } } } }),
+    (coach) => coach.name,
+  );
+  const teamNames = (coach: (typeof rows)[number]) =>
+    uniqueSortedLabels(coach.coachTeams.map(({ team }) => team?.name)).join(", ");
 
   return (
     <div>
@@ -36,7 +39,7 @@ export default async function AdminCoachesPage() {
           {rows.map((coach) => (
             <div
               key={coach.id}
-              data-admin-search-item={`${coach.name} ${coach.position} ${coach.coachTeams.map((ct) => ct.team?.name).join(" ")}`}
+              data-admin-search-item={`${coach.name} ${coach.position} ${teamNames(coach)}`}
               className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
             >
               <div className="relative aspect-square bg-club-gray-light">
@@ -58,7 +61,7 @@ export default async function AdminCoachesPage() {
                 <p className="truncate text-sm font-semibold text-club-navy">{coach.name}</p>
                 <p className="text-xs text-slate-400">{coach.position}</p>
                 <p className="mt-1 truncate text-xs font-semibold text-club-red">
-                  {coach.coachTeams.map((ct) => ct.team?.name).join(", ") || "—"}
+                  {teamNames(coach) || "—"}
                 </p>
                 <div className="mt-3 flex items-center justify-end gap-2 border-t border-slate-100 pt-2">
                   <Link

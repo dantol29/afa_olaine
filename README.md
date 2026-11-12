@@ -47,7 +47,22 @@ League-source logos and the main-league flag (`is_main_league`) are set under **
 
 ### Updating production
 
-Deployment is manual, from the cPanel terminal (there is no automatic deploy hook):
+Deployment is manual, from the cPanel terminal (there is no automatic deploy hook).
+
+**Back up the database first.** This copies the SQLite file (and any `-journal`, `-wal` or `-shm` file next to it) into `afa_olaine-backups`, adding the current date and time to each name, e.g. `app.db.20261112-153045`. Adjust the data path if `TURSO_DATABASE_URL` points elsewhere.
+
+```sh
+mkdir -p /home3/afaolain/afa_olaine-backups
+TS=$(date +%Y%m%d-%H%M%S); echo "TS=$TS"
+for f in app.db app.db-journal app.db-wal app.db-shm; do
+  [ -e "/home3/afaolain/afa_olaine-data/$f" ] && cp -p "/home3/afaolain/afa_olaine-data/$f" "/home3/afaolain/afa_olaine-backups/$f.$TS"
+done
+ls -l /home3/afaolain/afa_olaine-backups/ | grep "$TS"
+```
+
+`app.db.<TS>` must appear and its size must match the original. Note the `TS` value: to roll the data back, stop the app in **Setup Node.js App**, then run `cp -p /home3/afaolain/afa_olaine-backups/app.db.$TS /home3/afaolain/afa_olaine-data/app.db` (set `TS` to the saved value first), and start the app again.
+
+Then update the code:
 
 ```sh
 source /home3/afaolain/nodevenv/repositories/afa_olaine/24/bin/activate

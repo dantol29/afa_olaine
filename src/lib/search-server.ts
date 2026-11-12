@@ -4,6 +4,7 @@ import { like, or } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { articles, coaches, players, teams } from "@/db/schema";
+import { sortByName, uniqueSortedLabels } from "@/lib/ordering";
 
 const RESULT_LIMIT = 5;
 
@@ -18,8 +19,13 @@ export type SearchResults = {
     license: string;
     authority: "UEFA" | "LFF";
   }[];
-  teams: { id: number; name: string }[];
+  teams: { id: number; name: string; isMain: boolean }[];
 };
+
+/** SQL cannot order Latvian names, so every name match is loaded and the first results are taken after sorting. */
+function firstByName<T>(rows: T[], getName: (row: T) => string): T[] {
+  return sortByName(rows, getName).slice(0, RESULT_LIMIT);
+}
 
 const EMPTY_RESULTS: SearchResults = { articles: [], players: [], coaches: [], teams: [] };
 
@@ -35,21 +41,18 @@ export async function searchSite(query: string): Promise<SearchResults> {
   const [articleRows, playerRows, coachRows, teamRows] = await Promise.all([
     db.query.articles.findMany({
       where: or(like(articles.title, pattern), like(articles.excerpt, pattern)),
-      orderBy: (articles, { desc }) => [desc(articles.date)],
+      orderBy: (articles, { desc }) => [desc(articles.date), desc(articles.createdAt)],
       limit: RESULT_LIMIT,
     }),
     db.query.players.findMany({
       where: like(players.name, pattern),
       with: { playerTeams: { with: { team: true } } },
-      limit: RESULT_LIMIT,
     }),
     db.query.coaches.findMany({
       where: like(coaches.name, pattern),
-      limit: RESULT_LIMIT,
     }),
     db.query.teams.findMany({
       where: like(teams.name, pattern),
-      limit: RESULT_LIMIT,
     }),
   ]);
 
@@ -60,13 +63,13 @@ export async function searchSite(query: string): Promise<SearchResults> {
       excerpt: article.excerpt,
       image: article.image,
     })),
-    players: playerRows.map((player) => ({
+    players: firstByName(playerRows, (player) => player.name).map((player) => ({
       id: player.id,
       name: player.name,
       photoUrl: player.photoUrl,
-      teamName: player.playerTeams[0]?.team?.name ?? null,
+      teamName: uniqueSortedLabels(player.playerTeams.map(({ team }) => team?.name)).join(", ") || null,
     })),
-    coaches: coachRows.map((coach) => ({
+    coaches: firstByName(coachRows, (coach) => coach.name).map((coach) => ({
       id: coach.id,
       name: coach.name,
       position: coach.position,
@@ -74,6 +77,6 @@ export async function searchSite(query: string): Promise<SearchResults> {
       license: coach.license,
       authority: coach.authority,
     })),
-    teams: teamRows.map((team) => ({ id: team.id, name: team.name })),
+    teams: firstByName(teamRows, (team) => team.name).map((team) => ({ id: team.id, name: team.name, isMain: team.isMain })),
   };
 }

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import type { TrainingListItem } from "@/lib/trainings-server";
 import { MONTHS } from "@/lib/games";
+import { uniqueSortedLabels } from "@/lib/ordering";
 
 const monthFormatter = new Intl.DateTimeFormat("lv-LV", { month: "long", timeZone: "UTC" });
 const weekdays = ["Pr", "Ot", "Tr", "Ce", "Pk", "Se", "Sv"];
@@ -54,13 +55,13 @@ function relevantMonth(trainings: TrainingListItem[], todayKey: string) {
   return monthStart(dateFromKey(referenceDate));
 }
 
+/** `trainings` arrive in date, time, id order (`getAllTrainingsFromDb`); the list and `relevantMonth` rely on it. */
 export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingListItem[]; todayKey: string }) {
-  const sorted = [...trainings].sort((a, b) => a.rawDate.localeCompare(b.rawDate) || a.startTime.localeCompare(b.startTime));
   const [team, setTeam] = useState("__all__");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [visibleMonth, setVisibleMonth] = useState(() => relevantMonth(sorted, todayKey));
-  const teamOptions = [...new Set(sorted.map((training) => training.teamName))].sort((a, b) => a.localeCompare(b, "lv"));
-  const filtered = team === "__all__" ? sorted : sorted.filter((training) => training.teamName === team);
+  const [visibleMonth, setVisibleMonth] = useState(() => relevantMonth(trainings, todayKey));
+  const teamOptions = uniqueSortedLabels(trainings.map((training) => training.teamName));
+  const filtered = team === "__all__" ? trainings : trainings.filter((training) => training.teamName === team);
   const visibleItems = selectedDate ? filtered.filter((training) => training.rawDate === selectedDate) : filtered;
   const trainingCounts = new Map<string, number>();
   for (const training of filtered) trainingCounts.set(training.rawDate, (trainingCounts.get(training.rawDate) ?? 0) + 1);
@@ -68,7 +69,7 @@ export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingL
   function selectTeam(nextTeam: string) {
     setTeam(nextTeam);
     setSelectedDate(null);
-    setVisibleMonth(relevantMonth(nextTeam === "__all__" ? sorted : sorted.filter((training) => training.teamName === nextTeam), todayKey));
+    setVisibleMonth(relevantMonth(nextTeam === "__all__" ? trainings : trainings.filter((training) => training.teamName === nextTeam), todayKey));
   }
 
   function navigateMonth(amount: number) {

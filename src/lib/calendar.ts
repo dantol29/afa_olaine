@@ -3,6 +3,7 @@ import { and, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db/client";
 import { events, games, teams, trainings } from "@/db/schema";
 import { resolveClubLogos } from "@/lib/club-logos";
+import { compareByStart } from "@/lib/ordering";
 import { getTeamNamesByTraining } from "@/lib/training-teams";
 
 export type CalendarEvent = {
@@ -282,7 +283,6 @@ export async function getScheduleForRange(after: Date, before: Date): Promise<Ca
     getAdminGameEvents(after, before),
   ]);
 
-  return [...trainingEvents, ...otherEvents, ...gameEvents].sort(
-    (a, b) => a.start.getTime() - b.start.getTime(),
-  );
+  // Stable sort: items with the same start stay in training, other, game order.
+  return [...trainingEvents, ...otherEvents, ...gameEvents].sort(compareByStart);
 }

@@ -18,9 +18,7 @@ export default async function AcademyPage() {
     id: team.id,
     name: team.name,
     groupPhotoUrl: team.groupPhotoUrl,
-    players: team.playerTeams
-      .map(({ player }) => ({ id: player.id, name: player.name, number: player.number, position: player.position }))
-      .sort((a, b) => a.name.localeCompare(b.name, "lv")),
+    players: team.playerTeams.map(({ player }) => ({ id: player.id, name: player.name, number: player.number, position: player.position })),
   }));
 
   return (

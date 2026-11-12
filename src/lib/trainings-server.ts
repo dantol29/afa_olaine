@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { toDateKey } from "@/lib/calendar";
 import { MONTHS } from "@/lib/games";
+import { sortByName } from "@/lib/ordering";
 import { getTeamNamesByTraining } from "@/lib/training-teams";
 
 export type TrainingCoach = { name: string; photoUrl: string | null };
@@ -42,7 +43,7 @@ export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(
         location: trainingsTable.location,
       })
       .from(trainingsTable)
-      .orderBy(trainingsTable.date, trainingsTable.startTime);
+      .orderBy(trainingsTable.date, trainingsTable.startTime, trainingsTable.id);
     const teamNamesByTraining = await getTeamNamesByTraining();
 
     const coachRows = await db
@@ -55,7 +56,8 @@ export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(
       .innerJoin(coachesTable, eq(trainingCoachesTable.coachId, coachesTable.id));
 
     const coachesByTraining = new Map<number, TrainingCoach[]>();
-    for (const row of coachRows) {
+    // Sorting before grouping leaves every training's coach list in Latvian name order.
+    for (const row of sortByName(coachRows, (coach) => coach.name)) {
       const list = coachesByTraining.get(row.trainingId) ?? [];
       list.push({ name: row.name, photoUrl: row.photoUrl });
       coachesByTraining.set(row.trainingId, list);

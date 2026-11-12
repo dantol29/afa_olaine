@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     db.select({ id: players.id, photoUrl: players.photoUrl }).from(players),
     db.select({ id: coaches.id, photoUrl: coaches.photoUrl }).from(coaches),
     getPublishedClubPages(),
-    db.select({ groupPhotoUrl: teams.groupPhotoUrl }).from(teams).orderBy(asc(teams.id)),
+    db.select({ groupPhotoUrl: teams.groupPhotoUrl, isMain: teams.isMain }).from(teams).orderBy(asc(teams.id)),
   ]);
   const imagesFor = (images: (string | null | undefined)[]) => [...new Set(images.flatMap((image) => {
     if (!image?.trim()) return [];
@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...pages.map((path) => ({
       url: `${siteUrl}${path}`,
-      ...(path === "/akademija" ? { images: imagesFor(teamRows.slice(1).map((team) => team.groupPhotoUrl)) } : {}),
+      ...(path === "/akademija" ? { images: imagesFor(teamRows.filter((team) => !team.isMain).map((team) => team.groupPhotoUrl)) } : {}),
     })),
     ...articleRows.map((article) => ({
       url: `${siteUrl}/jaunumi/${encodeURIComponent(article.slug)}`,

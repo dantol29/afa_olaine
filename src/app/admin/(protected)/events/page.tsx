@@ -21,7 +21,7 @@ export default async function AdminEventsPage() {
     })
     .from(events)
     .leftJoin(teams, eq(events.teamId, teams.id))
-    .orderBy(events.date);
+    .orderBy(events.date, events.startTime, events.id);
 
   return (
     <div>

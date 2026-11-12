@@ -4,19 +4,21 @@ import Link from "next/link";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
+import { compareLatvian, uniqueSortedLabels } from "@/lib/ordering";
 
 import { deleteTraining } from "./actions";
 
 const teamNames = (training: { trainingTeams: { team: { name: string } | null }[] }) =>
-  training.trainingTeams
-    .map(({ team }) => team?.name)
-    .filter(Boolean)
-    .join(", ");
+  uniqueSortedLabels(training.trainingTeams.map(({ team }) => team?.name)).join(", ");
+
+// Not de-duplicated: two coaches may share a name.
+const coachNames = (training: { trainingCoaches: { coach: { name: string } | null }[] }) =>
+  training.trainingCoaches.flatMap(({ coach }) => (coach ? [coach.name] : [])).sort(compareLatvian);
 
 export default async function AdminTrainingsPage() {
   const rows = await db.query.trainings.findMany({
     with: { trainingTeams: { with: { team: true } }, trainingCoaches: { with: { coach: true } } },
-    orderBy: (trainings, { asc }) => [asc(trainings.date), asc(trainings.startTime)],
+    orderBy: (trainings, { asc }) => [asc(trainings.date), asc(trainings.startTime), asc(trainings.id)],
   });
 
   return (
@@ -45,14 +47,14 @@ export default async function AdminTrainingsPage() {
         </thead>
         <tbody>
           {rows.map((training) => (
-            <tr data-admin-search-item={`${training.date} ${training.startTime} ${teamNames(training)} ${training.trainingCoaches.map((tc) => tc.coach?.name).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
+            <tr data-admin-search-item={`${training.date} ${training.startTime} ${teamNames(training)} ${coachNames(training).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 text-club-navy">{training.date}</td>
               <td className="p-4 text-slate-500">
                 {training.startTime}–{training.endTime}
               </td>
               <td className="p-4 font-semibold text-club-navy">{teamNames(training) || "—"}</td>
               <td className="p-4 text-slate-500">
-                {training.trainingCoaches.map((tc) => tc.coach?.name).join(", ") || "—"}
+                {coachNames(training).join(", ") || "—"}
               </td>
               <td className="p-4 text-slate-500">{training.location}</td>
               <td className="p-4 text-right">

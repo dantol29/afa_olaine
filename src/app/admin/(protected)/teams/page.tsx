@@ -5,11 +5,12 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
 import { teams } from "@/db/schema";
+import { sortByName } from "@/lib/ordering";
 
 import { deleteTeam } from "./actions";
 
 export default async function AdminTeamsPage() {
-  const rows = await db.select().from(teams).orderBy(teams.name);
+  const rows = sortByName(await db.select().from(teams), (team) => team.name);
 
   return (
     <div>
