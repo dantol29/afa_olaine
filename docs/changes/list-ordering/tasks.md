@@ -1,7 +1,8 @@
 # Task map: list ordering
 
-Status: task map for user approval. Approval of this map does not authorize implementation, reverting the draft,
-commits or any Git operation that changes state.
+Status: approved by the user 2026-11-12 (with draft reset and one local commit per task); T0-T8 closed, results in
+[proof.md](proof.md). Open questions below were answered on 2026-11-12: 1 yes, 2 per-task commits, 3 yes (found not
+needed, see proof.md T2), 4 accepted as not verified, 5 out of scope.
 
 ## Sources and decisions
 

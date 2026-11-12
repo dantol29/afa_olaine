@@ -253,3 +253,31 @@ Docs: plan status updated; tasks.md unchanged (mechanics only).
 - Temporary merge-case rows were deleted after each run; T8 restores snapshots anyway.
 - `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings).
 - Docs: plan Phase 4 calendar row confirmed by this record; the `week-calendar.tsx:997` in-place sort side finding is resolved.
+
+## T8 integration (R1-R20 together, R12, build)
+
+- Greps on the final tree: no `localeCompare` in `src`; the only `orderBy` on a label/title column are the
+  `displayOrder, label/title` tie-breakers kept out of scope (`league-sources/page.tsx:31`, `club-pages/page.tsx:12`,
+  `club-pages-server.ts:21`, `league-standings-server.ts:69`); `@/lib/ordering` has 22 importers, all in the plan list;
+  `team-showcase` has no importer.
+- Full pass on a freshly restored `list-ordering-v2` (dev server restarted): every R row equals its task's AFTER value
+  (`.local/list-ordering/final/rows.txt`).
+- R12 must-not-change: text captures identical to T0 for `/akademija`, `/jaunumi`, `/speles`, `/kontakti`, `/klubs`,
+  player profile, `/feed.xml`, `/api/calendar` (two weeks), admin club logos, league sources, club pages, articles,
+  partners. Pages that changed differ only in order (same word multiset), except `/komanda` (order plus the rail
+  loop clone of the changed first card), search JSON and sitemap images (intended content changes, T4).
+- R20 smoke: `/ /komanda /komanda?skats=treneri /akademija /jaunumi /speles /trenini /kontakti /sitemap.xml /feed.xml`
+  and 10 admin pages (lists, `games/new`, `trainings/new`, `trainings/13`) return 200; no errors in the dev log; no
+  hydration messages in the browser console on `/trenini`, `/speles`, `/jaunumi`, `/admin/trainings/new` (only HMR
+  websocket errors from the server restart).
+- Checks: `npx tsc --noEmit` ok; `npm run lint` 0 errors, 3 pre-existing warnings; `ordering-check` ok; production build
+  with the dev server stopped: `NODE_ENV=production npm run build -- --webpack` exit 0, no error or warning lines
+  (env: `.env.local` only, `TURSO_DATABASE_URL=file:./local.db`; no `.env.production` exists, so no production service).
+  The plan's `scripts/local/run.mjs` build variant refuses `NODE_ENV=production`; the doc command was used.
+- Final code vs saved draft: same design and same behaviour; differences are review rewrites: comments and contracts,
+  `firstByName` (draft `topByName`), training coach names without de-duplication, calendar team options built in one
+  expression, fixed indentation in the overflow popup, formatting. `team-showcase.ts` deleted in both.
+- Local state: dev server stopped, `pre-list-ordering` restored, dev server started again (detached) and answering 200.
+- Not verified: production player id 67 photo (accepted); production rendering (no deploy in scope); browsers other than
+  the built-in one for client-sorted labels (same `Intl.Collator("lv")` rule; ICU-dependent, as before).
+- Out of scope, reported only: `birthdays-server.ts:82` sorts by days only (no tie-breaker).

@@ -293,8 +293,11 @@ implementation starts on a new branch from `main` (`a16b33f`) only when the user
 
 - Phase: implementation per [tasks.md](tasks.md) on branch `feat/list-ordering` (from `a16b33f`); one local commit per
   closed task, no push. Current task and results: see [proof.md](proof.md) "Per-task record".
-- T0 done: draft saved and reset, fixture `list-ordering-v2`, baseline captured.
+- T0-T8 closed and verified locally (see proof.md); one local commit per task on `feat/list-ordering`, not pushed.
 - Production player id 67 photo: accepted by the user as not verified.
+- Plan corrections found during implementation: the build command in "Work phases" must be
+  `NODE_ENV=production npm run build -- --webpack` (the `scripts/local/run.mjs` wrapper refuses `NODE_ENV=production`);
+  the player profile team list has no visible order (only a goal sum), so it needed no change.
 
 ## For the user
 
