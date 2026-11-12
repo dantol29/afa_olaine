@@ -188,3 +188,24 @@ Docs: plan status updated; tasks.md unchanged (mechanics only).
 - Must-not-change: all other captures identical to T3.
 - `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings).
 - Docs: no doc describes search or sitemap order.
+
+## T5 admin tables (A1-A3, A6-A9; R4 admin, R5 `/admin/teams`, R9, R10 `/admin/coaches`)
+
+- Draft disposition: kept after review and re-applied, one change: training coach names are sorted with
+  `compareLatvian` without de-duplication (two coaches may share a name), instead of the draft's `sortByName` wrapper.
+
+| # | BEFORE (T0) | AFTER |
+|---|---|---|
+| R4 `/admin/trainings` F7 | teams `U19, 2. liga`; coaches Zane, Āris | teams `2. liga, U19`; coaches Āris, Zane |
+| R10 `/admin/coaches` | Zane, Āris, Čaks, Ķirsis; Zane's teams `U19, 2. liga` | Āris, Čaks, Ķirsis, Zane; Zane's teams `2. liga, U19` |
+| R5 `/admin/teams` | 2. liga, U11, U13, U15, U17, U19, U7, U9 | 2. liga, U7, U9, U11, U13, U15, U17, U19 |
+| A3 `/admin/players` headers | 2. liga, U11 … U19, U9 | 2. liga, U9, U11 … U19 (U7 has no players); page words identical, order only |
+| R9 `/admin/games` | 11-19: 19:00 before 16:00; 11-20: 18:00 before 10:00 | 16:00 before 19:00; 10:00 before 18:00 |
+| R9 `/admin/events` 11-20 | Vakara 18:00 before Rīta 10:00 | Rīta 10:00 before Vakara 18:00 |
+
+- Admin search: `admin-search.tsx:25` matches a substring of `data-admin-search-item`; the attributes still hold every
+  name (`Zane Secība Treneris 2. liga, U19`; `2026-11-25 17:00 2. liga, U19 Āris Secība Zane Secība Laukums`), so a
+  search for any one team or coach name still matches. Coach team names in that attribute are now comma-joined.
+- Must-not-change: admin articles, league sources, club pages, partners and club logos text identical to T0.
+- `npx tsc --noEmit` ok; lint 0 errors (3 pre-existing warnings).
+- Docs: no doc describes admin list order.

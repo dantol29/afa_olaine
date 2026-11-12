@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
+import { compareLatvian } from "@/lib/ordering";
 
 import { deleteClubLogo } from "./actions";
 
@@ -45,7 +46,7 @@ export default async function AdminClubLogosPage() {
               const namesLabel =
                 club.names
                   .map((n) => n.name)
-                  .sort((a, b) => a.localeCompare(b, "lv"))
+                  .sort(compareLatvian)
                   .join(", ") || "—";
               return (
                 <tr data-admin-search-item={namesLabel} key={club.id} className="border-b border-slate-100 last:border-0">

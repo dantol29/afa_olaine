@@ -62,7 +62,7 @@ export default async function AdminGamesPage() {
     })
     .from(games)
     .innerJoin(teams, eq(games.teamId, teams.id))
-    .orderBy(games.date);
+    .orderBy(games.date, games.startTime, games.id);
 
   const logos = await resolveClubLogos(rows.flatMap((row) => [row.homeTeam, row.awayTeam]));
 
