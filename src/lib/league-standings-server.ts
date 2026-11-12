@@ -38,7 +38,7 @@ const FALLBACK_STANDINGS: StandingRow[] = [
   },
 ];
 
-export type LeagueStandings = { label: string; standings: StandingRow[]; url: string; logoUrl?: string | null; isMainLeague?: boolean };
+type LeagueStandings = { label: string; standings: StandingRow[]; url: string; logoUrl?: string | null; isMainLeague?: boolean };
 
 function withDevelopmentTestLeagues(leagues: LeagueStandings[]): LeagueStandings[] {
   if (process.env.NODE_ENV !== "development" || leagues.length === 0) return leagues;

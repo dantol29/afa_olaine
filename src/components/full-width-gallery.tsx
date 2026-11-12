@@ -6,7 +6,7 @@ import type { Swiper as SwiperType } from "swiper";
 import { FreeMode, Mousewheel } from "swiper/modules";
 import "swiper/css";
 
-export function useFullWidthGalleryOffsets(slideWidth: number | ((width: number) => number)) {
+function useFullWidthGalleryOffsets(slideWidth: number | ((width: number) => number)) {
   const [width, setWidth] = useState(0);
 
   useEffect(() => {

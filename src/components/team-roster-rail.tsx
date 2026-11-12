@@ -8,7 +8,7 @@ import { SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
 import { FullWidthGallery } from "./full-width-gallery";
 
-export type TeamShowcasePlayer = {
+type TeamShowcasePlayer = {
   id: number;
   name: string;
   position: string;

@@ -7,7 +7,7 @@ type SponsorTickerPartner = {
   websiteUrl?: string | null;
 };
 
-export type SponsorTickerItem = SponsorTickerPartner;
+type SponsorTickerItem = SponsorTickerPartner;
 
 /** Places the league identity ahead of the admin-managed sponsor records. */
 export function sponsorTickerItems(partners: SponsorTickerPartner[], leagueMark?: SponsorTickerItem | null): SponsorTickerItem[] {

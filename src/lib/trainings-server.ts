@@ -13,7 +13,7 @@ import { MONTHS } from "@/lib/games";
 import { sortByName } from "@/lib/ordering";
 import { getTeamNamesByTraining } from "@/lib/training-teams";
 
-export type TrainingCoach = { name: string; photoUrl: string | null };
+type TrainingCoach = { name: string; photoUrl: string | null };
 
 export type TrainingListItem = {
   id: number;

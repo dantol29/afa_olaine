@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { TeamRosterRail } from "@/components/team-roster-rail";
 
-export type TeamPagePlayer = {
+type TeamPagePlayer = {
   id: number;
   name: string;
   number: number | null;
@@ -12,12 +12,12 @@ export type TeamPagePlayer = {
   photoUrl: string | null;
 };
 
-export type TeamPagePlayerGroup = {
+type TeamPagePlayerGroup = {
   label: string;
   players: TeamPagePlayer[];
 };
 
-export type TeamPageCoach = {
+type TeamPageCoach = {
   id: number;
   name: string;
   position: string;

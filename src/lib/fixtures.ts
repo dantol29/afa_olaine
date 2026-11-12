@@ -3,7 +3,7 @@ import type { AnyNode } from "domhandler";
 
 import { absoluteLffUrl, fetchLffHtml, normalizeLffText } from "@/lib/lff-fetch";
 
-export type ScrapedFixture = {
+type ScrapedFixture = {
   date: string;
   time: string | null;
   home: string;
@@ -57,7 +57,7 @@ function tabSelector(url: string): string | null {
   return tab ? `#tab${tab.charAt(0).toUpperCase()}${tab.slice(1)}` : null;
 }
 
-export function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture[] {
+function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture[] {
   const $ = cheerio.load(html);
   const requestedTab = tabSelector(pageUrl);
   const scope = requestedTab && $(requestedTab).length ? $(requestedTab) : $.root();

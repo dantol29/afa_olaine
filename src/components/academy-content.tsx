@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-export type AcademyTeam = {
+type AcademyTeam = {
   id: number;
   name: string;
   groupPhotoUrl: string | null;

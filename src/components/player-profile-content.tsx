@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, House, UserRound } from "lucide-react";
 
-export type PlayerProfile = {
+type PlayerProfile = {
   id: number;
   name: string;
   number: number | null;
@@ -13,7 +13,7 @@ export type PlayerProfile = {
   teams: { name: string; goals: number }[];
 };
 
-export type CoachProfile = {
+type CoachProfile = {
   id: number;
   name: string;
   position: string;

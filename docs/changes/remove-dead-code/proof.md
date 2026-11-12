@@ -108,3 +108,28 @@ new errors. Database identical to `pre-dead-code` afterwards (dump compare).
 Doc reconciliation: tasks.md smoke rule updated (render check before screenshots). No other doc change.
 
 Proposed commit: `chore: remove unused functions and the calendar event bridge`.
+
+## T3 file-local exports (2026-11-12)
+
+Source: branch `chore/remove-dead-code`, HEAD `b6433b2`, uncommitted: 18 source files, `export` keyword only.
+
+- List re-derived on the T2 tree (`analyze-T3pre.txt`): 25 symbols, each referenced only inside its own file
+  (`git grep -w` over the repo without `docs/`). None of the 18 files is in the `/api/shared-calendar` chain.
+- Changed: `AcademyTeam`, `useFullWidthGalleryOffsets`, `PlayerProfile`, `CoachProfile`, `TeamPagePlayer`,
+  `TeamPagePlayerGroup`, `TeamPageCoach`, `TeamShowcasePlayer`, `toggleSelectedDate`, `BIRTHDATE_ERROR`,
+  `BirthdateResult`, `isPageLink`, `ScrapedFixture`, `parseFixturesHtml`, `GameListItem`, `LeagueStandings`,
+  `SendEmailResult`, `DEFAULT_SITE_SETTINGS`, `SponsorTickerItem`, `parseStandingsHtml`, `TopScorerSyncDetail`,
+  `TopScorerSyncResult`, `ScrapedScorer`, `parseTopScorersHtml`, `TrainingCoach`. Diff: 25 lines, `export ` removed.
+- Graph (`analyze-T3.txt`): no unreachable files; unused exports only the 4 config defaults. `tsc --noEmit` and
+  `tsc --noUnusedLocals --noUnusedParameters`: exit 0. Lint: 0 errors, the 3 baseline warnings.
+- Build: exit 0, `build-T3-20261112-151231.log`, error grep empty, routes identical to T2.
+- Smoke (data restored): statuses of the 20 listed pages identical to T2. Browser (pane visible, rAF fires): 11 public
+  and 22 admin pages with the expected h1, tab/button clicks and scroll, DOM probe 0 hits, no console errors;
+  screenshots of `/trenini` and `/komanda/speletaji/1` normal. Dev log: no errors; missing local `/uploads/` files as
+  before; the `next/image` size warning for one article image is present in the T0 log too.
+- Database: the admin login cleared two old `admin_login_limits` rows (normal login behaviour); data restored to
+  `pre-dead-code` afterwards, dump identical.
+
+Doc reconciliation: no doc change (no behaviour change).
+
+Proposed commit: `chore: stop exporting file-local symbols`.

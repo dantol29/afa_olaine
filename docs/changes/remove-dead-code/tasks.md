@@ -2,7 +2,7 @@
 
 Status: approved by the user 2026-11-12. Branch `chore/remove-dead-code` created from `main` `dd263cb` the same day
 on the user's command. Commits, push and PR still need a separate command.
-Progress: T0 closed 2026-11-12 (baseline in [proof.md](proof.md)); T1 closed (`11b0ee5`); T2 closed (committed); next T3.
+Progress: T0 closed 2026-11-12 (baseline in [proof.md](proof.md)); T1 closed (`11b0ee5`); T2 closed (committed); T3 closed (committed); next T4.
 
 ## Sources
 

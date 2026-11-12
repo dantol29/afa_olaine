@@ -15,7 +15,7 @@ function getTransporter() {
   });
 }
 
-export type SendEmailResult = { sent: true } | { sent: false; error: string };
+type SendEmailResult = { sent: true } | { sent: false; error: string };
 
 /** Best-effort notification email — never throws when SMTP isn't configured
  *  or the send fails, so a broken/unset mail setup never takes down

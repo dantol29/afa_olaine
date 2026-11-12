@@ -20,7 +20,7 @@ export type SiteSettings = {
 
 /** Current live footer content, used to seed the singleton row the first
  *  time this is read (and as a safety net if the DB read fails). */
-export const DEFAULT_SITE_SETTINGS: SiteSettings = {
+const DEFAULT_SITE_SETTINGS: SiteSettings = {
   legalName: 'Biedrība "Futbola klubs Olaine"',
   legalAddress: "Parka 11 - 16, Olaine, Olaines novads, LV-2114",
   regNr: "50008130491",

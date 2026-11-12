@@ -45,7 +45,7 @@ function calendarDays(month: Date) {
   );
 }
 
-export function toggleSelectedDate(currentDate: string | null, clickedDate: string) {
+function toggleSelectedDate(currentDate: string | null, clickedDate: string) {
   return currentDate === clickedDate ? null : clickedDate;
 }
 
