@@ -4,6 +4,7 @@ Status: approved by the user 2026-11-12, with one change: the browser smoke chec
 before and after all of them. Mode: Execution plan (scope decided in the grill-me interview, questions 1-18, same day).
 Tasks: [tasks.md](tasks.md). Evidence: [proof.md](proof.md) (created by T0).
 Baseline: `main` at `dd263cb`, clean tree except this untracked folder.
+Implemented 2026-11-12 on branch `chore/remove-dead-code` (T1-T6, one commit per group), integration checked in T7.
 
 ## Goal, scope, exclusions
 
@@ -53,7 +54,7 @@ the missing `../afaolaine_website` path.
 | Unknown | Check | Status |
 |---|---|---|
 | `lff-fetch` helpers and `hexColor` left dead | grep | Closed: still used (`fixtures`, `standings`, `top-scorers`, `smoothLogoStripe`) |
-| Production content references removed assets or classes after 2026-11-10 | grep on a fresh production backup taken by the user | Open; blocks only the CSS and asset groups |
+| Production content references removed assets or classes after 2026-11-10 | grep on a fresh production backup taken by the user | Closed: backup `app.db.20261112-124111`, 0 matches (proof.md B1) |
 | Registry access for `npm uninstall`/`install` | `docs/local-development.md`: `NODE_AUTH_TOKEN=$(gh auth token)` | Use the documented procedure; lock-file diff must touch only the changed packages |
 
 ## Requirement -> result -> proof

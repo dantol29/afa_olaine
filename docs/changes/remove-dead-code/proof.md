@@ -223,3 +223,34 @@ before the copy.
 Doc reconciliation: no doc change (no doc mentions these files).
 
 Proposed commit: `chore: remove unused public assets`. Private repo: `design-sources/` committed there on the user's command.
+
+## T7 integration (2026-11-12)
+
+Source: branch `chore/remove-dead-code`, HEAD `54574f4` (6 commits on `main` `dd263cb`); code identical to the T6
+commit, uncommitted: docs only.
+
+- Graph on the whole tree (`analyze-T7.txt`): no unreachable file; unused exports only the 4 config defaults. Grep
+  for every removed component, module, function, script and package name outside `docs/changes`: 0 matches.
+- `git diff main --stat`: 76 files, +461/-1771; every path is in plan scope 1-6 or this docs folder.
+- FK chain: no change in `calendar.ts`, `site-url.ts`, `training-teams.ts`, `ordering.ts`, `club-logos.ts`,
+  `src/app/api/shared-calendar`; under `src/db/` only the planned deletion of `seed.ts`, which nothing imports.
+- Lint: 0 errors, the 3 baseline warnings. Build: exit 0, `build-T7-20261112-223126.log`, error grep empty; routes vs
+  T0: only `/lab` removed. `tsc --noEmit` and `tsc --noUnusedLocals --noUnusedParameters`: exit 0. `npm ls`: exit 0.
+- Full visual pass (snapshot `pre-dead-code-media`, pane shown, rAF fires): all 11 public pages at pane width (800 px)
+  and at 375 px, plus `/lab` (Next 404 page). Mobile menu and search drawer open and work (query `ars` finds the
+  player). Partner, league and club-page images now load. Statuses vs T0: only `/lab` 200 -> 404. Dev log: no errors,
+  no 404 except `/lab`. Database identical to `pre-dead-code`.
+- Limits: desktop screenshots at the pane width (800 px), not 1440 px; the 33-page DOM probe was last run on the same
+  code in T6. The pass above covered the first screen of each page only.
+- Full-page pass (Sonnet subagent, same day, snapshot `pre-dead-code-media`): every public page scrolled top to bottom
+  at desktop and 375 px with JS checks (broken images 0, no page-level horizontal overflow, all local `<img>` URLs 200);
+  states clicked: `/komanda` Treneri tab, `/akademija` team filters, `/jaunumi` filters, `/speles` Aizvadītās and team
+  filter, homepage carousels, `/trenini` day and month, mobile menu and search; admin `site-settings`, 11 lists and 10
+  edit pages scrolled with JS checks, no broken images, dark theme readable. Dev log: only `/lab` 404. Database
+  identical. Not regressions: the `Cits` legend on `/admin/games/1` and `/admin/trainings/1` has low contrast
+  (white on `bg-slate-400`, about 2.6:1), the same style as on `main` (`week-calendar.tsx`). Limits: screenshots in
+  the pane often lagged one action, so not every scrolled screen was inspected by eye (by eye: whole homepage on
+  desktop, top and key blocks of the other pages, 7 admin screens); the rest rests on the JS checks; external lff.lv
+  images not checked; `/admin/login` and `/admin/events/1` not opened.
+
+Doc reconciliation: plan.md status and the production-content unknown updated; tasks.md progress updated.
