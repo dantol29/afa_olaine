@@ -1,0 +1,115 @@
+# Proof record: list ordering
+
+Local DB: snapshot `list-ordering` (full-demo + `.local/fixtures/list-ordering.sql`). Values below are observed (curl on the local dev server, admin via a locally signed session cookie).
+
+## Phase 0: BEFORE (unchanged `main` a16b33f)
+
+| # | Check | Observed BEFORE |
+|---|---|---|
+| R1 | `/komanda` Pussargi rail | Levs, Nikolajs, Čaks, Ļevs, Ņikita, Žanis (code-point; no photo-first) |
+| R1 | `/` carousel | Levs, Nikolajs, Čaks, Ņikita, Žanis, then Ļevs (photo first, code-point inside) |
+| R2 | `/komanda?skats=treneri` coaches | Zane, Āris, Čaks, Ķirsis (code-point; Čaks no photo not last) |
+| R3 | `/akademija` teams | U9, U11, U13, U15, U17, U19, U7 (id order) |
+| R4 | `/trenini` coaches of F7 training | Zane Secība, Āris Secība (join order). Teams label already `2. liga, U19` (sorted, not a defect) |
+| R4 | `/admin/coaches` | Zane, Āris, Čaks, Ķirsis |
+| R5 | `/admin/teams` | 2. liga, U11, U15, U19, U9 (U11 before U9) |
+| R6 | search `Sagatave` | Artūrs, Jānis, Kārlis, Roberts, Emīls (id order, no sort) |
+| R7 | search `Žanis Secība` | team label `U19` only |
+| R8 | search `liga` / `U9` | `2. liga` -> id 7 (client links `id===1` to `/komanda`, so 2. liga goes to /akademija); `U9` id 1 |
+| R8 | `/sitemap.xml` `/akademija` images | u11, u13, u15, u17, u19, 2-liga, u7 (U9 missing, 2. liga included) |
+| R9 | `/admin/games` day 2026-11-20 | 18:00 game before 10:00 game |
+| R9 | `/admin/events` | Kalendāra (11-19) 17:00, then 11-20: Vakara 18:00 before Rīta 10:00 |
+
+## Draft observations (superseded)
+
+The two sections below were observed on the uncommitted draft (saved in `.local/list-ordering/draft/`, see T0). They are
+kept for reference only and are not proof of the final code; the per-task record follows at the end.
+
+### Draft AFTER (branch feat/list-ordering, uncommitted)
+
+| # | Check | Observed AFTER |
+|---|---|---|
+| R1 | `/komanda` Pussargi | Čaks, Levs, Nikolajs, Ņikita, Žanis, then Ļevs (no photo last) |
+| R1 | `/` carousel | same order |
+| R2 | coaches | Āris, Ķirsis, Zane, then Čaks (no photo) |
+| R3 | `/akademija` teams | U9…U19, U7 (unchanged) |
+| R4 | coach profile Zane | `2. liga, U19`; `/trenini` and `/admin/trainings` coaches `Āris Secība, Zane Secība`; `/admin/coaches` team label `2. liga, U19` |
+| R5 | `/admin/teams`, selects (`players/new`, `jaunumi/new`, `trainings/new`) | 2. liga, U7, U9, U11, U13, U15, U17, U19 (public filter labels are built client-side through the same function; covered by R13) |
+| R6 | search `Sagatave` | Artūrs, Dāvis, Edgars, Emīls, Ernests |
+| R7 | search `Žanis Secība` | `2. liga, U19` |
+| R8 | search `liga` / `U9`; sitemap | `2. liga` isMain=true (client links `/komanda`), `U9` isMain=false; images u9, u11, u13, u15, u17, u19, u7 (U9 now included, 2. liga excluded) |
+| R9 | `/admin/games`, `/admin/events` | 10:00 before 18:00 on 2026-11-20; 16:00 before 19:00 on 2026-11-19; events 10:00 before 18:00 |
+| R10 | `/admin/coaches`, author select | Āris, Čaks, Ķirsis, Zane |
+| R11 | tie-breakers by id | code diff only (no visible change) |
+| R13 | `.local/checks/ordering-check.mts` | ok |
+| R14 | `/trenini` without client sort | sequence equals DB order `date, start_time, id` |
+| R15 | admin week calendar 19.11 (day loaded by fetch, merge case) | DOM order: U9 treniņš 15:00, U9–Kalendārs 2 16:00, 2. liga treniņš 16:30, Kalendāra pasākums 17:00, 2. liga–Kalendārs 1 19:00; overlap columns kept. Not tested: mobile width, `+N` overflow popup, the 07:00 insert-after-load case |
+
+Checks: `npx tsc --noEmit` ok, `npm run lint` 0 errors (3 warnings that exist on `main`), `NODE_ENV=production npm run build -- --webpack` ok (the `scripts/local/run.mjs` wrapper refuses NODE_ENV=production, so the build ran without it). Local DB restored to snapshot `pre-list-ordering`; dev server restarted.
+### Draft browser checks (built-in browser, snapshot `list-ordering`)
+
+| # | Check | Observed |
+|---|---|---|
+| R16 | `/trenini` filter buttons | Visas komandas, 2. liga, 2. liga U19, U9, U11, U13, U15, U17, U19 |
+| R16 | `/speles` filter (open dropdown) | Visas komandas, 2. liga, U9, U11 (only teams with games) |
+| R16 | `/jaunumi` filter | U17, U19 (only teams with news) |
+| R16 | admin calendar team filter | same list as `/trenini` |
+| R17 | admin calendar desktop, temp events added after load, week 26–29.11 fetched by arrow | Hours expand to 07:00; DOM order Agrs 07 (07:00), Rits 09, Vakars 20; same-hour overlap shows 2 cards + `+3` |
+| R18 | `+3` popup | Ov C, Ov D, Ov E in order |
+| R19 | mobile 375 px day view, 19.11 and 20.11 | 15:00, 16:00, 16:30, 17:00, 19:00; 10:00, 10:00, 18:00, 18:00 |
+| R20 | smoke: `/ /komanda /komanda?skats=treneri /akademija /jaunumi /speles /trenini /kontakti /sitemap.xml` | all 200, no errors in dev log |
+
+Temporary events were deleted afterwards.
+Not verified: R12 must-not-change pages (no side-by-side diff against `main`, only the smoke in R20), production ICU/Node data.
+
+# Per-task record ([tasks.md](tasks.md))
+
+Environment for every task: local dev server (`npm run local:dev`, Next 16.3.4, Node local), snapshot `list-ordering-v2`
+(= `full-demo` + migrate + `.local/fixtures/list-ordering-v2.sql`), restored before each proof. Server-rendered rows are
+read with curl-style fetches (`obs.mjs`: visible text, scripts stripped, admin via a locally signed session cookie made
+from the local `SESSION_SECRET`; no password entered); client-rendered rows in the built-in browser.
+
+## T0 baseline (2026-11-12)
+
+- Repo: `feat/list-ordering`, HEAD `a16b33f`. Draft saved to `.local/list-ordering/draft/` (`tracked.patch` with 30 files,
+  `ordering.ts`, `ordering-check.mts`, original fixture; `SHA256SUMS`, `tracked.patch` sha256 `f99fff43…dfab`);
+  `git apply --check -R` passed before the reset. The 30 files were rewritten from `git show a16b33f:<path>` and the draft
+  `src/lib/ordering.ts` removed (user approval 2026-11-12). After: `git status --short` = `?? docs/changes/` only.
+- Fixture `.local/fixtures/list-ordering-v2.sql` = original + F10 (2026-11-21, five items overlapping 12:00-14:00,
+  inserted latest first) + F11 (2026-11-24 18:00 game, event, training inserted in that order).
+  `.local/fixtures/list-ordering-merge.sql` = F12 (07:00 event on 2026-11-19, applied while the calendar is open).
+  All fixture dates are after 2026-11-12 and inside the admin calendar window (−2 / +6 months).
+- Snapshot `list-ordering-v2` saved. The local DB that was active before T0 was not saved separately (the earlier record
+  says it had been restored to `pre-list-ordering`); T8 restores `pre-list-ordering`.
+- Captures of every page used by the proof (55 files: public pages, sitemap, feed, `/api/calendar` for the weeks of
+  11-16 and 11-23, search JSON, admin lists and the 7 `new` forms) in `.local/list-ordering/baseline/`; ordered rows in
+  `.local/list-ordering/baseline/rows.txt`.
+- Client-rendered rows (R14, R16 filter dropdowns, calendar C1-C10) are recorded as BEFORE in their owning task (T3, T7)
+  on code that is still at baseline for those files.
+
+BEFORE (baseline code, `list-ordering-v2`):
+
+| # | Check | BEFORE |
+|---|---|---|
+| R1 | `/komanda` Pussargi | Levs, Nikolajs, Čaks, Ļevs, Ņikita, Žanis (code point, no photo-first) |
+| R1 | `/` carousel | Levs, Nikolajs, Čaks, Ņikita, Žanis, (Emīls, Valters Sagatave: no photo), Ļevs |
+| R2 | `/komanda` coaches | Zane, Āris, Čaks, Ķirsis |
+| R3 | `/akademija` teams | U9, U11, U13, U15, U17, U19, U7 (id order) |
+| R4 | coach profile Zane | U19, 2. liga |
+| R4 | `/trenini` F7 coaches | Zane Secība, Āris Secība |
+| R4 | `/admin/trainings` F7 | teams `U19, 2. liga`; coaches Zane, Āris |
+| R4/R10 | `/admin/coaches` | Zane, Āris, Čaks, Ķirsis |
+| R5 | `/admin/teams`; all 7 `new` form team selects | 2. liga, U11, U13, U15, U17, U19, U7, U9 |
+| R5 | `/admin/players` team headers | 2. liga, U11, U13, U15, U17, U19, U9 (U7 has no players) |
+| R6 | search `Sagatave` | Artūrs, Jānis, Kārlis, Roberts, Emīls (id order) |
+| R7 | search `Žanis Secība` label | `U19` |
+| R8 | search `liga` / `U9` | `{id 7, 2. liga}` (client links id 1 to `/komanda`) / `{id 1, U9}`; no `isMain` |
+| R8 | sitemap `/akademija` images | u11, u13, u15, u17, u19, 2-liga, u7 (U9 missing, main team included) |
+| R9 | `/admin/games` | 2026-11-19: Kalendārs 1 (19:00) before Kalendārs 2 (16:00); 2026-11-20: Pretinieks A (18:00) before B (10:00) |
+| R9 | `/admin/events` | 2026-11-20: Vakara (18:00) before Rīta (10:00) |
+| R10 | `jaunumi/new`, `trainings/new` coach selects | Zane, Āris, Čaks, Ķirsis |
+
+Finding (changes T2 scope, see T2): the player profile team list (`komanda/speletaji/[id]/page.tsx:36`) is not displayed;
+`player-profile-content.tsx:30` only sums its goals, so it has no visible order.
+
+Docs: plan status updated; tasks.md unchanged (mechanics only).
