@@ -12,7 +12,7 @@ type ScrapedScorer = {
   isOlaine: boolean;
 };
 
-function parseTopScorersHtml(html: string, pageUrl: string): ScrapedScorer[] {
+export function parseTopScorersHtml(html: string, pageUrl: string): ScrapedScorer[] {
   const $ = cheerio.load(html);
   const rows = $(".goalscorers .tr").toArray();
 

@@ -61,7 +61,7 @@ function parseTable($: cheerio.CheerioAPI, table: Cheerio<AnyNode>, pageUrl: str
   return result;
 }
 
-function parseStandingsHtml(html: string, pageUrl: string): StandingRow[] {
+export function parseStandingsHtml(html: string, pageUrl: string): StandingRow[] {
   const $ = cheerio.load(html);
   const requestedTab = requestedTabSelector(pageUrl);
   const scope = requestedTab && $(requestedTab).length ? $(requestedTab) : $.root();
