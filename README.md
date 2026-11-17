@@ -23,6 +23,22 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 For an isolated local setup with admin, LFF sync and a local mail sink, see
 [docs/local-development.md](docs/local-development.md).
 
+## Tests
+
+```bash
+npm test
+```
+
+Tests use Node's built-in runner (`node:test`) with `tsx`. They live next to the code as `src/**/*.test.ts`;
+shared helpers are in `test/` (`test/setup.ts` prepares the environment, `test/db.ts` creates the schema and
+inserts test rows). Each test file runs in its own process with a fresh in-memory SQLite database and a
+temporary uploads folder, so no running app, dev server or network is needed.
+
+Tests never touch a real database: `test/setup.ts` stops the run if `TURSO_DATABASE_URL` (or another
+database URL) in your shell is not a `file:` URL, and always replaces it with an in-memory database.
+
+Run `npm test && npm run lint` before pushing and before building for production.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
@@ -48,6 +64,7 @@ League-source logos and the main-league flag (`is_main_league`) are set under **
 ### Updating production
 
 Deployment is manual, from the cPanel terminal (there is no automatic deploy hook).
+Before pushing the change you deploy, run `npm test && npm run lint` on your machine (see "Tests").
 
 **Back up the database first.** `scripts/backup-db.sh` copies the SQLite file (and any `-journal`, `-wal` or `-shm` file next to it) into `/home3/afaolain/afa_olaine-backups`, adding the current date and time to each name, e.g. `app.db.20261112-153045`. It prints the `TS` value and the rollback command. Set `DATA_DIR` or `BACKUP_DIR` if `TURSO_DATABASE_URL` or the backups folder point elsewhere.
 

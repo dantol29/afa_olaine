@@ -51,7 +51,9 @@ export async function deleteUploadedPhoto(photoUrl: string | null): Promise<void
   if (!photoUrl || !photoUrl.startsWith("/uploads/")) return;
 
   const relativePath = photoUrl.slice("/uploads/".length);
-  const filePath = path.join(UPLOADS_ROOT, relativePath);
+  const filePath = path.resolve(UPLOADS_ROOT, relativePath);
+  // A stored URL such as "/uploads/../app.db" is not one of ours either; never delete outside the uploads folder.
+  if (!filePath.startsWith(UPLOADS_ROOT + path.sep)) return;
 
   try {
     await unlink(filePath);

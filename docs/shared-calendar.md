@@ -22,6 +22,13 @@ dateKey, start/end ISO timestamps, calendar labels, club and readOnly.
 Game events also include opponent names and absolute logo URLs.
 No private notes, player details or database credentials are exported.
 
+`docs/shared-calendar.v1.example.json` is a sample response for
+`from=2026-10-01&to=2026-10-31`, produced from fixed test data by
+`src/app/api/shared-calendar/route.test.ts` (only `generatedAt` is fixed by hand).
+The test fails when the feed output changes. When the contract changes on purpose,
+regenerate it with `UPDATE_GOLDEN=1 npm test`, review the diff, and update FK's
+copy of the file and its parsing rules in the same release.
+
 The feed uses Europe/Riga for calendar dates and UTC ISO timestamps for instants.
 It includes games, trainings and general events at all locations. FK should
 filter by venue when calculating stadium occupancy; an away match does not
