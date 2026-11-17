@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { games } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { isEndAfterStart } from "@/lib/time-range";
 
 function parseGameInput(formData: FormData) {
   const teamId = Number(formData.get("teamId"));
@@ -33,6 +34,7 @@ function parseGameInput(formData: FormData) {
   if (!date) return { error: "Datums ir obligāts." } as const;
   if (!startTime) return { error: "Sākuma laiks ir obligāts." } as const;
   if (!endTime) return { error: "Beigu laiks ir obligāts." } as const;
+  if (!isEndAfterStart(startTime, endTime)) return { error: "Beigu laikam jābūt vēlāk par sākuma laiku (tajā pašā dienā)." } as const;
   if (!location) return { error: "Vieta ir obligāta." } as const;
   if (homeScore === undefined || awayScore === undefined) return { error: "Rezultātam jābūt veselam skaitlim no 0." } as const;
 

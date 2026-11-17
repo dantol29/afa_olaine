@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { trainingCoaches, trainingTeams, trainings } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { isEndAfterStart } from "@/lib/time-range";
 
 function parseTrainingInput(formData: FormData) {
   const teamId = Number(formData.get("teamId"));
@@ -21,6 +22,7 @@ function parseTrainingInput(formData: FormData) {
   if (!date) return { error: "Datums ir obligāts." } as const;
   if (!startTime) return { error: "Sākuma laiks ir obligāts." } as const;
   if (!endTime) return { error: "Beigu laiks ir obligāts." } as const;
+  if (!isEndAfterStart(startTime, endTime)) return { error: "Beigu laikam jābūt vēlāk par sākuma laiku (tajā pašā dienā)." } as const;
   if (!location) return { error: "Vieta ir obligāta." } as const;
 
   return {

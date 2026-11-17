@@ -6,14 +6,7 @@ import { games } from "@/db/schema";
 import { backfillClubLogos } from "@/lib/club-logos";
 import { scrapeFixtures } from "@/lib/fixtures";
 import { isOlaine } from "@/lib/games";
-
-function addMinutes(time: string, minutes: number): string {
-  const [hour, minute] = time.split(":").map(Number);
-  const total = hour * 60 + minute + minutes;
-  const wrappedHour = Math.floor(total / 60) % 24;
-  const remMinute = total % 60;
-  return `${String(wrappedHour).padStart(2, "0")}:${String(remMinute).padStart(2, "0")}`;
-}
+import { addMinutesWithinDay } from "@/lib/time-range";
 
 export type ReviewNeededGame = {
   date: string;
@@ -97,7 +90,7 @@ export async function syncLeagueSource(source: {
           awayScore: fixture.awayScore,
           date: fixture.date,
           startTime,
-          endTime: addMinutes(startTime, 90),
+          endTime: addMinutesWithinDay(startTime, 90),
           location: fixture.stadium || "Nav norādīts",
           source: "lff" as const,
           league: source.label,
