@@ -4,16 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-export type AcademyTeam = {
+type AcademyTeam = {
   id: number;
   name: string;
   groupPhotoUrl: string | null;
   players: { id: number; name: string; number: number | null; position: string | null }[];
 };
-
-export function selectAcademyTeams<T extends { id: number }>(teams: T[]): T[] {
-  return [...teams].sort((a, b) => a.id - b.id).slice(1);
-}
 
 export function AcademyContent({ teams }: { teams: AcademyTeam[] }) {
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);

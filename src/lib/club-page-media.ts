@@ -2,7 +2,7 @@ export type PageAction = { label: string; href: string; style: "primary" | "outl
 export type PagePhoto = { src: string; alt: string; caption: string };
 export type ClubPageMedia = { layout: "sidebar" | "gallery"; photos: PagePhoto[]; actions: PageAction[] };
 
-export function isPageLink(value: string): boolean {
+function isPageLink(value: string): boolean {
   if (!value || value.length > 1000 || /[\\\s\u0000-\u001f\u007f]/.test(value)) return false;
   if (/^(\/(?!\/)|#)/.test(value)) return true;
   try { return ["https:", "http:", "mailto:", "tel:"].includes(new URL(value).protocol); }

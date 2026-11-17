@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 
 import { absoluteLffUrl, fetchLffHtml, normalizeLffText } from "@/lib/lff-fetch";
 
-export type ScrapedScorer = {
+type ScrapedScorer = {
   rank: number;
   name: string;
   photoUrl: string | null;
@@ -12,7 +12,7 @@ export type ScrapedScorer = {
   isOlaine: boolean;
 };
 
-export function parseTopScorersHtml(html: string, pageUrl: string): ScrapedScorer[] {
+function parseTopScorersHtml(html: string, pageUrl: string): ScrapedScorer[] {
   const $ = cheerio.load(html);
   const rows = $(".goalscorers .tr").toArray();
 

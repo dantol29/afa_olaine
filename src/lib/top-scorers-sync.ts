@@ -9,7 +9,7 @@ function normalizeName(name: string): string {
   return name.trim().toLocaleLowerCase("lv");
 }
 
-export type TopScorerSyncDetail = {
+type TopScorerSyncDetail = {
   name: string;
   club: string;
   goals: number;
@@ -17,7 +17,7 @@ export type TopScorerSyncDetail = {
   previousGoals: number | null;
 };
 
-export type TopScorerSyncResult = {
+type TopScorerSyncResult = {
   updated: number;
   unmatched: string[];
   details: TopScorerSyncDetail[];

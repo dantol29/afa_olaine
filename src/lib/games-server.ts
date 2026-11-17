@@ -74,7 +74,7 @@ export const getUpcomingGamesFromDb = cache(async function getUpcomingGamesFromD
   }
 });
 
-export type GameListItem = UpcomingGame & {
+type GameListItem = UpcomingGame & {
   /** Which of the club's own teams plays this fixture (e.g. "U14", "Sieviešu 1"). */
   teamName: string;
   /** "YYYY-MM-DD" — used for calendar-grid placement. */

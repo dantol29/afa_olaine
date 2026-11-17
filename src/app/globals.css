@@ -34,15 +34,6 @@
 .rich-text-editor .tableWrapper:focus-visible,
 .rich-page-content .tableWrapper:focus-visible { outline: 2px solid #fbb040; outline-offset: 3px; }
 
-/* Safari can briefly paint crossfading image layers outside an overflow-hidden
- * border radius while the page scrolls. A masked compositor layer keeps the
- * article gallery clipped for the entire transition. */
-.article-gallery-frame {
-  isolation: isolate;
-  transform: translateZ(0);
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-}
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -214,125 +205,6 @@
   }
 }
 
-@keyframes site-header-scroll-state {
-  from {
-    background-color: transparent;
-    box-shadow: none;
-    -webkit-backdrop-filter: blur(0);
-    backdrop-filter: blur(0);
-  }
-  to {
-    background-color: var(--site-ink);
-    box-shadow: 0 8px 28px rgb(0 0 0 / 20%);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-  }
-}
-
-@supports (animation-timeline: scroll()) {
-  .site-header-scroll {
-    animation: site-header-scroll-state linear both;
-    animation-timeline: scroll(root block);
-    animation-range: 0 48px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  @supports (animation-timeline: scroll()) {
-    .site-header-scroll {
-      animation-range: 24px 25px;
-    }
-  }
-}
-
-@keyframes league-row-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.league-row-enter {
-  animation: league-row-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .league-row-enter {
-    animation: none;
-  }
-}
-
-/** Fades the news carousel's title/excerpt in on slide change, synced with
- *  the photo's own crossfade (same duration/curve) so the two halves of
- *  the card change together instead of the text popping instantly. */
-@keyframes news-text-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.news-text-fade-in {
-  animation: news-text-fade-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .news-text-fade-in {
-    animation: none;
-  }
-}
-
-/** Reveals each poll result row (label + bar) once the visitor votes —
- *  staggered per row via an inline animation-delay so the list cascades in
- *  instead of popping all at once. Same curve/duration as the news
- *  carousel's text fade for a consistent feel across the site. */
-@keyframes poll-result-enter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.poll-result-enter {
-  animation: poll-result-enter 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .poll-result-enter {
-    animation: none;
-  }
-}
-
-@keyframes partners-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-8.3333333333%);
-  }
-}
-
-.partners-marquee-track {
-  animation: partners-marquee 18s linear infinite;
-}
-
-/** Fades logos out at the edges instead of hard-clipping them mid-logo
- *  as they scroll in and out of view. */
-.partners-marquee-mask {
-  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-}
-
 @keyframes sponsors-ticker-scroll {
   from {
     transform: translateX(0);
@@ -352,45 +224,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .partners-marquee-track {
-    animation: none;
-  }
-
   .sponsors-ticker-track {
     animation: none;
   }
-}
-
-/** Thin, subtle scrollbar for the league standings table's internal
- *  scroll area — the default OS scrollbar looks chunky/out of place
- *  against the rest of the site's design. */
-.league-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: var(--club-navy) transparent;
-}
-.league-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-.league-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.league-scroll::-webkit-scrollbar-thumb {
-  background-color: color-mix(in srgb, var(--club-navy) 20%, transparent);
-  border-radius: 9999px;
-}
-.league-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: color-mix(in srgb, var(--club-navy) 35%, transparent);
-}
-
-/** Fully hides the scrollbar on an overflow-scroll container while
- *  keeping it scrollable — for horizontal chip rows (e.g. the mobile
- *  team-pill nav) where any visible scrollbar looks out of place. */
-.no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 
 /* Admin screens share the public site's dark, sharp-edged visual language.
@@ -428,8 +264,7 @@
 .admin-theme .text-slate-400,
 .admin-theme .text-slate-500,
 .admin-theme .text-slate-600 { color: #a3a3a3; }
-.admin-theme .text-slate-700,
-.admin-theme .text-slate-800 { color: #dedede; }
+.admin-theme .text-slate-700 { color: #dedede; }
 .admin-theme .text-amber-700 { color: #fbb040; }
 .admin-theme .text-red-700 { color: #fda4af; }
 .admin-theme .text-emerald-700 { color: #86efac; }
