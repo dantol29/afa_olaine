@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import { isTag } from "domhandler";
+import { hasChildren, isTag, type AnyNode } from "domhandler";
 
 const ALLOWED_TAGS = new Set([
   "p", "div", "br", "strong", "b", "em", "i", "u", "h2", "h3",
@@ -10,6 +10,17 @@ const ALLOWED_TAGS = new Set([
 export function sanitizeRichText(input: string): string {
   const $ = cheerio.load(input, null, false);
   $("script, style, iframe, object, embed, form, input, button").remove();
+  // Comments are never editor output; drop them so pasted or hidden notes are not published.
+  // Walk the tree with an explicit stack: cheerio's find/contents sort nodes by document position, which is
+  // quadratic on deeply nested markup.
+  const pending: AnyNode[] = [$.root()[0]];
+  const comments: AnyNode[] = [];
+  while (pending.length > 0) {
+    const node = pending.pop()!;
+    if (node.type === "comment") comments.push(node);
+    else if (hasChildren(node)) pending.push(...node.children);
+  }
+  for (const comment of comments) $(comment).remove();
 
   $("*").each((_, element) => {
     if (!isTag(element)) return;

@@ -2,7 +2,6 @@
 
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import { TableKit } from "@tiptap/extension-table";
-import UnderlineExtension from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import {
@@ -21,8 +20,10 @@ export function RichTextEditor({ name, defaultValue, enableTables = false }: { n
       StarterKit.configure({
         heading: { levels: [2, 3] },
         link: { openOnClick: false, autolink: true, defaultProtocol: "https" },
+        // The sanitizer and public styles support none of these; disabled so the editor cannot show
+        // formatting that is silently dropped on save. Underline already comes with StarterKit.
+        code: false, codeBlock: false, strike: false, horizontalRule: false,
       }),
-      UnderlineExtension,
       Placeholder.configure({ placeholder: "Sāc rakstīt…" }),
       ...(enableTables ? [TableKit.configure({ table: { resizable: false, renderWrapper: true } })] : []),
     ],
