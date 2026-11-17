@@ -6,6 +6,8 @@ const ALLOWED_TAGS = new Set([
   "ul", "ol", "li", "blockquote", "a",
   "table", "thead", "tbody", "tfoot", "tr", "th", "td",
 ]);
+// Far deeper than anything the editor produces (lists inside tables stay under ten levels).
+const MAX_NESTING_DEPTH = 100;
 
 export function sanitizeRichText(input: string): string {
   const $ = cheerio.load(input, null, false);
@@ -13,14 +15,20 @@ export function sanitizeRichText(input: string): string {
   // Comments are never editor output; drop them so pasted or hidden notes are not published.
   // Walk the tree with an explicit stack: cheerio's find/contents sort nodes by document position, which is
   // quadratic on deeply nested markup.
-  const pending: AnyNode[] = [$.root()[0]];
+  const pending: [AnyNode, number][] = [[$.root()[0], 0]];
   const comments: AnyNode[] = [];
+  const tooDeep: AnyNode[] = [];
   while (pending.length > 0) {
-    const node = pending.pop()!;
+    const [node, depth] = pending.pop()!;
     if (node.type === "comment") comments.push(node);
-    else if (hasChildren(node)) pending.push(...node.children);
+    else if (hasChildren(node)) {
+      if (depth > MAX_NESTING_DEPTH && isTag(node)) tooDeep.push(node);
+      for (const child of node.children) pending.push([child, depth + 1]);
+    }
   }
   for (const comment of comments) $(comment).remove();
+  // The HTML serialiser recurses once per level and overflows the call stack at a few thousand levels.
+  for (const element of tooDeep) $(element).replaceWith($(element).contents());
 
   $("*").each((_, element) => {
     if (!isTag(element)) return;
