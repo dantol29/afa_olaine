@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Menu, UserRound, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { NEWS_PHOTO_POSITION_CLASS } from "@/lib/news-photo";
 import { SiteNavLink } from "./site-nav-link";
 import { SiteSearch } from "./site-search";
 import { HeaderCustomLinks } from "./header-custom-links";
@@ -159,7 +160,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
           height={1080}
           sizes="100vw"
           priority
-          className="site-hero-photo absolute inset-0 size-full object-cover"
+          className={`site-hero-photo absolute inset-0 size-full object-cover ${article ? NEWS_PHOTO_POSITION_CLASS : ""}`}
         />
         <div
           aria-hidden="true"
