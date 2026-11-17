@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight, House } from "lucide-react";
 
 import type { Article } from "@/lib/jaunumi";
+import { sanitizeRichText } from "@/lib/rich-text";
 
 import { ArticleHeroImage } from "./article-hero-image";
 import { ArticleShareButtons } from "./article-share-buttons";
@@ -35,9 +36,7 @@ export function ArticlePageContent({ article }: { article: Article }) {
 
       <div className="mx-auto max-w-[860px] px-6 pb-20 pt-10 font-sans text-[18px] leading-[1.75] text-white/85 sm:px-10 sm:pb-28 sm:pt-14 sm:text-[20px]">
         {article.excerpt && <p className="mb-9 text-[22px] font-semibold leading-[1.5] text-white sm:text-[26px]">{article.excerpt}</p>}
-        <div className="space-y-7">
-          {article.body.map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>)}
-        </div>
+        <div className="rich-page-content custom-page-body article-body" dangerouslySetInnerHTML={{ __html: sanitizeRichText(article.body) }} />
       </div>
     </article>
   );

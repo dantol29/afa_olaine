@@ -8,7 +8,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { articles } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
-import { MAX_BODY_LENGTH } from "@/lib/content-limits";
+import { MAX_BODY_LENGTH, MAX_RAW_BODY_LENGTH } from "@/lib/content-limits";
+import { richTextHasContent, sanitizeRichText } from "@/lib/rich-text";
 import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 
 const CATEGORIES = ["Klubs", "Komandas", "Spēles", "Treniņi", "Pasākumi"] as const;
@@ -39,9 +40,7 @@ function parseArticleInput(formData: FormData) {
   const category = String(formData.get("category") ?? "");
   const teamIdRaw = String(formData.get("teamId") ?? "");
   const authorCoachIdRaw = String(formData.get("authorCoachId") ?? "");
-  // Browsers submit textarea line breaks as CRLF but count them as one character in maxLength, so normalise
-  // before checking the length.
-  const body = String(formData.get("body") ?? "").replace(/\r\n?/g, "\n").trim();
+  const rawBody = String(formData.get("body") ?? "");
   const baseSlug = slugify(title);
 
   if (!title) return { error: "Virsraksts ir obligāts." } as const;
@@ -50,14 +49,11 @@ function parseArticleInput(formData: FormData) {
   if (!(CATEGORIES as readonly string[]).includes(category)) {
     return { error: "Jāizvēlas kategorija." } as const;
   }
-  if (!body) return { error: "Raksta teksts ir obligāts." } as const;
+  if (rawBody.length > MAX_RAW_BODY_LENGTH) return { error: "Raksta teksts ir pārāk garš." } as const;
+  const body = sanitizeRichText(rawBody);
+  if (!richTextHasContent(body)) return { error: "Raksta teksts ir obligāts." } as const;
   if (body.length > MAX_BODY_LENGTH) return { error: "Raksta teksts ir pārāk garš." } as const;
   if (!baseSlug) return { error: "Nederīgs virsraksts saites veidošanai." } as const;
-
-  const bodyLines = body
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
 
   return {
     baseSlug,
@@ -67,7 +63,7 @@ function parseArticleInput(formData: FormData) {
     category: category as (typeof CATEGORIES)[number],
     teamId: teamIdRaw ? Number(teamIdRaw) : null,
     authorCoachId: authorCoachIdRaw ? Number(authorCoachIdRaw) : null,
-    body: bodyLines.join("\n"),
+    body,
   } as const;
 }
 

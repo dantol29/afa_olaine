@@ -14,7 +14,7 @@ export function cachePublicData<Args extends unknown[], Result>(
   key: string,
   load: (...args: Args) => Promise<Result>,
 ) {
-  return cache(unstable_cache(load, ["afa-public-v1", scope, key], {
+  return cache(unstable_cache(load, ["afa-public-v2", scope, key], {
     revalidate: 60,
     tags: [PUBLIC_CONTENT_CACHE_TAG],
   }));
