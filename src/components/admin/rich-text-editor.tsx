@@ -38,7 +38,7 @@ export function RichTextEditor({ name, defaultValue, label, placeholder = "Sāc 
         // formatting that is silently dropped on save. Underline already comes with StarterKit.
         code: false, codeBlock: false, strike: false, horizontalRule: false,
       }),
-      Placeholder.configure({ placeholder: "Sāc rakstīt…" }),
+      Placeholder.configure({ placeholder }),
       ...(enableTables ? [TableKit.configure({ table: { resizable: false, renderWrapper: true } })] : []),
     ],
     content: defaultValue || "<p></p>",
