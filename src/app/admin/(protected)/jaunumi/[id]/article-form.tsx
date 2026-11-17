@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useActionState } from "react";
 
+import { MAX_BODY_LENGTH } from "@/lib/content-limits";
 import { createArticle, updateArticle } from "../actions";
 
 const CATEGORIES = ["Klubs", "Komandas", "Spēles", "Treniņi", "Pasākumi"] as const;
@@ -154,6 +155,7 @@ export function ArticleForm(
         <textarea
           name="body"
           required
+          maxLength={MAX_BODY_LENGTH}
           rows={8}
           defaultValue={article?.body ?? ""}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"

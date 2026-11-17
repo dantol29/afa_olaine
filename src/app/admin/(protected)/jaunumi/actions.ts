@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { articles } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { MAX_BODY_LENGTH } from "@/lib/content-limits";
 import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 
 const CATEGORIES = ["Klubs", "Komandas", "Spēles", "Treniņi", "Pasākumi"] as const;
@@ -38,7 +39,9 @@ function parseArticleInput(formData: FormData) {
   const category = String(formData.get("category") ?? "");
   const teamIdRaw = String(formData.get("teamId") ?? "");
   const authorCoachIdRaw = String(formData.get("authorCoachId") ?? "");
-  const body = String(formData.get("body") ?? "").trim();
+  // Browsers submit textarea line breaks as CRLF but count them as one character in maxLength, so normalise
+  // before checking the length.
+  const body = String(formData.get("body") ?? "").replace(/\r\n?/g, "\n").trim();
   const baseSlug = slugify(title);
 
   if (!title) return { error: "Virsraksts ir obligāts." } as const;
@@ -48,6 +51,7 @@ function parseArticleInput(formData: FormData) {
     return { error: "Jāizvēlas kategorija." } as const;
   }
   if (!body) return { error: "Raksta teksts ir obligāts." } as const;
+  if (body.length > MAX_BODY_LENGTH) return { error: "Raksta teksts ir pārāk garš." } as const;
   if (!baseSlug) return { error: "Nederīgs virsraksts saites veidošanai." } as const;
 
   const bodyLines = body

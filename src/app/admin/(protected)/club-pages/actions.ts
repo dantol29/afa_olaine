@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { clubPages } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { MAX_BODY_LENGTH, MAX_RAW_BODY_LENGTH } from "@/lib/content-limits";
 import { richTextHasContent, sanitizeRichText } from "@/lib/rich-text";
 import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 import { parseClubPageMedia, parsePageAction, serializeClubPageMedia, type ClubPageMedia } from "@/lib/club-page-media";
@@ -27,7 +28,9 @@ function parsePageInput(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const slug = slugify(String(formData.get("slug") ?? "") || title);
   const description = String(formData.get("description") ?? "").trim();
-  const body = sanitizeRichText(String(formData.get("body") ?? ""));
+  const rawBody = String(formData.get("body") ?? "");
+  if (rawBody.length > MAX_RAW_BODY_LENGTH) return { error: "Lapas teksts ir pārāk garš." } as const;
+  const body = sanitizeRichText(rawBody);
   const displayOrder = Number.parseInt(String(formData.get("displayOrder") ?? "0"), 10);
   const isPublished = formData.get("isPublished") === "on";
 
@@ -38,7 +41,7 @@ function parsePageInput(formData: FormData) {
   if (!description) return { error: "Īsais apraksts ir obligāts." } as const;
   if (description.length > 240) return { error: "Īsais apraksts nedrīkst pārsniegt 240 rakstzīmes." } as const;
   if (!richTextHasContent(body)) return { error: "Lapas teksts ir obligāts." } as const;
-  if (body.length > 100_000) return { error: "Lapas teksts ir pārāk garš." } as const;
+  if (body.length > MAX_BODY_LENGTH) return { error: "Lapas teksts ir pārāk garš." } as const;
   if (!Number.isSafeInteger(displayOrder)) return { error: "Secībai jābūt veselam skaitlim." } as const;
 
   return { title, slug, description, body, displayOrder, isPublished } as const;
