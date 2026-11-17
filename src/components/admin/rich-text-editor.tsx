@@ -8,12 +8,26 @@ import {
   Bold, Heading2, Heading3, Italic, Link2, List, ListOrdered,
   Pilcrow, Quote, Redo2, RemoveFormatting, Table2, Underline, Undo2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const BUTTON = "flex h-9 w-9 items-center justify-center rounded-md text-club-navy transition hover:bg-white hover:text-club-red disabled:pointer-events-none disabled:opacity-35";
 
-export function RichTextEditor({ name, defaultValue, enableTables = false }: { name: string; defaultValue: string; enableTables?: boolean }) {
+type RichTextEditorProps = {
+  name: string;
+  defaultValue: string;
+  label: string;
+  placeholder?: string;
+  enableTables?: boolean;
+  /** Shows a character counter; the server enforces the limit on the sanitised HTML. */
+  maxLength?: number;
+  /** Blocks form submission while the editor is empty (a hidden input cannot use the `required` attribute). */
+  requiredMessage?: string;
+};
+
+export function RichTextEditor({ name, defaultValue, label, placeholder = "Sāc rakstīt…", enableTables = false, maxLength, requiredMessage }: RichTextEditorProps) {
   const [value, setValue] = useState(defaultValue);
+  const [showRequired, setShowRequired] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -24,19 +38,37 @@ export function RichTextEditor({ name, defaultValue, enableTables = false }: { n
         // formatting that is silently dropped on save. Underline already comes with StarterKit.
         code: false, codeBlock: false, strike: false, horizontalRule: false,
       }),
-      Placeholder.configure({ placeholder: "Sāc rakstīt…" }),
+      Placeholder.configure({ placeholder }),
       ...(enableTables ? [TableKit.configure({ table: { resizable: false, renderWrapper: true } })] : []),
     ],
     content: defaultValue || "<p></p>",
     editorProps: {
       attributes: {
-        class: "rich-text-editor min-h-72 px-4 py-3 text-base leading-7 text-slate-700 outline-none",
-        "aria-label": "Lapas teksts",
+        class: "rich-text-editor min-h-72 px-4 py-3 text-base font-normal leading-7 text-slate-700 outline-none",
+        "aria-label": label,
       },
     },
-    onUpdate: ({ editor: currentEditor }) => setValue(currentEditor.getHTML()),
+    onUpdate: ({ editor: currentEditor }) => {
+      setValue(currentEditor.getHTML());
+      setShowRequired(false);
+    },
   });
   const tableState = useEditorState({ editor, selector: ({ editor: current }) => ({ inTable: current?.isActive("table") ?? false }) });
+
+  // Runs before React's own submit handling, so preventDefault keeps the form action (and the user's other
+  // fields and chosen files) untouched when the text is empty.
+  useEffect(() => {
+    const form = inputRef.current?.form;
+    if (!form || !editor || !requiredMessage) return;
+    const blockEmptySubmit = (event: SubmitEvent) => {
+      if (!editor.isEmpty) return;
+      event.preventDefault();
+      setShowRequired(true);
+      editor.commands.focus();
+    };
+    form.addEventListener("submit", blockEmptySubmit);
+    return () => form.removeEventListener("submit", blockEmptySubmit);
+  }, [editor, requiredMessage]);
 
   function insertLeagueTable() {
     if (!editor) return;
@@ -111,7 +143,13 @@ export function RichTextEditor({ name, defaultValue, enableTables = false }: { n
       </div>}
       <EditorContent editor={editor} />
       {enableTables && <p className="border-t border-slate-200 px-4 py-2 text-xs font-normal text-slate-500">“Līgas tabula” ievieto gatavas kolonnas. Visas vērtības ievadi manuāli. Ieklikšķini šūnā, lai pievienotu vai dzēstu rindas un kolonnas.</p>}
-      <input type="hidden" name={name} value={value} />
+      {maxLength !== undefined && (
+        <p className={`border-t border-slate-200 px-4 py-2 text-xs font-normal ${value.length > maxLength ? "text-red-600" : "text-slate-500"}`}>
+          {value.length.toLocaleString("lv-LV")} / {maxLength.toLocaleString("lv-LV")} rakstzīmes (ar formatējumu){value.length > maxLength ? ". Teksts ir pārāk garš." : ""}
+        </p>
+      )}
+      {showRequired && requiredMessage && <p role="alert" className="border-t border-slate-200 px-4 py-2 text-sm font-medium text-red-600">{requiredMessage}</p>}
+      <input ref={inputRef} type="hidden" name={name} value={value} />
     </div>
   );
 }

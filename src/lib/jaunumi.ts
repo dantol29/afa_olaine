@@ -17,7 +17,8 @@ export type Article = {
   authorName?: string;
   authorPosition?: string;
   authorAvatar?: string;
-  body: string[];
+  /** Rich text HTML; sanitised again when rendered. */
+  body: string;
   highlights?: string[];
 };
 

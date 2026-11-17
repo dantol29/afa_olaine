@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useActionState } from "react";
 
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { articleBodyToEditorHtml } from "@/lib/article-body";
 import { MAX_BODY_LENGTH } from "@/lib/content-limits";
 import { createArticle, updateArticle } from "../actions";
 
@@ -36,7 +38,7 @@ export function ArticleForm(
   const highlightUrls = article?.highlights?.split("\n").filter(Boolean) ?? [];
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form action={formAction} className="max-w-2xl">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauns raksts" : "Rediģēt rakstu"}
       </h1>
@@ -150,17 +152,18 @@ export function ArticleForm(
         />
       </div>
 
-      <label className="mt-4 block text-sm font-semibold text-club-navy">
-        Teksts (katra rindkopa jaunā rindā)
-        <textarea
+      <div className="mt-4 text-sm font-semibold text-club-navy">
+        Raksta teksts
+        <RichTextEditor
           name="body"
-          required
+          label="Raksta teksts"
+          placeholder="Raksti ziņas tekstu…"
+          defaultValue={articleBodyToEditorHtml(article?.body ?? "")}
           maxLength={MAX_BODY_LENGTH}
-          rows={8}
-          defaultValue={article?.body ?? ""}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
+          requiredMessage="Raksta teksts ir obligāts."
         />
-      </label>
+        <span className="mt-1 block text-xs font-normal text-slate-400">Jauna rindkopa: Enter. Jauna rinda tajā pašā rindkopā: Shift + Enter.</span>
+      </div>
 
       <div className="mt-4">
         <span className="block text-sm font-semibold text-club-navy">

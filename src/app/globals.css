@@ -311,6 +311,20 @@
 .rich-page-content.custom-page-body :is(h2, h3) { color: white; }
 .rich-page-content.custom-page-body a { color: #fbb040; }
 .rich-page-content.custom-page-body blockquote { border-color: #fbb040; color: rgb(255 255 255 / 75%); }
+/* Shared by the editor, club pages and news: Tiptap wraps list items in <p>, and preflight resets heading weight. */
+:is(.rich-text-editor, .rich-page-content) :is(h2, h3) { font-weight: 600; }
+:is(.rich-text-editor, .rich-page-content) li > p { margin: 0; }
+:is(.rich-text-editor, .rich-page-content) li + li { margin-top: 0.4em; }
+:is(.rich-text-editor, .rich-page-content) blockquote > :last-child { margin-bottom: 0; }
+/* The admin is dark, like the public pages: the editor uses the same colours as .custom-page-body above. */
+.rich-text-editor :is(h2, h3) { color: white; }
+.rich-text-editor a { color: #fbb040; }
+.rich-text-editor blockquote { border-color: #fbb040; color: rgb(255 255 255 / 75%); }
+/* News article body: same paragraph rhythm as before (28px at 20px text), no stray margins at the ends. */
+.rich-page-content.article-body { overflow-wrap: break-word; }
+.rich-page-content.article-body > :first-child { margin-top: 0; }
+.rich-page-content.article-body > :last-child { margin-bottom: 0; }
+.rich-page-content.article-body > p { margin-bottom: 1.4em; }
 
 /* The hero carries the focal sequence; controls and panels use shorter feedback. */
 :root {

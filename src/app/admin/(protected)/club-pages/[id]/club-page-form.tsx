@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { MAX_BODY_LENGTH } from "@/lib/content-limits";
 import { createClubPage, updateClubPage } from "../actions";
 import { parseClubPageMedia } from "@/lib/club-page-media";
 import { PageActionsEditor } from "@/components/admin/page-actions-editor";
@@ -62,7 +63,7 @@ export function ClubPageForm(props: { mode: "create" } | { mode: "edit"; page: C
       </label>
       <div className="mt-4 text-sm font-semibold text-club-navy">
         Lapas teksts
-        <RichTextEditor name="body" defaultValue={page?.body ?? ""} enableTables />
+        <RichTextEditor name="body" label="Lapas teksts" defaultValue={page?.body ?? ""} enableTables maxLength={MAX_BODY_LENGTH} requiredMessage="Lapas teksts ir obligāts." />
       </div>
       <PageActionsEditor initialActions={media.actions} />
       <PagePhotosEditor media={media} />
