@@ -60,8 +60,10 @@ async function notifyReviewNeeded(
 
 /** Hit on a schedule (e.g. a daily cPanel Cron Job) to pull in any new
  *  fixtures for every league source, with no admin review step — see
- *  syncLeagueSource. Requires `?secret=` matching CRON_SECRET so this
- *  isn't a public, unauthenticated way to write to the database. */
+ *  syncLeagueSource. Requires `Authorization: Bearer <CRON_SECRET>` (or,
+ *  only when no Bearer header is sent, the legacy `?secret=` query
+ *  parameter) so this isn't a public, unauthenticated way to write to the
+ *  database. Without CRON_SECRET every request is rejected. */
 async function runSync(request: NextRequest) {
   const authorization = request.headers.get("authorization");
   const secret = authorization?.startsWith("Bearer ")

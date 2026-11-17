@@ -8,19 +8,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { clubLogoNames, clubLogos } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { parseNames } from "@/lib/admin-input/club-logos";
 import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
-
-function parseNames(formData: FormData): string[] {
-  const raw = String(formData.get("names") ?? "");
-  return [
-    ...new Set(
-      raw
-        .split("\n")
-        .map((name) => name.trim())
-        .filter(Boolean),
-    ),
-  ];
-}
 
 async function syncClubLogoNames(clubLogoId: number, names: string[]) {
   await db.delete(clubLogoNames).where(eq(clubLogoNames.clubLogoId, clubLogoId));

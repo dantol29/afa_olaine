@@ -16,7 +16,7 @@ const NO_STORE_HEADERS = {
 
 /** Hit on a schedule to refresh every league source's AFA Olaine players'
  *  `goals` count from LFF's goal-scorers page — see syncTopScorersForSource.
- *  Requires `?secret=` matching CRON_SECRET, same as sync-fixtures. Reuses
+ *  Authenticated with CRON_SECRET the same way as sync-fixtures. Reuses
  *  the `importedCount` cronJobStatuses column to mean "players updated"
  *  for this job. */
 async function runSync(request: NextRequest) {

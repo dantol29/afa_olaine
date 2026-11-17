@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { partners } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { parsePartnerInput } from "@/lib/admin-input/partners";
 import { EXTENSION_BY_MIME_TYPE, deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 
 // Only jpg/png/webp uploads are ever accepted (see EXTENSION_BY_MIME_TYPE
@@ -46,27 +47,6 @@ function revalidatePartnerPaths() {
   updateTag(PUBLIC_CONTENT_CACHE_TAG);
   revalidatePath("/admin/partners");
   for (const path of PARTNER_VISIBLE_PATHS) revalidatePath(path);
-}
-
-function parsePartnerInput(formData: FormData) {
-  const name = String(formData.get("name") ?? "").trim();
-  const size = String(formData.get("size") ?? "lg");
-  const needsWhite = formData.get("needsWhite") === "on";
-  const websiteUrlInput = String(formData.get("websiteUrl") ?? "").trim();
-
-  if (!name) return { error: "Nosaukums ir obligāts." } as const;
-  if (size !== "lg" && size !== "sm") return { error: "Nederīgs izmērs." } as const;
-
-  let websiteUrl: string | null = null;
-  if (websiteUrlInput) {
-    try {
-      websiteUrl = new URL(websiteUrlInput).toString();
-    } catch {
-      return { error: "Saitei jābūt derīgam URL (piem., https://example.com)." } as const;
-    }
-  }
-
-  return { name, size, needsWhite, websiteUrl } as const;
 }
 
 async function probeImageDimensions(file: File): Promise<{ width: number; height: number }> {
