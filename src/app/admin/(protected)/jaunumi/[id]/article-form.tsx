@@ -3,8 +3,6 @@
 import Image from "next/image";
 import { useActionState } from "react";
 
-import { RichTextEditor } from "@/components/admin/rich-text-editor";
-import { articleBodyToEditorHtml } from "@/lib/article-body";
 import { MAX_BODY_LENGTH } from "@/lib/content-limits";
 import { createArticle, updateArticle } from "../actions";
 
@@ -156,11 +154,11 @@ export function ArticleForm(
         Raksta teksts
         <RichTextEditor
           name="body"
-          label="Raksta teksts"
-          placeholder="Raksti ziņas tekstu…"
-          defaultValue={articleBodyToEditorHtml(article?.body ?? "")}
+          required
           maxLength={MAX_BODY_LENGTH}
-          requiredMessage="Raksta teksts ir obligāts."
+          rows={8}
+          defaultValue={article?.body ?? ""}
+          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
         />
         <span className="mt-1 block text-xs font-normal text-slate-400">Jauna rindkopa: Enter. Jauna rinda tajā pašā rindkopā: Shift + Enter.</span>
       </div>
