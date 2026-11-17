@@ -7,7 +7,9 @@ import path from "node:path";
 // serving and falls through to a (cached!) 404 page. Serving instead goes
 // through the route handler at src/app/uploads/[...path]/route.ts, which
 // reads this directory fresh on every request.
-export const UPLOADS_ROOT = path.join(process.cwd(), process.env.UPLOADS_DIR || "uploads");
+// path.resolve keeps an absolute UPLOADS_DIR as is (path.join would glue it under the app folder) and resolves a
+// relative one, such as "public/uploads", against the app folder.
+export const UPLOADS_ROOT = path.resolve(process.cwd(), process.env.UPLOADS_DIR || "uploads");
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
