@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import type { Article, ArticleCategory } from "@/lib/jaunumi";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NEWS_PHOTO_POSITION_CLASS } from "@/lib/news-photo";
 import { uniqueSortedLabels } from "@/lib/ordering";
 
 const fallbackImages: Record<ArticleCategory, string> = {
@@ -25,7 +26,7 @@ function NewsImage({ article }: { article: Article }) {
       alt={article.title}
       fill
       sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-      className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-[1.03] motion-reduce:group-hover:scale-100"
+      className={`object-cover ${NEWS_PHOTO_POSITION_CLASS} transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-[1.03] motion-reduce:group-hover:scale-100`}
       onError={() => setSrc(fallbackImages[article.category])}
     />
   );
