@@ -4,8 +4,9 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { games } from "@/db/schema";
 import { backfillClubLogos } from "@/lib/club-logos";
-import { scrapeFixtures } from "@/lib/fixtures";
+import { scrapeFixtures, type UnrecognizedRows } from "@/lib/fixtures";
 import { isOlaine } from "@/lib/games";
+import { findPossibleDuplicate } from "@/lib/lff-duplicates";
 import { addMinutesWithinDay } from "@/lib/time-range";
 
 export type ReviewNeededGame = {
@@ -27,15 +28,22 @@ export type ReviewNeededGame = {
  *  Also *detects* (never applies) drift on games that already exist: if
  *  LFF now shows a different time/venue for one than what's saved locally,
  *  it's reported back in `reviewNeeded` — same diff the "Ielādēt spēles"
- *  screen already surfaces, applied there via its own explicit button. */
+ *  screen already surfaces, applied there via its own explicit button.
+ *
+ *  A fixture that matches a game the admin entered by hand (same teams, same
+ *  date) is not inserted again. A match LFF moved to another date is still
+ *  inserted: skipping it would hide the new date, so only the manual review
+ *  screen warns about it. Match rows the parser could not read come back in
+ *  `unrecognized`, so the cron job can flag them instead of reporting success. */
 export async function syncLeagueSource(source: {
   teamId: number;
   label: string;
   url: string;
-}): Promise<{ imported: number; reviewNeeded: ReviewNeededGame[]; error?: string }> {
+}): Promise<{ imported: number; reviewNeeded: ReviewNeededGame[]; unrecognized?: UnrecognizedRows; error?: string }> {
   let fixtures;
+  let unrecognized: UnrecognizedRows;
   try {
-    fixtures = await scrapeFixtures(source.url);
+    ({ fixtures, unrecognized } = await scrapeFixtures(source.url));
   } catch (error) {
     return { imported: 0, reviewNeeded: [], error: (error as Error).message };
   }
@@ -43,10 +51,13 @@ export async function syncLeagueSource(source: {
   const candidates = fixtures.filter(
     (fixture) => fixture.time !== null && (isOlaine(fixture.home) || isOlaine(fixture.away)),
   );
+  // Only present when something was skipped, so a clean run's result stays as before.
+  const unrecognizedField = unrecognized.count > 0 ? { unrecognized } : {};
   if (candidates.length === 0) {
     return {
       imported: 0,
       reviewNeeded: [],
+      ...unrecognizedField,
       error: `LFF returned ${fixtures.length} fixtures, but none with a valid time matched AFA Olaine`,
     };
   }
@@ -67,15 +78,21 @@ export async function syncLeagueSource(source: {
       location: games.location,
       homeScore: games.homeScore,
       awayScore: games.awayScore,
+      source: games.source,
     })
     .from(games)
-    .where(and(eq(games.teamId, source.teamId), eq(games.source, "lff")));
+    .where(eq(games.teamId, source.teamId));
   const existingByKey = new Map(
-    existingGames.map((g) => [`${g.date}|${g.homeTeam}|${g.awayTeam}`, g]),
+    existingGames
+      .filter((g) => g.source === "lff")
+      .map((g) => [`${g.date}|${g.homeTeam}|${g.awayTeam}`, g]),
   );
 
+  const manualGames = existingGames.filter((g) => g.source === "manual");
   const newFixtures = candidates.filter(
-    (fixture) => !existingByKey.has(`${fixture.date}|${fixture.home}|${fixture.away}`),
+    (fixture) =>
+      !existingByKey.has(`${fixture.date}|${fixture.home}|${fixture.away}`) &&
+      findPossibleDuplicate(fixture, manualGames) === undefined,
   );
 
   if (newFixtures.length > 0) {
@@ -134,5 +151,5 @@ export async function syncLeagueSource(source: {
     });
   }
 
-  return { imported: newFixtures.length, reviewNeeded };
+  return { imported: newFixtures.length, reviewNeeded, ...unrecognizedField };
 }

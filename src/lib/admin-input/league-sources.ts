@@ -1,3 +1,18 @@
+/** LFF pages are only fetched over https (see fetchLffHtml), so any other scheme is refused when it is saved. */
+function checkHttpsUrl(value: string, name: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return `Nederīgs ${name} URL.`;
+  }
+  return parsed.protocol === "https:" ? null : `${capitalize(name)} URL jāsākas ar https://.`;
+}
+
+function capitalize(value: string) {
+  return value.charAt(0).toLocaleUpperCase("lv") + value.slice(1);
+}
+
 export function parseLeagueSourceInput(formData: FormData) {
   const teamId = Number(formData.get("teamId"));
   const label = String(formData.get("label") ?? "").trim();
@@ -13,27 +28,12 @@ export function parseLeagueSourceInput(formData: FormData) {
   if (!url) return { error: "URL ir obligāts." } as const;
   if (!Number.isInteger(displayOrder)) return { error: "Secībai jābūt veselam skaitlim." } as const;
 
-  try {
-    new URL(url);
-  } catch {
-    return { error: "Nederīgs spēļu saraksta URL." } as const;
-  }
-
-  if (standingsUrl) {
-    try {
-      new URL(standingsUrl);
-    } catch {
-      return { error: "Nederīgs tabulas URL." } as const;
-    }
-  }
-
-  if (topScorersUrl) {
-    try {
-      new URL(topScorersUrl);
-    } catch {
-      return { error: "Nederīgs vārtu guvēju URL." } as const;
-    }
-  }
+  const urlError = checkHttpsUrl(url, "spēļu saraksta");
+  if (urlError) return { error: urlError } as const;
+  const standingsUrlError = standingsUrl ? checkHttpsUrl(standingsUrl, "tabulas") : null;
+  if (standingsUrlError) return { error: standingsUrlError } as const;
+  const topScorersUrlError = topScorersUrl ? checkHttpsUrl(topScorersUrl, "vārtu guvēju") : null;
+  if (topScorersUrlError) return { error: topScorersUrlError } as const;
 
   return {
     teamId,

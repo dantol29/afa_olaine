@@ -27,9 +27,12 @@ export function parseTopScorersHtml(html: string, pageUrl: string): ScrapedScore
     const photoUrl = absoluteLffUrl($(cells[1]).find("img").attr("src"), pageUrl);
     const club = normalizeLffText($(cells[2]).find("span").first().text());
     const clubLogo = absoluteLffUrl($(cells[2]).find("img").attr("src"), pageUrl);
-    const goals = Number(normalizeLffText($(cells[3]).text()));
+    const goalsText = normalizeLffText($(cells[3]).text());
+    // Number("") is 0, so an empty cell would reset the player's goals; only a written count is used.
+    if (!/^\d+$/.test(goalsText)) continue;
+    const goals = Number(goalsText);
 
-    if (!Number.isFinite(rank) || !name || !club || !Number.isFinite(goals)) continue;
+    if (!Number.isFinite(rank) || !name || !club) continue;
 
     result.push({ rank, name, photoUrl, club, clubLogo, goals, isOlaine: /olaine/i.test(club) });
   }

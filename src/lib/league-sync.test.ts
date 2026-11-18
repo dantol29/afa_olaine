@@ -151,12 +151,26 @@ describe("syncLeagueSource", () => {
     assert.ok((await teamGames(source.teamId)).every((row) => row.date !== "2026-05-23"));
   });
 
-  // Current behaviour, flagged: duplicates are only checked against games with source "lff" of the same team,
-  // so a game the admin entered by hand is imported a second time, and a match LFF moves to another date is
-  // imported again while the old date stays.
-  test("a manually entered game and a moved match are imported again next to the existing game", async (t) => {
+  test("a game entered by hand with the same teams on the same date is not imported again", async (t) => {
     const source = await newSource();
     await insertGame(source.teamId, { homeTeam: "AFA Olaine", awayTeam: "FK Iecava", date: "2026-04-11", startTime: "14:00", endTime: "15:30" });
+    // Same pairing on another date, entered by hand: a different match, so the LFF one is still imported.
+    await insertGame(source.teamId, { homeTeam: "FS Jelgava-2", awayTeam: "AFA Olaine", date: "2026-04-17" });
+    mockFetch(t, page);
+
+    assert.deepEqual(await syncLeagueSource(source), { imported: 3, reviewNeeded: [] });
+    const rows = await teamGames(source.teamId);
+    assert.deepEqual(rows.filter((row) => row.date === "2026-04-11").map((row) => row.source), ["manual"]);
+    assert.deepEqual(rows.filter((row) => row.homeTeam === "FS Jelgava-2").map((row) => [row.date, row.source]), [
+      ["2026-04-17", "manual"],
+      ["2026-04-18", "lff"],
+    ]);
+    assert.deepEqual(await syncLeagueSource(source), { imported: 0, reviewNeeded: [] }, "and not on a later run either");
+  });
+
+  // Kept on purpose: skipping the moved match would hide its new date. The manual import screen warns about it.
+  test("a match LFF moves to another date is imported again next to the old date", async (t) => {
+    const source = await newSource();
     mockFetch(t, page);
     await syncLeagueSource(source);
     t.mock.restoreAll();
@@ -164,8 +178,27 @@ describe("syncLeagueSource", () => {
 
     assert.deepEqual(await syncLeagueSource(source), { imported: 1, reviewNeeded: [] });
     const rows = await teamGames(source.teamId);
-    assert.deepEqual(rows.filter((row) => row.date === "2026-04-11").map((row) => row.source), ["manual", "lff"]);
     assert.deepEqual(rows.filter((row) => row.awayTeam === "FK Ķekava / Auda").map((row) => row.date), ["2026-05-23", "2026-05-24"]);
+  });
+
+  test("match rows the parser cannot read are returned with the result", async (t) => {
+    mockFetch(t, editMatch(page, OLAINE_KEKAVA_MATCH, (row) => row.replace("<h6>mai</h6>", "<h6>maijā?</h6>")));
+    const source = await newSource();
+    const result = await syncLeagueSource(source);
+
+    assert.equal(result.imported, 3);
+    assert.equal(result.unrecognized?.count, 1);
+    assert.match(result.unrecognized?.samples[0] ?? "", /AFA Olaine.*FK Ķekava \/ Auda/);
+    assert.ok((await teamGames(source.teamId)).every((row) => row.date !== "2026-05-23"));
+  });
+
+  test("a league source URL whose tab is gone is an error and imports nothing", async (t) => {
+    mockFetch(t, page.replace('id="tabContent_1_2"', 'id="tabContent_1_7"'));
+    const source = await newSource();
+    const result = await syncLeagueSource(source);
+    assert.equal(result.imported, 0);
+    assert.match(result.error ?? "", /LFF page has no tab #tabContent_1_2/);
+    assert.equal((await teamGames(source.teamId)).length, 0);
   });
 
   test("records LFF logos for clubs that have none, and keeps a logo the admin already set", async (t) => {

@@ -167,6 +167,36 @@ describe("shared calendar response", () => {
   });
 });
 
+describe("shared calendar items with impossible times", () => {
+  // December, away from the October range of the example file, so the file stays unchanged.
+  const RANGE = ["2026-12-01", "2026-12-31"] as const;
+  let ids: { goodGame: number; reversedGame: number; zeroLengthEvent: number; reversedTraining: number };
+
+  before(async () => {
+    const team = await insertTeam({ name: "U13" });
+    // Saved before end-after-start validation existed, or written straight to the database.
+    ids = {
+      goodGame: (await insertGame(team.id, { date: "2026-12-05", startTime: "12:00", endTime: "13:30" })).id,
+      reversedGame: (await insertGame(team.id, { date: "2026-12-06", startTime: "14:00", endTime: "13:00" })).id,
+      zeroLengthEvent: (await insertEvent({ date: "2026-12-07", startTime: "18:00", endTime: "18:00" })).id,
+      reversedTraining: (await insertTraining([team.id], { date: "2026-12-08", startTime: "19:00", endTime: "17:00" })).id,
+    };
+  });
+
+  test("are left out and logged once each, while the rest of the feed is served", async (t) => {
+    const warn = t.mock.method(console, "warn", () => undefined);
+    const payload = await feed(...RANGE);
+
+    assert.deepEqual(payload.events.map((event) => event.uid), [`afa-olaine:game-${ids.goodGame}`]);
+    assertPassesFkRules(payload, ...RANGE);
+    assert.deepEqual(warn.mock.calls.map((call) => call.arguments[0]).sort(), [
+      `Shared calendar: skipped afa-olaine:event-${ids.zeroLengthEvent}: end is not after start`,
+      `Shared calendar: skipped afa-olaine:game-${ids.reversedGame}: end is not after start`,
+      `Shared calendar: skipped afa-olaine:training-${ids.reversedTraining}: end is not after start`,
+    ]);
+  });
+});
+
 describe("shared calendar example file", () => {
   // Set UPDATE_GOLDEN=1 to rewrite the file after an intended contract change; then update FK's copy too.
   test("matches docs/shared-calendar.v1.example.json", async () => {

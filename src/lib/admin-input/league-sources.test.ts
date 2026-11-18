@@ -49,4 +49,11 @@ describe("parseLeagueSourceInput", () => {
     assert.deepEqual(parse({ topScorersUrl: "vārti" }), { error: "Nederīgs vārtu guvēju URL." });
     assert.equal(parse({ standingsUrl: " https://lff.lv/t " }).standingsUrl, "https://lff.lv/t");
   });
+
+  test("accepts only https URLs, since LFF pages are only fetched over https", () => {
+    assert.deepEqual(parse({ url: "http://lff.lv/sacensibas/" }), { error: "Spēļu saraksta URL jāsākas ar https://." });
+    assert.deepEqual(parse({ url: "javascript:alert(1)" }), { error: "Spēļu saraksta URL jāsākas ar https://." });
+    assert.deepEqual(parse({ standingsUrl: "ftp://lff.lv/t" }), { error: "Tabulas URL jāsākas ar https://." });
+    assert.deepEqual(parse({ topScorersUrl: "file:///etc/passwd" }), { error: "Vārtu guvēju URL jāsākas ar https://." });
+  });
 });

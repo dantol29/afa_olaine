@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-import { getScheduleForRange } from "@/lib/calendar";
+import { getScheduleForRange, type CalendarEvent } from "@/lib/calendar";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const runtime = "nodejs";
@@ -30,6 +30,16 @@ function absoluteLogo(value: string | null | undefined) {
   }
 }
 
+/** FK Olaine rejects the whole feed when one item has an invalid time or ends before it starts, so such an item is
+ *  left out (and logged) instead of taking the rest of the schedule down with it. */
+function hasValidTimes(event: CalendarEvent): boolean {
+  const start = event.start.getTime();
+  const end = event.end.getTime();
+  const reason = !Number.isFinite(start) || !Number.isFinite(end) ? "invalid start or end" : end <= start ? "end is not after start" : null;
+  if (reason) console.warn(`Shared calendar: skipped afa-olaine:${event.uid}: ${reason}`);
+  return reason === null;
+}
+
 export async function GET(request: NextRequest) {
   const secret = process.env.SHARED_CALENDAR_SECRET;
   if (!secret) return NextResponse.json({ error: "Shared calendar is not configured" }, { status: 503, headers });
@@ -47,7 +57,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const schedule = await getScheduleForRange(from, to);
+    const schedule = (await getScheduleForRange(from, to)).filter(hasValidTimes);
     return NextResponse.json({
       version: 1,
       club: "AFA Olaine",

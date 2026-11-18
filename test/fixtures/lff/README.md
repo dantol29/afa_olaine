@@ -32,3 +32,14 @@ markup, and each such test says so.
 2. Keep the same tab containers and a few rows of each kind listed above; delete everything else as whole elements.
 3. Update the capture date here and in the comment at the top of the file, run `npm test`, and adjust the expected
    values in the tests to the new rows.
+
+## When the sync reports unrecognised rows
+
+The daily sync marks the job "Daļēji veiksmīgi" and e-mails the admin when LFF match rows could not be read
+("N rindas netika atpazītas") or a standings table has no AFA Olaine; the import screen shows the same warning.
+
+1. Open the league source URL on lff.lv and compare it with the sample rows quoted in the e-mail or status message.
+2. Save that page as a new fixture as described in "Refreshing" above, keeping a row that failed to parse.
+3. Add a test that parses the new fixture and fails on that row, then fix the parser in `src/lib/fixtures.ts` (or
+   `standings.ts`) until `npm test` passes, including the existing fixtures.
+4. Until the fix is deployed, enter the missing games by hand under "Spēles".

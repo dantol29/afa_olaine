@@ -41,6 +41,12 @@ describe("parseTopScorersHtml", () => {
     assert.equal(rows[0].name, "Kārlis Pūriņš");
   });
 
+  test("skips a row whose goals cell is empty instead of reading it as 0", () => {
+    const html = page.replace("<span>AFA Olaine</span></div><div><span>6</span></div>", "<span>AFA Olaine</span></div><div><span> </span></div>");
+    const rows = parseTopScorersHtml(html, OTRA_LIGA_SCORERS_URL);
+    assert.deepEqual(rows.map((row) => row.name), ["Roberts Untulis", "Kārlis Pūriņš", "Elmārs Ģēģers", "Ņikita Ponomarjovs"]);
+  });
+
   test("a page without the scorers list throws a clear error", () => {
     assert.throws(
       () => parseTopScorersHtml(page.replace(/goalscorers/g, "scorers"), OTRA_LIGA_SCORERS_URL),

@@ -41,9 +41,19 @@ describe("parseStandingsHtml", () => {
     assert.equal(leader.points, 48);
   });
 
-  test("without AFA Olaine on the page, returns the first table", () => {
-    const rows = parseStandingsHtml(page.replace(/AFA Olaine/g, "AFA Riga"), OTRA_LIGA_STANDINGS_URL);
-    assert.deepEqual(rows.map((row) => row.team), ["BFC Daugavpils-2", "FK Liepāja-2 / LFS"]);
+  // Another group's table would be shown on the home page as AFA Olaine's league.
+  test("without AFA Olaine in any table, throws instead of returning another group's table", () => {
+    assert.throws(
+      () => parseStandingsHtml(page.replace(/AFA Olaine/g, "AFA Riga"), OTRA_LIGA_STANDINGS_URL),
+      /LFF standings: none of the 2 tables contains AFA Olaine \(requested tab=#tabContent_1_4\)/,
+    );
+  });
+
+  test("a tab that is not on the page is an error, not a read of the whole page", () => {
+    assert.throws(
+      () => parseStandingsHtml(page, OTRA_LIGA_STANDINGS_URL.replace("content_1_4", "content_1_9")),
+      /LFF page has no tab #tabContent_1_9/,
+    );
   });
 
   test("a missing logo gives null and a relative logo path is resolved against the page URL", () => {

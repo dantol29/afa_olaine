@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
@@ -7,6 +7,7 @@ import { games, leagueSources } from "@/db/schema";
 import { backfillClubLogos } from "@/lib/club-logos";
 import { scrapeFixtures } from "@/lib/fixtures";
 import { isOlaine } from "@/lib/games";
+import { findPossibleDuplicate } from "@/lib/lff-duplicates";
 import { cn } from "@/lib/utils";
 
 import { applyLffChanges, confirmImport } from "./actions";
@@ -23,8 +24,9 @@ export default async function AdminLeagueSourceImportPage({
   if (!source) notFound();
 
   let fixtures;
+  let unrecognized;
   try {
-    fixtures = await scrapeFixtures(source.url);
+    ({ fixtures, unrecognized } = await scrapeFixtures(source.url));
   } catch (error) {
     console.error(`Failed to fetch fixtures from ${source.url}:`, error);
     return (
@@ -80,12 +82,15 @@ export default async function AdminLeagueSourceImportPage({
       location: games.location,
       homeScore: games.homeScore,
       awayScore: games.awayScore,
+      source: games.source,
     })
     .from(games)
-    .where(and(eq(games.teamId, source.teamId), eq(games.source, "lff")));
+    .where(eq(games.teamId, source.teamId));
 
   const existingByKey = new Map(
-    existingGames.map((g) => [`${g.date}|${g.homeTeam}|${g.awayTeam}`, g]),
+    existingGames
+      .filter((g) => g.source === "lff")
+      .map((g) => [`${g.date}|${g.homeTeam}|${g.awayTeam}`, g]),
   );
 
   const rows = candidates.map((fixture) => {
@@ -98,8 +103,11 @@ export default async function AdminLeagueSourceImportPage({
         existing.location !== fixtureLocation ||
         (fixture.played &&
           (existing.homeScore !== fixture.homeScore || existing.awayScore !== fixture.awayScore)));
-    return { fixture, existing, alreadyImported, differs };
+    // Importing would add a copy of a game entered by hand, or of a match LFF has since moved to another date.
+    const possibleCopy = alreadyImported ? undefined : findPossibleDuplicate(fixture, existingGames);
+    return { fixture, existing, alreadyImported, differs, possibleCopy };
   });
+  const copyCount = rows.filter((row) => row.possibleCopy).length;
 
   const differingCount = rows.filter((row) => row.differs).length;
   const hasNewGames = rows.some((row) => !row.alreadyImported);
@@ -143,6 +151,33 @@ export default async function AdminLeagueSourceImportPage({
         </div>
       )}
 
+      {unrecognized.count > 0 && (
+        <div className="mb-6 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-500">
+          <p className="font-semibold">{unrecognized.count} rindas netika atpazītas.</p>
+          <p className="mt-1">
+            LFF lapā ir spēles, kuras neizdevās nolasīt, tāpēc tās zemāk nav redzamas. Iespējams, LFF ir mainījis
+            lapas izkārtojumu: salīdzini sarakstu ar lff.lv, trūkstošās spēles ievadi manuāli sadaļā &quot;Spēles&quot;
+            un ziņo izstrādātājam.
+          </p>
+          <ul className="mt-2 list-disc pl-5 text-xs">
+            {unrecognized.samples.map((sample, index) => (
+              <li key={index}>{sample}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {copyCount > 0 && (
+        <div className="mb-6 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-500">
+          <p className="font-semibold">{copyCount} spēles var izveidot dublikātu.</p>
+          <p className="mt-1">
+            Tādas pašas komandas jau ir datubāzē: vai nu ievadītas manuāli tajā pašā dienā, vai importētas
+            agrāk ar citu datumu (LFF varēja pārcelt spēli). Šīs spēles pēc noklusējuma nav atzīmētas.
+            Ja vecā spēle ir nederīga, izdzēs to sadaļā &quot;Spēles&quot;, tad atzīmē jauno.
+          </p>
+        </div>
+      )}
+
       {candidates.length === 0 ? (
         <p className="text-sm text-slate-400">
           Šajā URL neizdevās atrast nevienu AFA Olaine spēli ar apstiprinātu laiku.
@@ -163,7 +198,7 @@ export default async function AdminLeagueSourceImportPage({
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ fixture, existing, alreadyImported, differs }, index) => {
+              {rows.map(({ fixture, existing, alreadyImported, differs, possibleCopy }, index) => {
                 const fixtureLocation = fixture.stadium || "Nav norādīts";
                 const timeDiffers = existing !== undefined && existing.startTime !== fixture.time;
                 const locationDiffers =
@@ -179,6 +214,7 @@ export default async function AdminLeagueSourceImportPage({
                     className={cn(
                       "border-b border-slate-100 last:border-0",
                       differs && "bg-amber-50/60",
+                      possibleCopy && "bg-red-500/10",
                     )}
                   >
                     <td className="p-4">
@@ -186,7 +222,7 @@ export default async function AdminLeagueSourceImportPage({
                         type="checkbox"
                         name="selected"
                         disabled={alreadyImported}
-                        defaultChecked={!alreadyImported}
+                        defaultChecked={!alreadyImported && !possibleCopy}
                         value={JSON.stringify({
                           homeTeam: fixture.home,
                           awayTeam: fixture.away,
@@ -232,7 +268,12 @@ export default async function AdminLeagueSourceImportPage({
                       </span>
                     </td>
                     <td className="p-4 text-slate-500">
-                      {differs
+                      {possibleCopy ? (
+                        <span className="font-semibold text-red-500">
+                          iespējams dublikāts: jau ir {possibleCopy.date}{" "}
+                          {possibleCopy.source === "lff" ? "(importēta no LFF)" : "(ievadīta manuāli)"}
+                        </span>
+                      ) : differs
                         ? "jau importēts, dati atšķiras"
                         : alreadyImported
                           ? "jau importēts"
