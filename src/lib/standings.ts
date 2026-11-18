@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 import type { Cheerio } from "cheerio";
 import type { AnyNode } from "domhandler";
 
-import { absoluteLffUrl, fetchLffHtml, normalizeLffText } from "@/lib/lff-fetch";
+import { absoluteLffUrl, fetchLffHtml, lffTabScope, normalizeLffText } from "@/lib/lff-fetch";
 
 export type StandingRow = {
   pos: number; team: string; logo: string | null; played: number; wins: number;
@@ -15,11 +15,6 @@ function integer(value: string): number | null {
   if (!match) return null;
   const result = Number(match[0]);
   return Number.isSafeInteger(result) ? result : null;
-}
-
-function requestedTabSelector(url: string): string | null {
-  const tab = new URL(url).searchParams.get("tab");
-  return tab ? `#tab${tab.charAt(0).toUpperCase()}${tab.slice(1)}` : null;
 }
 
 function parseTable($: cheerio.CheerioAPI, table: Cheerio<AnyNode>, pageUrl: string): StandingRow[] {
@@ -63,15 +58,18 @@ function parseTable($: cheerio.CheerioAPI, table: Cheerio<AnyNode>, pageUrl: str
 
 export function parseStandingsHtml(html: string, pageUrl: string): StandingRow[] {
   const $ = cheerio.load(html);
-  const requestedTab = requestedTabSelector(pageUrl);
-  const scope = requestedTab && $(requestedTab).length ? $(requestedTab) : $.root();
+  const { scope, requestedTab } = lffTabScope($, pageUrl);
   let tables = scope.find(".competitionTable, table").toArray();
   if (tables.length === 0 && scope.find(".rankings").length) tables = scope.find(".rankings").toArray();
 
   const parsed = tables.map((table) => parseTable($, $(table), pageUrl)).filter((rows) => rows.length);
-  const standings = parsed.find((rows) => rows.some((row) => row.isOlaine)) ?? parsed[0];
-  if (!standings) {
+  if (parsed.length === 0) {
     throw new Error(`LFF standings layout was not recognized (tables=${tables.length}, club links=${scope.find('a[href*="/klubi/"]').length}, requested tab=${requestedTab ?? "none"})`);
+  }
+  // Another group's table is never a stand-in: the public block would show it as AFA Olaine's league.
+  const standings = parsed.find((rows) => rows.some((row) => row.isOlaine));
+  if (!standings) {
+    throw new Error(`LFF standings: none of the ${parsed.length} tables contains AFA Olaine (requested tab=${requestedTab ?? "none"})`);
   }
   return standings;
 }

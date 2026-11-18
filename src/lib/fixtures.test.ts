@@ -7,8 +7,12 @@ import { FUTSAL_UPCOMING_URL, OTRA_LIGA_FIXTURES_URL, OTRA_LIGA_PAGE, readLffFix
 const page = readLffFixture("otra-liga-2026.html");
 const futsalPage = readLffFixture("telpu-futbols-virsliga-2026.html");
 
+function fixturesOf(html: string, url = OTRA_LIGA_FIXTURES_URL) {
+  return parseFixturesHtml(html, url).fixtures;
+}
+
 function summary(html: string, url = OTRA_LIGA_FIXTURES_URL) {
-  return parseFixturesHtml(html, url).map((fixture) => `${fixture.date} ${fixture.time} ${fixture.home} - ${fixture.away}`);
+  return fixturesOf(html, url).map((fixture) => `${fixture.date} ${fixture.time} ${fixture.home} - ${fixture.away}`);
 }
 
 describe("parseFixturesHtml on the LFF season page", () => {
@@ -24,7 +28,7 @@ describe("parseFixturesHtml on the LFF season page", () => {
   });
 
   test("returns the full row for a played match, with Latvian letters and a slash kept in the club name", () => {
-    const fixture = parseFixturesHtml(page, OTRA_LIGA_FIXTURES_URL).find((row) => row.date === "2026-05-23");
+    const fixture = fixturesOf(page).find((row) => row.date === "2026-05-23");
     assert.deepEqual(fixture, {
       date: "2026-05-23",
       time: "19:00",
@@ -37,7 +41,7 @@ describe("parseFixturesHtml on the LFF season page", () => {
       homeScore: 2,
       awayScore: 4,
     });
-    const jelgava = parseFixturesHtml(page, OTRA_LIGA_FIXTURES_URL).find((row) => row.home === "FS Jelgava-2");
+    const jelgava = fixturesOf(page).find((row) => row.home === "FS Jelgava-2");
     assert.deepEqual([jelgava?.homeScore, jelgava?.awayScore], [12, 1], "a double-digit score");
   });
 
@@ -50,10 +54,17 @@ describe("parseFixturesHtml on the LFF season page", () => {
     assert.equal(summary(page, OTRA_LIGA_PAGE).length, 8);
   });
 
-  // Current behaviour, flagged: a tab id that is not on the page silently falls back to the whole page,
-  // so a stale ?tab= in a league source mixes matches from other competitions' tabs into the import.
-  test("a tab that is not on the page falls back to the whole page", () => {
-    assert.equal(summary(page, `${OTRA_LIGA_PAGE}?tab=content_1_9`).length, 8);
+  // Reading the whole page instead would mix matches from other competitions' tabs into the import.
+  test("a tab that is not on the page is an error, not a read of the whole page", () => {
+    assert.throws(
+      () => parseFixturesHtml(page, `${OTRA_LIGA_PAGE}?tab=content_1_9`),
+      /LFF page has no tab #tabContent_1_9 \(from \?tab= in the URL\)/,
+    );
+  });
+
+  test("a page that parses fully reports no unrecognised rows", () => {
+    assert.deepEqual(parseFixturesHtml(page, OTRA_LIGA_FIXTURES_URL).unrecognized, { count: 0, samples: [] });
+    assert.deepEqual(parseFixturesHtml(futsalPage, FUTSAL_UPCOMING_URL).unrecognized, { count: 0, samples: [] });
   });
 
   test("throws a clear error when the requested tab has no matches", () => {
@@ -75,7 +86,7 @@ describe("parseFixturesHtml on the upcoming-matches layout", () => {
   });
 
   test("a match not yet played (score shown as -) has no score", () => {
-    const fixtures = parseFixturesHtml(futsalPage, FUTSAL_UPCOMING_URL);
+    const fixtures = fixturesOf(futsalPage, FUTSAL_UPCOMING_URL);
     assert.deepEqual(fixtures.map((row) => [row.played, row.homeScore, row.awayScore]), [
       [true, 2, 1],
       [true, 2, 3],
@@ -91,7 +102,7 @@ describe("parseFixturesHtml edge cases built from the real markup", () => {
     const html = page
       .replace(/<img alt="" src="https:\/\/lff\.lv\/files\/images_comet\/2d\/7\/[^"]*" \/>/, "")
       .replace(/src="https:\/\/lff\.lv(\/files\/images_comet\/Club\/1\/_resized\/11982_[^"]*)"/, 'src="$1"');
-    const fixture = parseFixturesHtml(html, OTRA_LIGA_FIXTURES_URL)[0];
+    const fixture = fixturesOf(html)[0];
     assert.equal(fixture.home, "AFA Olaine");
     assert.equal(fixture.homeLogo, null);
     assert.equal(fixture.awayLogo, "https://lff.lv/files/images_comet/Club/1/_resized/11982_-354029946_110_110_withoutgrow.png");
@@ -99,19 +110,29 @@ describe("parseFixturesHtml edge cases built from the real markup", () => {
 
   test("a row without a time keeps the match with time null", () => {
     const html = page.replace(/<div class="h7">[^<]*<\/div>/g, "");
-    const fixtures = parseFixturesHtml(html, OTRA_LIGA_FIXTURES_URL);
+    const fixtures = fixturesOf(html);
     assert.equal(fixtures.length, 6);
     assert.ok(fixtures.every((fixture) => fixture.time === null));
   });
 
-  // Current behaviour, flagged: a month name the parser does not know drops those rows without any error,
-  // as long as some other row still parses.
-  test("rows with an unknown month name are skipped while the rest still parse", () => {
+  test("rows with an unknown month name are skipped and reported, while the rest still parse", () => {
     const html = page.replace(/<h6>apr<\/h6>/g, "<h6>xyz</h6>");
+    const result = parseFixturesHtml(html, OTRA_LIGA_FIXTURES_URL);
     assert.deepEqual(summary(html), [
       "2026-05-23 19:00 AFA Olaine - FK Ķekava / Auda",
       "2026-07-19 18:00 FK Iecava - AFA Olaine",
     ]);
+    assert.equal(result.unrecognized.count, 4);
+    assert.equal(result.unrecognized.samples.length, 3, "at most three sample rows are kept");
+    assert.match(result.unrecognized.samples[0], /AFA Olaine.*FK Iecava/);
+    assert.ok(result.unrecognized.samples.every((sample) => sample.length <= 120));
+  });
+
+  test("a match row whose club name is empty is reported as unrecognised", () => {
+    const html = page.replace(/(<div class="tr match [^"]*" data-id="23536966">.*?)>AFA Olaine<\/a>/, "$1></a>");
+    const result = parseFixturesHtml(html, OTRA_LIGA_FIXTURES_URL);
+    assert.equal(result.fixtures.length, 5);
+    assert.equal(result.unrecognized.count, 1);
   });
 
   test("a changed club markup or an empty page throws instead of returning matches without teams", () => {
@@ -119,6 +140,6 @@ describe("parseFixturesHtml edge cases built from the real markup", () => {
       () => parseFixturesHtml(page.replace(/class="club"/g, 'class="side"'), OTRA_LIGA_FIXTURES_URL),
       /LFF fixtures layout was not recognized \(matches=6/,
     );
-    assert.throws(() => parseFixturesHtml("<html><body></body></html>", OTRA_LIGA_FIXTURES_URL), /layout was not recognized \(matches=0/);
+    assert.throws(() => parseFixturesHtml("<html><body></body></html>", OTRA_LIGA_PAGE), /layout was not recognized \(matches=0/);
   });
 });

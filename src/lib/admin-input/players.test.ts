@@ -41,11 +41,12 @@ describe("parsePlayerInput", () => {
     assert.ok("error" in parsed && typeof parsed.error === "string" && parsed.error.length > 0);
   });
 
-  test("accepts 0 and positive shirt numbers, rejects negative and non-numeric ones", () => {
-    assert.equal(parse({ number: " 0 " }).number, 0);
+  test("accepts whole shirt numbers from 1, rejects 0, negative, fractional and non-numeric ones", () => {
+    assert.equal(parse({ number: " 1 " }).number, 1);
     assert.equal(parse({ number: "10" }).number, 10);
-    assert.deepEqual(parse({ number: "-1" }), { error: "Numuram jābūt pozitīvam skaitlim." });
-    assert.deepEqual(parse({ number: "desmit" }), { error: "Numuram jābūt pozitīvam skaitlim." });
+    for (const number of ["0", "-1", "1.5", "desmit", "Infinity"]) {
+      assert.deepEqual(parse({ number }), { error: "Numuram jābūt pozitīvam veselam skaitlim." }, number);
+    }
   });
 
   test("turns invalid or negative goals into 0 and drops fractions", () => {

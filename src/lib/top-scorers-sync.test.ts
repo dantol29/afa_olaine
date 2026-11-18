@@ -82,6 +82,16 @@ describe("syncTopScorersForSource", () => {
     assert.deepEqual(await goalsByName(otherTeam.id), { "Konstantīns Fjodorovs": 9 });
   });
 
+  test("an empty goals cell on LFF leaves the player's goals unchanged", async (t) => {
+    mockFetch(t, page.replace("<span>AFA Olaine</span></div><div><span>6</span></div>", "<span>AFA Olaine</span></div><div><span></span></div>"));
+    const teamId = await teamWithPlayers([{ name: "Konstantīns Fjodorovs", goals: 5 }]);
+
+    const result = await syncTopScorersForSource({ teamId, topScorersUrl: OTRA_LIGA_SCORERS_URL });
+    assert.equal(result.updated, 0);
+    assert.ok(result.details.every((row) => row.name !== "Konstantīns Fjodorovs"));
+    assert.deepEqual(await goalsByName(teamId), { "Konstantīns Fjodorovs": 5 });
+  });
+
   test("a failed fetch is returned as an error and changes nothing", async (t) => {
     mockFetch(t, new Response("", { status: 404 }));
     const teamId = await teamWithPlayers([{ name: "Konstantīns Fjodorovs", goals: 1 }]);

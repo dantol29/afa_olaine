@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useActionState, useLayoutEffect, useRef, useState } from "react";
 
+import { MIN_SHIRT_NUMBER } from "@/lib/admin-input/players";
 import { parseBirthdate, replaceDateSeparators } from "@/lib/birthdate";
 
 import { createPlayer, updatePlayer } from "../actions";
@@ -93,7 +94,7 @@ export function PlayerForm(
         <input
           type="number"
           name="number"
-          min={0}
+          min={MIN_SHIRT_NUMBER}
           step={1}
           defaultValue={player?.number ?? ""}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"

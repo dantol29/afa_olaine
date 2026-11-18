@@ -1,9 +1,10 @@
 import * as cheerio from "cheerio";
+import type { Cheerio } from "cheerio";
 import type { AnyNode } from "domhandler";
 
-import { absoluteLffUrl, fetchLffHtml, normalizeLffText } from "@/lib/lff-fetch";
+import { absoluteLffUrl, fetchLffHtml, lffTabScope, normalizeLffText } from "@/lib/lff-fetch";
 
-type ScrapedFixture = {
+export type ScrapedFixture = {
   date: string;
   time: string | null;
   home: string;
@@ -15,6 +16,16 @@ type ScrapedFixture = {
   homeScore: number | null;
   awayScore: number | null;
 };
+
+/** Match rows the parser found but could not read (e.g. a month name it does not know), so they are missing from
+ *  `fixtures`. Reported instead of dropped silently, because a partly changed LFF layout would otherwise look like a
+ *  successful import. */
+export type UnrecognizedRows = { count: number; samples: string[] };
+
+export type ScrapedFixturesPage = { fixtures: ScrapedFixture[]; unrecognized: UnrecognizedRows };
+
+const MAX_UNRECOGNIZED_SAMPLES = 3;
+const UNRECOGNIZED_SAMPLE_LENGTH = 120;
 
 const MONTHS: Record<string, number> = {
   jan: 1, janvaris: 1, feb: 2, februaris: 2, mar: 3, marts: 3,
@@ -52,23 +63,27 @@ function parseTime(value: string): string | null {
   return match ? `${match[1].padStart(2, "0")}:${match[2]}` : null;
 }
 
-function tabSelector(url: string): string | null {
-  const tab = new URL(url).searchParams.get("tab");
-  return tab ? `#tab${tab.charAt(0).toUpperCase()}${tab.slice(1)}` : null;
-}
-
-export function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture[] {
+export function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixturesPage {
   const $ = cheerio.load(html);
-  const requestedTab = tabSelector(pageUrl);
-  const scope = requestedTab && $(requestedTab).length ? $(requestedTab) : $.root();
+  const { scope, requestedTab } = lffTabScope($, pageUrl);
   const fallbackYear = Number($(".pageSelect option[selected], .pageSelect option:selected").first().text().match(/20\d{2}/)?.[0]) || Number($("h1, title").text().match(/20\d{2}/)?.[0]) || null;
 
   let candidates: AnyNode[] = scope.find(".tr.match, [data-id].match, [data-match-id]").toArray();
-  if (candidates.length === 0) {
+  // Rows marked as matches by LFF are all expected to parse. The fallback below collects whatever surrounds a match
+  // link, which can include rows that are not matches, so there only a row with two clubs but no date is reported.
+  const candidatesAreMatchRows = candidates.length > 0;
+  if (!candidatesAreMatchRows) {
     candidates = scope.find('a[href*="/speles/"]').map((_, link) => $(link).closest(".tr, article, li, tr").get(0)).get();
   }
 
   const fixtures: ScrapedFixture[] = [];
+  const unrecognized: UnrecognizedRows = { count: 0, samples: [] };
+  const reportUnrecognized = (row: Cheerio<AnyNode>) => {
+    unrecognized.count += 1;
+    if (unrecognized.samples.length < MAX_UNRECOGNIZED_SAMPLES) {
+      unrecognized.samples.push(normalizeLffText(row.text()).slice(0, UNRECOGNIZED_SAMPLE_LENGTH));
+    }
+  };
   const seen = new Set<string>();
   for (const element of candidates) {
     const row = $(element);
@@ -76,7 +91,10 @@ export function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture
     if (clubNodes.length < 2) {
       clubNodes = row.find('a[href*="/klubi/"]').slice(0, 2).map((_, link) => $(link).closest(".club, [class*=team], td").get(0) ?? link).get();
     }
-    if (clubNodes.length < 2) continue;
+    if (clubNodes.length < 2) {
+      if (candidatesAreMatchRows) reportUnrecognized(row);
+      continue;
+    }
 
     const clubs = clubNodes.slice(0, 2).map((club) => {
       const node = $(club);
@@ -88,7 +106,10 @@ export function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture
       const score = scoreText.match(/\d+/)?.[0];
       return { name, logo, score: score === undefined ? null : Number(score) };
     });
-    if (!clubs[0].name || !clubs[1].name) continue;
+    if (!clubs[0].name || !clubs[1].name) {
+      if (candidatesAreMatchRows) reportUnrecognized(row);
+      continue;
+    }
 
     const dateNode = row.find(".date, [class*=date]").first();
     const structuredDate = dateNode.length
@@ -97,7 +118,10 @@ export function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture
     const dataDate = row.attr("data-date") ?? row.find("[data-date]").first().attr("data-date") ?? "";
     const nearbyHeading = row.prevAll(".th1, [class*=heading]").first().text();
     const date = structuredDate || parseDateText(dataDate, fallbackYear) || parseDateText(dateNode.text(), fallbackYear) || parseDateText(nearbyHeading, fallbackYear) || parseDateText(row.text(), fallbackYear);
-    if (!date) continue;
+    if (!date) {
+      reportUnrecognized(row);
+      continue;
+    }
 
     const time = parseTime(row.attr("data-time") ?? "") || parseTime(dateNode.find(".h7, time, [class*=time]").first().text()) || parseTime(row.find("time, [class*=time], .matchday h4").first().text());
     const stadium = normalizeLffText(row.find(".stadium, [class*=stadium], [class*=venue], [class*=location]").first().text());
@@ -121,9 +145,9 @@ export function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture
   if (fixtures.length === 0) {
     throw new Error(`LFF fixtures layout was not recognized (matches=${candidates.length}, club links=${scope.find('a[href*="/klubi/"]').length}, requested tab=${requestedTab ?? "none"})`);
   }
-  return fixtures;
+  return { fixtures, unrecognized };
 }
 
-export async function scrapeFixtures(url: string): Promise<ScrapedFixture[]> {
+export async function scrapeFixtures(url: string): Promise<ScrapedFixturesPage> {
   return parseFixturesHtml(await fetchLffHtml(url, "fixtures"), url);
 }

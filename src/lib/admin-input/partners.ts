@@ -9,11 +9,17 @@ export function parsePartnerInput(formData: FormData) {
 
   let websiteUrl: string | null = null;
   if (websiteUrlInput) {
+    let parsed: URL;
     try {
-      websiteUrl = new URL(websiteUrlInput).toString();
+      parsed = new URL(websiteUrlInput);
     } catch {
       return { error: "Saitei jābūt derīgam URL (piem., https://example.com)." } as const;
     }
+    // The site links the logo to this address, so only web pages are allowed (no javascript:, mailto:, etc.).
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return { error: "Saitei jāsākas ar http:// vai https:// (piem., https://example.com)." } as const;
+    }
+    websiteUrl = parsed.toString();
   }
 
   return { name, size, needsWhite, websiteUrl } as const;

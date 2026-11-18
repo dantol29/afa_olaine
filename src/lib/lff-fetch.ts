@@ -1,3 +1,6 @@
+import type { Cheerio, CheerioAPI } from "cheerio";
+import type { AnyNode } from "domhandler";
+
 const REQUEST_TIMEOUT_MS = 12_000;
 const MAX_RESPONSE_BYTES = 5_000_000;
 
@@ -38,6 +41,24 @@ export async function fetchLffHtml(url: string, resource: string): Promise<strin
   }
   const detail = lastError instanceof Error ? lastError.message : String(lastError);
   throw new Error(`Failed to fetch LFF ${resource}: ${detail}`);
+}
+
+/** The element id LFF gives the tab named in `?tab=` (e.g. `content_1_2` → `#tabContent_1_2`), or null without one. */
+export function requestedLffTab(url: string): string | null {
+  const tab = new URL(url).searchParams.get("tab");
+  return tab ? `#tab${tab.charAt(0).toUpperCase()}${tab.slice(1)}` : null;
+}
+
+/** The part of the page to parse: the requested tab, or the whole page when the URL names none. A named tab that is
+ *  not on the page is an error, because reading the whole page instead would mix in the other tabs' matches or tables. */
+export function lffTabScope($: CheerioAPI, url: string): { scope: Cheerio<AnyNode>; requestedTab: string | null } {
+  const requestedTab = requestedLffTab(url);
+  if (!requestedTab) return { scope: $.root(), requestedTab };
+  const tab = $(requestedTab);
+  if (tab.length === 0) {
+    throw new Error(`LFF page has no tab ${requestedTab} (from ?tab= in the URL); the page layout or the tab id changed`);
+  }
+  return { scope: tab, requestedTab };
 }
 
 export function normalizeLffText(value: string): string {

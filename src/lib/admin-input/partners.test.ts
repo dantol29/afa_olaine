@@ -26,4 +26,11 @@ describe("parsePartnerInput", () => {
     assert.deepEqual(parse({ size: "xl" }), { error: "Nederīgs izmērs." });
     assert.deepEqual(parse({ websiteUrl: "olaine.lv" }), { error: "Saitei jābūt derīgam URL (piem., https://example.com)." });
   });
+
+  test("accepts only http and https website links", () => {
+    assert.equal(parse({ websiteUrl: "http://olaine.lv" }).websiteUrl, "http://olaine.lv/");
+    for (const websiteUrl of ["javascript:alert(1)", "mailto:info@olaine.lv", "ftp://olaine.lv", "data:text/html,x"]) {
+      assert.deepEqual(parse({ websiteUrl }), { error: "Saitei jāsākas ar http:// vai https:// (piem., https://example.com)." }, websiteUrl);
+    }
+  });
 });
