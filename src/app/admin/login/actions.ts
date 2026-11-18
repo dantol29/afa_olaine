@@ -8,6 +8,7 @@ import {
   SESSION_MAX_AGE_SECONDS,
   createSessionToken,
 } from "@/lib/auth";
+import { clientIpFromForwardedFor } from "@/lib/client-ip";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 
 export async function login(
@@ -15,13 +16,7 @@ export async function login(
   formData: FormData,
 ) {
   const headersList = await headers();
-  // The reverse proxy (Apache/Passenger) appends the real client IP as the
-  // LAST entry of X-Forwarded-For — any earlier entries are whatever the
-  // client itself sent and are fully attacker-controlled, so reading the
-  // first entry (as this used to) let anyone bypass the rate limit below
-  // by sending a fresh fake value on every request.
-  const forwardedFor = headersList.get("x-forwarded-for");
-  const ip = forwardedFor?.split(",").map((part) => part.trim()).filter(Boolean).pop() ?? "unknown";
+  const ip = clientIpFromForwardedFor(headersList.get("x-forwarded-for"));
 
   if (!(await checkRateLimit(ip))) {
     return { error: "Pārāk daudz mēģinājumu. Mēģini vēlreiz pēc 10 minūtēm." };

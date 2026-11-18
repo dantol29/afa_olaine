@@ -113,6 +113,15 @@ function rigaWallClockToUtc(
   minute: number,
 ): Date {
   const guessUtc = Date.UTC(year, month - 1, day, hour, minute);
+  // The offset at the guess is wrong for night times on DST change days (the guess lies on the other side of the
+  // switch), so the offset is read again at the first result. A time skipped in spring moves one hour forward.
+  const firstOffset = rigaOffsetMs(guessUtc);
+  const secondOffset = rigaOffsetMs(guessUtc - firstOffset);
+  return new Date(guessUtc - secondOffset);
+}
+
+/** How far Riga's clocks are ahead of UTC at the given instant. */
+function rigaOffsetMs(instantUtc: number): number {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Europe/Riga",
     year: "numeric",
@@ -122,7 +131,7 @@ function rigaWallClockToUtc(
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  }).formatToParts(new Date(guessUtc));
+  }).formatToParts(new Date(instantUtc));
   const get = (type: string) =>
     Number(parts.find((p) => p.type === type)?.value ?? "0");
 
@@ -134,7 +143,7 @@ function rigaWallClockToUtc(
     get("minute"),
     get("second"),
   );
-  return new Date(guessUtc - (rigaAsUtc - guessUtc));
+  return rigaAsUtc - instantUtc;
 }
 
 async function getAdminTrainingEvents(after: Date, before: Date): Promise<CalendarEvent[]> {
