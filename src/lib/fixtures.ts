@@ -57,7 +57,7 @@ function tabSelector(url: string): string | null {
   return tab ? `#tab${tab.charAt(0).toUpperCase()}${tab.slice(1)}` : null;
 }
 
-function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture[] {
+export function parseFixturesHtml(html: string, pageUrl: string): ScrapedFixture[] {
   const $ = cheerio.load(html);
   const requestedTab = tabSelector(pageUrl);
   const scope = requestedTab && $(requestedTab).length ? $(requestedTab) : $.root();

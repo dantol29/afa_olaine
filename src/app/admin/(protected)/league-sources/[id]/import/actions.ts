@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { games } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { addMinutesWithinDay } from "@/lib/time-range";
 
 type SelectedFixture = {
   homeTeam: string;
@@ -26,14 +27,6 @@ type LffGameUpdate = {
   awayScore: number | null;
 };
 
-function addMinutes(time: string, minutes: number): string {
-  const [hour, minute] = time.split(":").map(Number);
-  const total = hour * 60 + minute + minutes;
-  const wrappedHour = Math.floor(total / 60) % 24;
-  const remMinute = total % 60;
-  return `${String(wrappedHour).padStart(2, "0")}:${String(remMinute).padStart(2, "0")}`;
-}
-
 export async function confirmImport(teamId: number, league: string, formData: FormData) {
   await requireAdminSession();
 
@@ -51,7 +44,7 @@ export async function confirmImport(teamId: number, league: string, formData: Fo
         awayScore: fixture.awayScore,
         date: fixture.date,
         startTime: fixture.startTime,
-        endTime: addMinutes(fixture.startTime, 90),
+        endTime: addMinutesWithinDay(fixture.startTime, 90),
         location: fixture.location,
         source: "lff" as const,
         league,
@@ -80,7 +73,7 @@ export async function applyLffChanges(sourceId: number, formData: FormData) {
       .update(games)
       .set({
         startTime: update.startTime,
-        endTime: addMinutes(update.startTime, 90),
+        endTime: addMinutesWithinDay(update.startTime, 90),
         location: update.location,
         homeScore: update.homeScore,
         awayScore: update.awayScore,
