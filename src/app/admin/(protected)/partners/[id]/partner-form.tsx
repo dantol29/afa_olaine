@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useActionState } from "react";
 
+import { handleImageInputChange } from "@/lib/client-image-resize";
+
 import { createPartner, updatePartner } from "../actions";
 
 type Partner = {
@@ -53,6 +55,7 @@ export function PartnerForm(
         )}
         <input
           type="file"
+          onChange={handleImageInputChange}
           name="logo"
           accept="image/*"
           required={props.mode === "create"}

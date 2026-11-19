@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { downscaleImageInput } from "@/lib/client-image-resize";
 import type { ClubPageMedia } from "@/lib/club-page-media";
 
 export function PagePhotosEditor({ media }: { media: ClubPageMedia }) {
@@ -22,10 +23,13 @@ export function PagePhotosEditor({ media }: { media: ClubPageMedia }) {
         <label className="mt-3 flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="removeImages" value={photo.src} />Noņemt {index + 1}. attēlu</label>
       </div>)}
     </div>
-    <label className="mt-4 block text-sm font-medium">Pievienot fotoattēlus<input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple onChange={event => {
-      const files = Array.from(event.target.files ?? []);
+    <label className="mt-4 block text-sm font-medium">Pievienot fotoattēlus<input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple onChange={async event => {
+      const input = event.currentTarget;
+      // The size limits apply to what is uploaded, so they are checked after downscaling.
+      await downscaleImageInput(input);
+      const files = Array.from(input.files ?? []);
       const message = files.length > 6 ? "Izvēlies ne vairāk kā 6 attēlus." : files.reduce((sum, file) => sum + file.size, 0) > 5 * 1024 * 1024 ? "Vienā reizē augšupielādē līdz 5 MB attēlu." : "";
-      event.target.setCustomValidity(message);
+      input.setCustomValidity(message);
       setError(message);
       setPhotos(message ? [] : files.map(file => ({ file, preview: URL.createObjectURL(file) })));
     }} className="mt-2 block w-full text-sm file:mr-3 file:border-0 file:bg-club-gray-light file:px-3 file:py-2 file:font-semibold" /></label>

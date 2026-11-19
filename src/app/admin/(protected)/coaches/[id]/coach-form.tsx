@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useActionState } from "react";
 
+import { handleImageInputChange } from "@/lib/client-image-resize";
+
 import { createCoach, updateCoach } from "../actions";
 
 type Coach = {
@@ -98,6 +100,7 @@ export function CoachForm(
         )}
         <input
           type="file"
+          onChange={handleImageInputChange}
           name="photo"
           accept="image/*"
           className="mt-1.5 block w-full text-sm text-club-navy file:mr-3 file:rounded-lg file:border-0 file:bg-club-gray-light file:px-3 file:py-2 file:text-sm file:font-semibold file:text-club-navy hover:file:bg-slate-200"
