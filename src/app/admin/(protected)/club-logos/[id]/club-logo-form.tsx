@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useActionState } from "react";
 
+import { handleImageInputChange } from "@/lib/client-image-resize";
+
 import { createClubLogo, updateClubLogo } from "../actions";
 
 type ClubLogo = { id: number; logoUrl: string; names: { name: string }[] };
@@ -48,6 +50,7 @@ export function ClubLogoForm(props: { mode: "create" } | { mode: "edit"; club: C
         )}
         <input
           type="file"
+          onChange={handleImageInputChange}
           name="photo"
           accept="image/*"
           required={props.mode === "create"}

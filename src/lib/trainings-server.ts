@@ -34,26 +34,27 @@ export type TrainingListItem = {
 export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(): Promise<TrainingListItem[]> {
   try {
     const todayKey = toDateKey(new Date());
-    const rows = await db
-      .select({
-        id: trainingsTable.id,
-        date: trainingsTable.date,
-        startTime: trainingsTable.startTime,
-        endTime: trainingsTable.endTime,
-        location: trainingsTable.location,
-      })
-      .from(trainingsTable)
-      .orderBy(trainingsTable.date, trainingsTable.startTime, trainingsTable.id);
-    const teamNamesByTraining = await getTeamNamesByTraining();
-
-    const coachRows = await db
-      .select({
-        trainingId: trainingCoachesTable.trainingId,
-        name: coachesTable.name,
-        photoUrl: coachesTable.photoUrl,
-      })
-      .from(trainingCoachesTable)
-      .innerJoin(coachesTable, eq(trainingCoachesTable.coachId, coachesTable.id));
+    const [rows, teamNamesByTraining, coachRows] = await Promise.all([
+      db
+        .select({
+          id: trainingsTable.id,
+          date: trainingsTable.date,
+          startTime: trainingsTable.startTime,
+          endTime: trainingsTable.endTime,
+          location: trainingsTable.location,
+        })
+        .from(trainingsTable)
+        .orderBy(trainingsTable.date, trainingsTable.startTime, trainingsTable.id),
+      getTeamNamesByTraining(),
+      db
+        .select({
+          trainingId: trainingCoachesTable.trainingId,
+          name: coachesTable.name,
+          photoUrl: coachesTable.photoUrl,
+        })
+        .from(trainingCoachesTable)
+        .innerJoin(coachesTable, eq(trainingCoachesTable.coachId, coachesTable.id)),
+    ]);
 
     const coachesByTraining = new Map<number, TrainingCoach[]>();
     // Sorting before grouping leaves every training's coach list in Latvian name order.

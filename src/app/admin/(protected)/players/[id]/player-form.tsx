@@ -5,6 +5,7 @@ import { useActionState, useLayoutEffect, useRef, useState } from "react";
 
 import { MIN_SHIRT_NUMBER } from "@/lib/admin-input/players";
 import { parseBirthdate, replaceDateSeparators } from "@/lib/birthdate";
+import { handleImageInputChange } from "@/lib/client-image-resize";
 
 import { createPlayer, updatePlayer } from "../actions";
 
@@ -160,6 +161,7 @@ export function PlayerForm(
         )}
         <input
           type="file"
+          onChange={handleImageInputChange}
           name="photo"
           accept="image/*"
           className="mt-1.5 block w-full text-sm text-club-navy file:mr-3 file:rounded-lg file:border-0 file:bg-club-gray-light file:px-3 file:py-2 file:text-sm file:font-semibold file:text-club-navy hover:file:bg-slate-200"

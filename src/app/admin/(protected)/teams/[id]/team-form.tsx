@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 
+import { handleImageInputChange } from "@/lib/client-image-resize";
+
 import { createTeam, updateTeam } from "../actions";
 
 type Team = { id: number; name: string; groupPhotoUrl: string | null; isMain: boolean };
@@ -37,7 +39,7 @@ export function TeamForm(props: { mode: "create" } | { mode: "edit"; team: Team 
 
       <label className="mt-5 block text-sm font-semibold text-club-navy">
         Komandas kopbilde (JPEG, PNG vai WebP, līdz 5 MB)
-        <input type="file" name="groupPhoto" accept="image/jpeg,image/png,image/webp" className="mt-2 block w-full text-sm" />
+        <input type="file" onChange={handleImageInputChange} name="groupPhoto" accept="image/jpeg,image/png,image/webp" className="mt-2 block w-full text-sm" />
       </label>
       {props.mode === "edit" && props.team.groupPhotoUrl && (
         <div className="mt-4">

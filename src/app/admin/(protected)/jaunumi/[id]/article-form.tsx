@@ -5,6 +5,7 @@ import { useActionState } from "react";
 
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { articleBodyToEditorHtml } from "@/lib/article-body";
+import { handleImageInputChange } from "@/lib/client-image-resize";
 import { MAX_BODY_LENGTH } from "@/lib/content-limits";
 import { createArticle, updateArticle } from "../actions";
 
@@ -145,6 +146,7 @@ export function ArticleForm(
         )}
         <input
           type="file"
+          onChange={handleImageInputChange}
           name="image"
           accept="image/*"
           required={props.mode === "create"}
@@ -185,6 +187,7 @@ export function ArticleForm(
         )}
         <input
           type="file"
+          onChange={handleImageInputChange}
           name="highlights"
           accept="image/*"
           multiple
