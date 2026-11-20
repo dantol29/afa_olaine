@@ -10,8 +10,8 @@ import {
 } from "@/db/schema";
 import { toDateKey } from "@/lib/calendar";
 import { MONTHS } from "@/lib/games";
-import { sortByName } from "@/lib/ordering";
-import { getTeamNamesByTraining } from "@/lib/training-teams";
+import { sortByName, uniqueSortedLabels } from "@/lib/ordering";
+import { getTeamsByTraining } from "@/lib/training-teams";
 
 type TrainingCoach = { name: string; photoUrl: string | null };
 
@@ -25,6 +25,7 @@ export type TrainingListItem = {
   endTime: string;
   location: string;
   teamName: string;
+  teams: { id: number; name: string }[];
   coaches: TrainingCoach[];
   isPast: boolean;
 };
@@ -34,7 +35,7 @@ export type TrainingListItem = {
 export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(): Promise<TrainingListItem[]> {
   try {
     const todayKey = toDateKey(new Date());
-    const [rows, teamNamesByTraining, coachRows] = await Promise.all([
+    const [rows, teamsByTraining, coachRows] = await Promise.all([
       db
         .select({
           id: trainingsTable.id,
@@ -45,7 +46,7 @@ export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(
         })
         .from(trainingsTable)
         .orderBy(trainingsTable.date, trainingsTable.startTime, trainingsTable.id),
-      getTeamNamesByTraining(),
+      getTeamsByTraining(),
       db
         .select({
           trainingId: trainingCoachesTable.trainingId,
@@ -65,8 +66,8 @@ export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(
     }
 
     return rows.flatMap((row) => {
-      const teamName = teamNamesByTraining.get(row.id);
-      if (!teamName) return [];
+      const trainingTeams = teamsByTraining.get(row.id);
+      if (!trainingTeams || trainingTeams.length === 0) return [];
 
       const [year, month, day] = row.date.split("-").map(Number);
       return [{
@@ -78,7 +79,8 @@ export const getAllTrainingsFromDb = cache(async function getAllTrainingsFromDb(
         startTime: row.startTime,
         endTime: row.endTime,
         location: row.location,
-        teamName,
+        teamName: uniqueSortedLabels(trainingTeams.map((team) => team.name)).join(", "),
+        teams: trainingTeams,
         coaches: coachesByTraining.get(row.id) ?? [],
         isPast: row.date < todayKey,
       }];
