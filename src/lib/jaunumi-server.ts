@@ -12,7 +12,7 @@ type AuthorCoach =
   | null
   | undefined;
 
-function rowToArticle(row: ArticleRow, teamName: string | null, authorCoach: AuthorCoach): Article {
+function rowToArticle(row: ArticleRow, team: { id: number; name: string } | null, authorCoach: AuthorCoach): Article {
   const highlights = row.highlights?.split("\n").filter(Boolean);
   return {
     slug: row.slug,
@@ -21,7 +21,8 @@ function rowToArticle(row: ArticleRow, teamName: string | null, authorCoach: Aut
     date: formatArticleDate(row.date),
     dateKey: row.date,
     category: row.category,
-    team: teamName ?? undefined,
+    team: team?.name,
+    teamId: team?.id,
     image: row.image,
     authorName: authorCoach?.name ?? undefined,
     authorPosition: authorCoach?.position ?? undefined,
@@ -38,7 +39,7 @@ export const getArticles = cachePublicData("articles", async function getArticle
     orderBy: [desc(articles.date), desc(articles.createdAt)],
     ...(limit === undefined ? {} : { limit }),
   });
-  return rows.map((row) => rowToArticle(row, row.team?.name ?? null, row.authorCoach));
+  return rows.map((row) => rowToArticle(row, row.team ?? null, row.authorCoach));
 });
 
 /** Public article data is shared across requests for 60 seconds and expires
@@ -49,7 +50,7 @@ export const getArticleBySlug = cachePublicData("article-by-slug",
       where: eq(articles.slug, slug),
       with: { team: true, authorCoach: true },
     });
-    return row ? rowToArticle(row, row.team?.name ?? null, row.authorCoach) : null;
+    return row ? rowToArticle(row, row.team ?? null, row.authorCoach) : null;
   },
 );
 

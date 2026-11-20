@@ -8,6 +8,8 @@ import { getArticles } from "@/lib/jaunumi-server";
 import { StructuredData } from "@/components/structured-data";
 import { webPageData } from "@/lib/web-page-data";
 import { absoluteSiteUrl } from "@/lib/site-url";
+import { NEWS_CATEGORY_PARAM } from "@/lib/news-filters";
+import { TEAM_FILTER_PARAM, firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 
 export const metadata = pageMetadata({
   title: "AFA Olaine jaunumi | Futbola kluba aktualitātes",
@@ -15,7 +17,8 @@ export const metadata = pageMetadata({
   path: "/jaunumi",
 });
 
-export default async function NewsPage() {
+export default async function NewsPage({ searchParams }: { searchParams: Promise<Record<string, SearchParamValue>> }) {
+  const params = await searchParams;
   const articles = await getArticles();
 
   return (
@@ -36,7 +39,11 @@ export default async function NewsPage() {
       })} />
       <SiteHeader />
       <InnerPageHero title="Jaunumi" id="news-page-title" />
-      <NewsGrid articles={articles} />
+      <NewsGrid
+        articles={articles}
+        initialTeam={firstSearchParam(params[TEAM_FILTER_PARAM]) ?? null}
+        initialCategory={firstSearchParam(params[NEWS_CATEGORY_PARAM]) ?? null}
+      />
       <SiteEnding />
     </main>
   );
