@@ -7,7 +7,9 @@ import { useState } from "react";
 import type { Article, ArticleCategory } from "@/lib/jaunumi";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NEWS_PHOTO_POSITION_CLASS } from "@/lib/news-photo";
-import { uniqueSortedLabels } from "@/lib/ordering";
+import { NEWS_CATEGORY_PARAM, categoryCode, filterArticles, newsCategoryOptions, newsTeamOptions, parseCategoryParam, parseNewsTeamParam } from "@/lib/news-filters";
+import { TEAM_FILTER_PARAM, replaceSearchParam } from "@/lib/url-state";
+import { useUrlParam } from "@/lib/use-url-param";
 
 const fallbackImages: Record<ArticleCategory, string> = {
   Klubs: "/hero-team.png",
@@ -32,7 +34,9 @@ function NewsImage({ article }: { article: Article }) {
   );
 }
 
-function Filter({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
+type FilterOption = { value: string; label: string };
+
+function Filter({ label, value, options, onChange }: { label: string; value: string; options: FilterOption[]; onChange: (value: string) => void }) {
   const selectedValue = value || "__all__";
 
   return (
@@ -42,15 +46,15 @@ function Filter({ label, value, options, onChange }: { label: string; value: str
           aria-label={label}
           className={`min-h-12 w-full rounded-none px-4 py-3 font-heading text-[18px] font-semibold uppercase leading-none sm:w-auto sm:px-7 sm:text-[22px] ${value ? "border border-white bg-white text-[#050505] hover:bg-white" : "border border-white/40 bg-[#050505] text-white hover:border-white hover:bg-[#050505]"} focus-visible:ring-2 focus-visible:ring-[#fbb040]`}
         >
-          <SelectValue>{(current: string) => current === "__all__" ? label : current}</SelectValue>
+          <SelectValue>{(current: string) => options.find((option) => option.value === current)?.label ?? label}</SelectValue>
         </SelectTrigger>
         <SelectContent sideOffset={4} className="rounded-none border border-white/40 bg-[#121212] p-1 text-white shadow-xl">
           <SelectItem value="__all__" className="min-h-10 rounded-none font-heading text-[18px] uppercase data-highlighted:bg-white data-highlighted:text-[#050505] data-selected:text-[#fbb040] [&_svg]:text-[#fbb040]">
             {label}
           </SelectItem>
           {options.map((option) => (
-            <SelectItem key={option} value={option} className="min-h-10 rounded-none font-heading text-[18px] uppercase data-highlighted:bg-white data-highlighted:text-[#050505] data-selected:text-[#fbb040] [&_svg]:text-[#fbb040]">
-              {option}
+            <SelectItem key={option.value} value={option.value} className="min-h-10 rounded-none font-heading text-[18px] uppercase data-highlighted:bg-white data-highlighted:text-[#050505] data-selected:text-[#fbb040] [&_svg]:text-[#fbb040]">
+              {option.label}
             </SelectItem>
           ))}
         </SelectContent>
@@ -59,27 +63,33 @@ function Filter({ label, value, options, onChange }: { label: string; value: str
   );
 }
 
-export function NewsGrid({ articles }: { articles: Article[] }) {
-  const [section, setSection] = useState("");
-  const [category, setCategory] = useState("");
-
-  const sections = uniqueSortedLabels(articles.map((article) => article.team ?? "Klubs"));
-  const categories = uniqueSortedLabels(articles.map((article) => article.category));
-  const visibleArticles = articles.filter((article) =>
-    (!section || (article.team ?? "Klubs") === section) &&
-    (!category || article.category === category),
-  );
+export function NewsGrid({ articles, initialTeam, initialCategory }: { articles: Article[]; initialTeam: string | null; initialCategory: string | null }) {
+  const teamOptions = newsTeamOptions(articles);
+  const categoryOptions = newsCategoryOptions(articles);
+  const teamId = parseNewsTeamParam(useUrlParam(TEAM_FILTER_PARAM, initialTeam), teamOptions);
+  const category = parseCategoryParam(useUrlParam(NEWS_CATEGORY_PARAM, initialCategory), categoryOptions);
+  const visibleArticles = filterArticles(articles, teamId, category);
 
   return (
     <section aria-label="Jaunumu saraksts" className="bg-[#050505] pb-16 pt-6 text-white sm:pt-8 xl:pb-24">
       <div className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] md:w-[calc(100%-10rem)]">
         <div className="mb-8 grid grid-cols-2 gap-2 sm:mb-10 sm:flex sm:gap-3">
-          <Filter label="Komanda" value={section} options={sections} onChange={setSection} />
-          <Filter label="Kategorija" value={category} options={categories} onChange={setCategory} />
+          <Filter
+            label="Komanda"
+            value={teamId === null ? "" : String(teamId)}
+            options={teamOptions.map((team) => ({ value: String(team.id), label: team.name }))}
+            onChange={(value) => replaceSearchParam(TEAM_FILTER_PARAM, value || null)}
+          />
+          <Filter
+            label="Kategorija"
+            value={category === null ? "" : categoryCode(category)}
+            options={categoryOptions.map((option) => ({ value: categoryCode(option), label: option }))}
+            onChange={(value) => replaceSearchParam(NEWS_CATEGORY_PARAM, value || null)}
+          />
         </div>
 
         {visibleArticles.length > 0 ? (
-          <div key={`${section}:${category}`} className="site-panel-enter grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-7 xl:gap-y-10">
+          <div key={`${teamId}:${category}`} className="site-panel-enter grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-7 xl:gap-y-10">
             {visibleArticles.map((article) => (
               <Link key={article.slug} href={`/jaunumi/${article.slug}`} className="group block min-w-0 bg-[#19191b] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-[#fbb040]">
                 <article className="h-full">

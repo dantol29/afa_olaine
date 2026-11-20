@@ -7,7 +7,7 @@ repeated reads within one render.
 
 Cache keys include a version prefix (`afa-public-vN` in `src/lib/public-data-cache.ts`), the data query, its arguments,
 and a hashed database scope. Bump the prefix when the shape of cached data changes (v2: article `body` is HTML, not
-an array of lines), because the data cache survives builds and would otherwise serve the old shape.
+an array of lines; v3: articles carry `teamId`), because the data cache survives builds and would otherwise serve the old shape.
 All these reads use `afa-public-content`. Relevant admin save/delete actions
 call `updateTag` after a successful mutation so the next read fetches fresh data.
 The goal-scorer cron expires the same tag after updating players.

@@ -13,6 +13,7 @@ export type Article = {
   dateKey: string;
   category: ArticleCategory;
   team?: string;
+  teamId?: number;
   image: string;
   authorName?: string;
   authorPosition?: string;
