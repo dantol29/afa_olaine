@@ -5,6 +5,7 @@ import { InnerPageHero } from "@/components/inner-page-hero";
 import { SiteEnding } from "@/components/site-ending";
 import { SiteHeader } from "@/components/site-header";
 import { getPublicAcademyTeams } from "@/lib/public-team-data";
+import { TEAM_FILTER_PARAM, firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 
 export const metadata = pageMetadata({
   title: "AFA Olaine akadēmija | Jauniešu futbola komandas",
@@ -12,7 +13,8 @@ export const metadata = pageMetadata({
   path: "/akademija",
 });
 
-export default async function AcademyPage() {
+export default async function AcademyPage({ searchParams }: { searchParams: Promise<Record<string, SearchParamValue>> }) {
+  const params = await searchParams;
   const rows = await getPublicAcademyTeams();
   const academyTeams = rows.map((team) => ({
     id: team.id,
@@ -25,7 +27,7 @@ export default async function AcademyPage() {
     <main className="min-h-screen bg-[#050505] text-white">
       <SiteHeader />
       <InnerPageHero title="Akadēmija" id="academy-page-title" />
-      <AcademyContent teams={academyTeams} />
+      <AcademyContent teams={academyTeams} initialTeam={firstSearchParam(params[TEAM_FILTER_PARAM]) ?? null} />
       <SiteEnding />
     </main>
   );

@@ -1,8 +1,9 @@
 // Pure rules for the public /trenini filters, shared by the server page and the client component so both read a
 // URL such as ?komanda=3&datums=2026-11-11 the same way. A value that does not match anything means "no filter".
 import { sortByName } from "@/lib/ordering";
+import { TEAM_FILTER_PARAM, parseIdParam } from "@/lib/url-state";
 
-export const TRAINING_TEAM_PARAM = "komanda";
+export const TRAINING_TEAM_PARAM = TEAM_FILTER_PARAM;
 export const TRAINING_DATE_PARAM = "datums";
 
 type TrainingWithTeams = { rawDate: string; teams: { id: number; name: string }[] };
@@ -16,12 +17,7 @@ export function trainingTeamOptions(trainings: readonly TrainingWithTeams[]): { 
   return sortByName([...teamsById.values()], (team) => team.name);
 }
 
-/** The team id from a URL value, or null when it is missing, not a plain integer or not among the options. */
-export function parseTeamIdParam(value: string | null | undefined, options: readonly { id: number }[]): number | null {
-  if (!value || !/^\d+$/.test(value)) return null;
-  const id = Number(value);
-  return options.some((team) => team.id === id) ? id : null;
-}
+export const parseTeamIdParam = parseIdParam;
 
 /** A YYYY-MM-DD value that is a real calendar date, or null. */
 export function parseDateKeyParam(value: string | null | undefined): string | null {

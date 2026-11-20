@@ -26,3 +26,13 @@ export function replaceSearchParam(name: string, value: string | null): void {
   window.history.replaceState(window.history.state, "", withSearchParam(`${pathname}${search}${hash}`, name, value));
   window.dispatchEvent(new Event(URL_PARAM_CHANGE_EVENT));
 }
+
+/** An id from a URL value, or null when it is missing, not a plain integer or not among the options. */
+export function parseIdParam(value: string | null | undefined, options: readonly { id: number }[]): number | null {
+  if (!value || !/^\d+$/.test(value)) return null;
+  const id = Number(value);
+  return options.some((option) => option.id === id) ? id : null;
+}
+
+/** The shared name of the "filter by team" URL parameter, so every public page spells it the same way. */
+export const TEAM_FILTER_PARAM = "komanda";
