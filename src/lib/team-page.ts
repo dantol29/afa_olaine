@@ -1,3 +1,5 @@
+import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
+
 type PositionedPlayer = { position: string | null };
 
 type RoleGroup<T> = {
@@ -12,8 +14,14 @@ const ROLE_GROUPS = [
   { position: "Uzbrucējs", label: "Uzbrucēji" },
 ] as const;
 
-export function teamTabFromSearchParam(value: string | string[] | undefined): "players" | "staff" {
-  return value === "treneri" ? "staff" : "players";
+export type TeamTab = "players" | "staff";
+
+// URL value of each tab. The default tab is not written to the URL.
+export const TEAM_TAB_PARAM = "skats";
+export const STAFF_TAB_URL_VALUE = "treneri";
+
+export function teamTabFromSearchParam(value: SearchParamValue): TeamTab {
+  return firstSearchParam(value) === STAFF_TAB_URL_VALUE ? "staff" : "players";
 }
 
 /** Groups the public roster in the same position order used by LFF. */
