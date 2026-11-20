@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { TEAM_FILTER_PARAM, parseIdParam, replaceSearchParam } from "@/lib/url-state";
+import { useUrlParam } from "@/lib/use-url-param";
 
 type AcademyTeam = {
   id: number;
@@ -11,8 +12,8 @@ type AcademyTeam = {
   players: { id: number; name: string; number: number | null; position: string | null }[];
 };
 
-export function AcademyContent({ teams }: { teams: AcademyTeam[] }) {
-  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+export function AcademyContent({ teams, initialTeam }: { teams: AcademyTeam[]; initialTeam: string | null }) {
+  const selectedTeamId = parseIdParam(useUrlParam(TEAM_FILTER_PARAM, initialTeam), teams);
   const visibleTeams = selectedTeamId === null ? teams : teams.filter((team) => team.id === selectedTeamId);
 
   return (
@@ -27,7 +28,7 @@ export function AcademyContent({ teams }: { teams: AcademyTeam[] }) {
                 key={teamId ?? "all"}
                 type="button"
                 aria-pressed={selected}
-                onClick={() => setSelectedTeamId(teamId)}
+                onClick={() => replaceSearchParam(TEAM_FILTER_PARAM, teamId === null ? null : String(teamId))}
                 className={`min-h-12 shrink-0 px-4 py-3 font-heading text-[18px] font-semibold uppercase leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7 sm:text-[22px] ${selected ? "bg-white text-[#050505]" : "border border-white/40 text-white hover:border-white"}`}
               >
                 {teamId === null ? "Visas komandas" : teams.find((team) => team.id === teamId)?.name}
