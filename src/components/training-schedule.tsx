@@ -5,7 +5,16 @@ import { useState } from "react";
 
 import type { TrainingListItem } from "@/lib/trainings-server";
 import { MONTHS } from "@/lib/games";
-import { uniqueSortedLabels } from "@/lib/ordering";
+import {
+  filterTrainingsByTeam,
+  parseDateKeyParam,
+  parseTeamIdParam,
+  TRAINING_DATE_PARAM,
+  TRAINING_TEAM_PARAM,
+  trainingTeamOptions,
+} from "@/lib/training-filters";
+import { replaceSearchParam } from "@/lib/url-state";
+import { useUrlParam } from "@/lib/use-url-param";
 
 const monthFormatter = new Intl.DateTimeFormat("lv-LV", { month: "long", timeZone: "UTC" });
 const weekdays = ["Pr", "Ot", "Tr", "Ce", "Pk", "Se", "Sv"];
@@ -55,45 +64,49 @@ function relevantMonth(trainings: TrainingListItem[], todayKey: string) {
   return monthStart(dateFromKey(referenceDate));
 }
 
-/** `trainings` arrive in date, time, id order (`getAllTrainingsFromDb`); the list and `relevantMonth` rely on it. */
-export function TrainingSchedule({ trainings, todayKey }: { trainings: TrainingListItem[]; todayKey: string }) {
-  const [team, setTeam] = useState("__all__");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [visibleMonth, setVisibleMonth] = useState(() => relevantMonth(trainings, todayKey));
-  const teamOptions = uniqueSortedLabels(trainings.map((training) => training.teamName));
-  const filtered = team === "__all__" ? trainings : trainings.filter((training) => training.teamName === team);
+/** `trainings` arrive in date, time, id order (`getAllTrainingsFromDb`); the list and `relevantMonth` rely on it.
+ *  The selected team and day live in the URL (`?komanda=<team id>&datums=YYYY-MM-DD`); `initialTeam` and `initialDate`
+ *  are the raw URL values the server saw, so the HTML and the first client render agree. */
+export function TrainingSchedule({ trainings, todayKey, initialTeam, initialDate }: { trainings: TrainingListItem[]; todayKey: string; initialTeam: string | null; initialDate: string | null }) {
+  const teamOptions = trainingTeamOptions(trainings);
+  const teamId = parseTeamIdParam(useUrlParam(TRAINING_TEAM_PARAM, initialTeam), teamOptions);
+  const selectedDate = parseDateKeyParam(useUrlParam(TRAINING_DATE_PARAM, initialDate));
+  // null = follow the selected day, or the month of the next training of the current team.
+  const [browsedMonth, setBrowsedMonth] = useState<Date | null>(null);
+  const filtered = filterTrainingsByTeam(trainings, teamId);
+  const visibleMonth = selectedDate ? monthStart(dateFromKey(selectedDate)) : browsedMonth ?? relevantMonth(filtered, todayKey);
   const visibleItems = selectedDate ? filtered.filter((training) => training.rawDate === selectedDate) : filtered;
   const trainingCounts = new Map<string, number>();
   for (const training of filtered) trainingCounts.set(training.rawDate, (trainingCounts.get(training.rawDate) ?? 0) + 1);
 
-  function selectTeam(nextTeam: string) {
-    setTeam(nextTeam);
-    setSelectedDate(null);
-    setVisibleMonth(relevantMonth(nextTeam === "__all__" ? trainings : trainings.filter((training) => training.teamName === nextTeam), todayKey));
+  function selectTeam(nextTeamId: number | null) {
+    setBrowsedMonth(null);
+    replaceSearchParam(TRAINING_DATE_PARAM, null);
+    replaceSearchParam(TRAINING_TEAM_PARAM, nextTeamId === null ? null : String(nextTeamId));
   }
 
   function navigateMonth(amount: number) {
-    setVisibleMonth(changeMonth(visibleMonth, amount));
-    setSelectedDate(null);
+    setBrowsedMonth(changeMonth(visibleMonth, amount));
+    replaceSearchParam(TRAINING_DATE_PARAM, null);
   }
 
   function selectDay(day: Date) {
-    setSelectedDate((currentDate) => toggleSelectedDate(currentDate, dateKey(day)));
-    setVisibleMonth(monthStart(day));
+    setBrowsedMonth(monthStart(day));
+    replaceSearchParam(TRAINING_DATE_PARAM, toggleSelectedDate(selectedDate, dateKey(day)));
   }
 
   return (
     <section aria-label="Treniņu grafiks" className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] pb-20 pt-6 text-white md:w-[calc(100%-10rem)] sm:pt-8 xl:pb-28">
       <div className="mb-8 flex gap-2 overflow-x-auto sm:mb-10 sm:gap-3" role="group" aria-label="Filtrēt pēc komandas">
-        {["__all__", ...teamOptions].map((option) => (
+        {[null, ...teamOptions.map((team) => team.id)].map((optionId) => (
           <button
-            key={option}
+            key={optionId ?? "all"}
             type="button"
-            aria-pressed={team === option}
-            onClick={() => selectTeam(option)}
-            className={`min-h-12 shrink-0 px-4 py-3 font-heading text-[18px] font-semibold uppercase leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7 sm:text-[22px] ${team === option ? "bg-white text-[#050505]" : "border border-white/40 text-white hover:border-white"}`}
+            aria-pressed={teamId === optionId}
+            onClick={() => selectTeam(optionId)}
+            className={`min-h-12 shrink-0 px-4 py-3 font-heading text-[18px] font-semibold uppercase leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7 sm:text-[22px] ${teamId === optionId ? "bg-white text-[#050505]" : "border border-white/40 text-white hover:border-white"}`}
           >
-            {option === "__all__" ? "Visas komandas" : option}
+            {optionId === null ? "Visas komandas" : teamOptions.find((team) => team.id === optionId)?.name}
           </button>
         ))}
       </div>
