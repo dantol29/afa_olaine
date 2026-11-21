@@ -1,20 +1,16 @@
 // Pure rules for the public /trenini filters, shared by the server page and the client component so both read a
 // URL such as ?komanda=3&datums=2026-11-11 the same way. A value that does not match anything means "no filter".
-import { sortByName } from "@/lib/ordering";
+import { teamOptionsInOrder } from "@/lib/ordering";
 import { TEAM_FILTER_PARAM, parseIdParam } from "@/lib/url-state";
 
 export const TRAINING_TEAM_PARAM = TEAM_FILTER_PARAM;
 export const TRAINING_DATE_PARAM = "datums";
 
-type TrainingWithTeams = { rawDate: string; teams: { id: number; name: string }[] };
+type TrainingWithTeams = { rawDate: string; teams: { id: number; name: string; sort: number }[] };
 
-/** Every distinct team that has a training, in Latvian name order. */
+/** Every distinct team that has a training, in the admin team order. */
 export function trainingTeamOptions(trainings: readonly TrainingWithTeams[]): { id: number; name: string }[] {
-  const teamsById = new Map<number, { id: number; name: string }>();
-  for (const training of trainings) {
-    for (const team of training.teams) teamsById.set(team.id, team);
-  }
-  return sortByName([...teamsById.values()], (team) => team.name);
+  return teamOptionsInOrder(trainings.flatMap((training) => training.teams));
 }
 
 export const parseTeamIdParam = parseIdParam;

@@ -23,11 +23,11 @@ export const getPublicCoaches = cachePublicData("coaches", async () =>
   ),
 );
 
-/** Academy teams keep creation (id) order; the players of each team are in Latvian name order. */
+/** Academy teams in the admin team order (see compareTeamOrder); the players of each team are in Latvian name order. */
 export const getPublicAcademyTeams = cachePublicData("academy-teams", async () => {
   const academyTeams = await db.query.teams.findMany({
     where: (teams, { eq }) => eq(teams.isMain, false),
-    orderBy: (teams, { asc }) => [asc(teams.id)],
+    orderBy: (teams, { asc }) => [asc(teams.sort), asc(teams.id)],
     with: { playerTeams: { with: { player: true } } },
   });
   return academyTeams.map((team) => ({

@@ -12,7 +12,7 @@ type AuthorCoach =
   | null
   | undefined;
 
-function rowToArticle(row: ArticleRow, team: { id: number; name: string } | null, authorCoach: AuthorCoach): Article {
+function rowToArticle(row: ArticleRow, team: { id: number; name: string; sort: number } | null, authorCoach: AuthorCoach): Article {
   const highlights = row.highlights?.split("\n").filter(Boolean);
   return {
     slug: row.slug,
@@ -23,6 +23,7 @@ function rowToArticle(row: ArticleRow, team: { id: number; name: string } | null
     category: row.category,
     team: team?.name,
     teamId: team?.id,
+    teamSort: team?.sort,
     image: row.image,
     authorName: authorCoach?.name ?? undefined,
     authorPosition: authorCoach?.position ?? undefined,

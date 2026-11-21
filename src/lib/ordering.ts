@@ -30,6 +30,21 @@ export function uniqueSortedLabels(values: Iterable<string | null | undefined>):
   return [...labels].sort(compareLatvian);
 }
 
+type OrderedTeam = { id: number; name: string; sort: number };
+
+/** Team display order chosen in the admin (`teams.sort`); equal values, such as teams never reordered, keep
+ *  creation (id) order. */
+export function compareTeamOrder(a: { id: number; sort: number }, b: { id: number; sort: number }): number {
+  return a.sort - b.sort || a.id - b.id;
+}
+
+/** Team filter options: each team once, in the admin display order. */
+export function teamOptionsInOrder(teams: Iterable<OrderedTeam>): { id: number; name: string }[] {
+  const teamsById = new Map<number, OrderedTeam>();
+  for (const team of teams) teamsById.set(team.id, team);
+  return [...teamsById.values()].sort(compareTeamOrder).map(({ id, name }) => ({ id, name }));
+}
+
 /** Chronological comparator for calendar items; with a stable sort, equal starts keep their input order. */
 export function compareByStart(a: { start: Date }, b: { start: Date }): number {
   return a.start.getTime() - b.start.getTime();

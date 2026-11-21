@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { compareByStart, compareLatvian, orderRoster, sortByName, uniqueSortedLabels } from "@/lib/ordering";
+import { compareByStart, compareLatvian, compareTeamOrder, orderRoster, sortByName, teamOptionsInOrder, uniqueSortedLabels } from "@/lib/ordering";
 
 type Person = { name: string; photo: boolean; id: number };
 
@@ -59,4 +59,24 @@ test("compareByStart orders by time and keeps the input order of equal starts", 
     { start: new Date("2026-10-02T10:00:00Z"), id: 3 },
   ];
   assert.deepEqual([...items].sort(compareByStart).map((item) => item.id), [2, 1, 3]);
+});
+
+describe("team order", () => {
+  test("follows the admin order, then creation (id) order for equal values", () => {
+    const teams = [
+      { id: 4, sort: 0 },
+      { id: 2, sort: 1 },
+      { id: 1, sort: 0 },
+    ];
+    assert.deepEqual([...teams].sort(compareTeamOrder).map((team) => team.id), [1, 4, 2]);
+  });
+
+  test("filter options list each team once without the order field", () => {
+    const options = teamOptionsInOrder([
+      { id: 5, name: "U9", sort: 2 },
+      { id: 3, name: "WU12", sort: 0 },
+      { id: 5, name: "U9", sort: 2 },
+    ]);
+    assert.deepEqual(options, [{ id: 3, name: "WU12" }, { id: 5, name: "U9" }]);
+  });
 });

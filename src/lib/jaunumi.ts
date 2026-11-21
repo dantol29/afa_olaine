@@ -14,6 +14,8 @@ export type Article = {
   category: ArticleCategory;
   team?: string;
   teamId?: number;
+  /** The team's admin display order, for ordering team filter options. */
+  teamSort?: number;
   image: string;
   authorName?: string;
   authorPosition?: string;

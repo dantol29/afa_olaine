@@ -1,16 +1,14 @@
-import { Pencil } from "lucide-react";
 import Link from "next/link";
 
-import { DeleteButton } from "@/components/admin/delete-button";
-import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
 import { teams } from "@/db/schema";
-import { sortByName } from "@/lib/ordering";
+import { compareTeamOrder } from "@/lib/ordering";
 
-import { deleteTeam } from "./actions";
+import { TeamsTable } from "./teams-table";
 
 export default async function AdminTeamsPage() {
-  const rows = sortByName(await db.select().from(teams), (team) => team.name);
+  // The admin list shows the same order as the site, so sorting here is what visitors see.
+  const rows = (await db.select().from(teams)).sort(compareTeamOrder);
 
   return (
     <div>
@@ -23,49 +21,7 @@ export default async function AdminTeamsPage() {
           + Pievienot
         </Link>
       </div>
-      <AdminSearch placeholder="Meklēt komandas…" />
-
-      <table className="w-full overflow-hidden rounded-xl bg-white text-left text-sm shadow-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-slate-400">
-            <th className="p-4 font-semibold">Nosaukums</th>
-            <th className="p-4" />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((team) => (
-            <tr data-admin-search-item={team.name} key={team.id} className="border-b border-slate-100 last:border-0">
-              <td className="p-4 font-semibold text-club-navy">
-                {team.name}
-                {team.isMain && <span className="mt-1 block text-xs font-semibold text-club-red">Galvenā komanda</span>}
-              </td>
-              <td className="p-4 text-right">
-                <div className="flex items-center justify-end gap-4">
-                  <Link
-                    href={`/admin/teams/${team.id}`}
-                    aria-label={`Rediģēt komandu "${team.name}"`}
-                    title="Rediģēt"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-club-navy transition hover:bg-club-gray-light"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Link>
-                  <DeleteButton
-                    action={deleteTeam.bind(null, team.id)}
-                    confirmMessage={`Dzēst komandu "${team.name}"? Tiks dzēsti arī tās spēlētāji, treniņi, notikumi un spēles.`}
-                  />
-                </div>
-              </td>
-            </tr>
-          ))}
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={2} className="p-4 text-center text-slate-400">
-                Vēl nav neviena komanda.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <TeamsTable teams={rows.map(({ id, name, isMain }) => ({ id, name, isMain }))} />
     </div>
   );
 }

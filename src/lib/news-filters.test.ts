@@ -5,14 +5,14 @@ import { categoryCode, filterArticles, newsCategoryOptions, newsTeamOptions, par
 
 const articles = [
   { category: "Klubs" as const },
-  { category: "Spēles" as const, teamId: 3, team: "WU12" },
-  { category: "Treniņi" as const, teamId: 1, team: "2. liga" },
-  { category: "Spēles" as const, teamId: 1, team: "2. liga" },
+  { category: "Spēles" as const, teamId: 3, team: "WU12", teamSort: 0 },
+  { category: "Treniņi" as const, teamId: 1, team: "2. liga", teamSort: 1 },
+  { category: "Spēles" as const, teamId: 1, team: "2. liga", teamSort: 1 },
 ];
 
 describe("newsTeamOptions", () => {
-  test("lists each team once in name order and skips club-wide articles", () => {
-    assert.deepEqual(newsTeamOptions(articles), [{ id: 1, name: "2. liga" }, { id: 3, name: "WU12" }]);
+  test("lists each team once in the admin team order and skips club-wide articles", () => {
+    assert.deepEqual(newsTeamOptions(articles), [{ id: 3, name: "WU12" }, { id: 1, name: "2. liga" }]);
   });
 });
 
