@@ -77,6 +77,9 @@ export const getUpcomingGamesFromDb = cache(async function getUpcomingGamesFromD
 type GameListItem = UpcomingGame & {
   /** Which of the club's own teams plays this fixture (e.g. "U14", "Sieviešu 1"). */
   teamName: string;
+  teamId: number;
+  /** The team's admin display order, for ordering the team filter. */
+  teamSort: number;
   /** "YYYY-MM-DD" — used for calendar-grid placement. */
   rawDate: string;
   isPast: boolean;
@@ -102,6 +105,7 @@ export const getAllGamesFromDb = cache(async function getAllGamesFromDb(): Promi
         location: gamesTable.location,
         league: gamesTable.league,
         teamName: teamsTable.name,
+        teamSort: teamsTable.sort,
       })
       .from(gamesTable)
       .innerJoin(teamsTable, eq(gamesTable.teamId, teamsTable.id))
@@ -124,6 +128,8 @@ export const getAllGamesFromDb = cache(async function getAllGamesFromDb(): Promi
         away: teamDisplay(row.awayTeam, logos.get(row.awayTeam) ?? null),
         venue: row.location,
         teamName: row.teamName,
+        teamId: row.teamId,
+        teamSort: row.teamSort,
         rawDate: row.date,
         isPast: row.date < todayKey,
         homeScore: row.homeScore,

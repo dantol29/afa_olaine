@@ -1,6 +1,6 @@
 // Pure rules for the public /jaunumi filters, shared by the server page and the client component so both read a
 // URL such as ?komanda=3&kategorija=speles the same way. A value that does not match anything means "no filter".
-import { compareLatvian, sortByName } from "@/lib/ordering";
+import { compareLatvian, teamOptionsInOrder } from "@/lib/ordering";
 import type { ArticleCategory } from "@/lib/jaunumi";
 import { parseIdParam } from "@/lib/url-state";
 
@@ -15,7 +15,7 @@ const CATEGORY_CODES: Record<ArticleCategory, string> = {
   Pasākumi: "pasakumi",
 };
 
-type FilterableArticle = { category: ArticleCategory; teamId?: number; team?: string };
+type FilterableArticle = { category: ArticleCategory; teamId?: number; team?: string; teamSort?: number };
 
 export function categoryCode(category: ArticleCategory): string {
   return CATEGORY_CODES[category];
@@ -26,13 +26,13 @@ export function parseCategoryParam(value: string | null | undefined, options: re
   return options.find((category) => CATEGORY_CODES[category] === value) ?? null;
 }
 
-/** Every distinct team that has an article, in Latvian name order. Club-wide articles have no team and are not listed. */
+/** Every distinct team that has an article, in the admin team order. Club-wide articles have no team and are not listed. */
 export function newsTeamOptions(articles: readonly FilterableArticle[]): { id: number; name: string }[] {
-  const teamsById = new Map<number, { id: number; name: string }>();
-  for (const article of articles) {
-    if (article.teamId !== undefined && article.team) teamsById.set(article.teamId, { id: article.teamId, name: article.team });
-  }
-  return sortByName([...teamsById.values()], (team) => team.name);
+  return teamOptionsInOrder(articles.flatMap((article) =>
+    article.teamId !== undefined && article.team && article.teamSort !== undefined
+      ? [{ id: article.teamId, name: article.team, sort: article.teamSort }]
+      : [],
+  ));
 }
 
 /** Every distinct category that has an article, in Latvian label order. */

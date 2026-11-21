@@ -4,10 +4,10 @@ import { useState } from "react";
 
 import { MatchCard, type MatchCardGame } from "./match-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { uniqueSortedLabels } from "@/lib/ordering";
+import { teamOptionsInOrder } from "@/lib/ordering";
 
 type GameWithStripes = {
-  game: MatchCardGame & { teamName: string };
+  game: MatchCardGame & { teamName: string; teamId: number; teamSort: number };
   homeBorderStripe: string;
   awayBorderStripe: string;
 };
@@ -15,7 +15,7 @@ type GameWithStripes = {
 export function GamesTabs({ upcoming, past }: { upcoming: GameWithStripes[]; past: GameWithStripes[] }) {
   const [view, setView] = useState<"upcoming" | "past">(upcoming.length > 0 ? "upcoming" : "past");
   const [team, setTeam] = useState("");
-  const teams = uniqueSortedLabels([...upcoming, ...past].map(({ game }) => game.teamName));
+  const teams = teamOptionsInOrder([...upcoming, ...past].map(({ game }) => ({ id: game.teamId, name: game.teamName, sort: game.teamSort }))).map((option) => option.name);
 
   return (
     <section aria-label="Spēļu saraksts" className="pt-6 sm:pt-8">

@@ -25,7 +25,7 @@ export type TrainingListItem = {
   endTime: string;
   location: string;
   teamName: string;
-  teams: { id: number; name: string }[];
+  teams: { id: number; name: string; sort: number }[];
   coaches: TrainingCoach[];
   isPast: boolean;
 };

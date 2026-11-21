@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, max } from "drizzle-orm";
 import { revalidatePath, updateTag } from "next/cache";
 import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { teams } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
+import { parseTeamOrder } from "@/lib/admin-input/team-order";
 import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 
 function teamPhoto(formData: FormData) {
@@ -31,7 +32,9 @@ export async function createTeam(
     if (photo) groupPhotoUrl = await saveUploadedPhoto(photo, "clubs");
     await db.transaction(async (tx) => {
       if (isMain) await tx.update(teams).set({ isMain: false }).where(eq(teams.isMain, true));
-      await tx.insert(teams).values({ name, groupPhotoUrl, isMain, createdAt: Date.now() });
+      // A new team goes to the end of the display order instead of jumping ahead of teams already ordered.
+      const [{ lastSort }] = await tx.select({ lastSort: max(teams.sort) }).from(teams);
+      await tx.insert(teams).values({ name, groupPhotoUrl, isMain, sort: (lastSort ?? -1) + 1, createdAt: Date.now() });
     });
   } catch (error) {
     await deleteUploadedPhoto(groupPhotoUrl);
@@ -98,4 +101,30 @@ export async function deleteTeam(id: number) {
   revalidatePath("/komanda");
   revalidatePath("/sitemap.xml");
   revalidatePath("/akademija");
+}
+
+/** Saves the display order of all teams from the admin team list in one request. */
+export async function saveTeamOrder(teamIds: number[]): Promise<{ error?: string }> {
+  await requireAdminSession();
+
+  const currentTeams = await db.select({ id: teams.id }).from(teams);
+  const parsed = parseTeamOrder(teamIds, currentTeams.map((team) => team.id));
+  if ("error" in parsed) return parsed;
+
+  try {
+    await db.transaction(async (tx) => {
+      for (const [position, id] of parsed.teamIds.entries()) {
+        await tx.update(teams).set({ sort: position }).where(eq(teams.id, id));
+      }
+    });
+  } catch {
+    return { error: "Secību neizdevās saglabāt." };
+  }
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
+  revalidatePath("/admin/teams");
+  revalidatePath("/akademija");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/speles");
+  revalidatePath("/");
+  return {};
 }

@@ -3,8 +3,9 @@ import { describe, test } from "node:test";
 
 import { filterTrainingsByTeam, parseDateKeyParam, parseTeamIdParam, trainingTeamOptions } from "@/lib/training-filters";
 
-const liga = { id: 1, name: "2. liga" };
-const wu12 = { id: 3, name: "WU12" };
+// WU12 is placed before 2. liga in the admin team order, against both name and id order.
+const liga = { id: 1, name: "2. liga", sort: 1 };
+const wu12 = { id: 3, name: "WU12", sort: 0 };
 const trainings = [
   { rawDate: "2026-11-11", teams: [liga] },
   { rawDate: "2026-11-12", teams: [wu12, liga] },
@@ -12,8 +13,8 @@ const trainings = [
 ];
 
 describe("trainingTeamOptions", () => {
-  test("lists each team once, in name order, including teams that share a training", () => {
-    assert.deepEqual(trainingTeamOptions(trainings), [liga, wu12]);
+  test("lists each team once, in the admin team order, including teams that share a training", () => {
+    assert.deepEqual(trainingTeamOptions(trainings), [{ id: 3, name: "WU12" }, { id: 1, name: "2. liga" }]);
   });
 
   test("is empty without trainings", () => {
