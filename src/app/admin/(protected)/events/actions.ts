@@ -9,6 +9,13 @@ import { events } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
 import { parseEventInput } from "@/lib/admin-input/events";
 
+/** Events show on the homepage block and /speles together with games, so those refresh with the admin list. */
+function revalidateEventPages() {
+  revalidatePath("/admin/events");
+  revalidatePath("/");
+  revalidatePath("/speles");
+}
+
 export async function createEvent(
   _prevState: { error?: string } | undefined,
   formData: FormData,
@@ -19,7 +26,7 @@ export async function createEvent(
   if ("error" in parsed) return parsed;
 
   await db.insert(events).values({ ...parsed, createdAt: Date.now() });
-  revalidatePath("/admin/events");
+  revalidateEventPages();
   redirect("/admin/events");
 }
 
@@ -34,7 +41,7 @@ export async function updateEvent(
   if ("error" in parsed) return parsed;
 
   await db.update(events).set(parsed).where(eq(events.id, id));
-  revalidatePath("/admin/events");
+  revalidateEventPages();
   redirect("/admin/events");
 }
 
@@ -42,5 +49,5 @@ export async function deleteEvent(id: number) {
   await requireAdminSession();
 
   await db.delete(events).where(eq(events.id, id));
-  revalidatePath("/admin/events");
+  revalidateEventPages();
 }
