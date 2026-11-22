@@ -69,25 +69,25 @@ export function timesOverlap(start: string, end: string, otherStart: string, oth
   return start < otherEnd && otherStart < end;
 }
 
-/** A training of the team already on file that the new one on `date` would overlap, if any. */
+/** A training already on file, of any of the given teams, that a new one on `date` would overlap, if any. */
 export function findClash(
   date: string,
   startTime: string,
   endTime: string,
-  teamId: number,
+  teamIds: readonly number[],
   existing: readonly ScheduleTraining[],
 ): ScheduleTraining | null {
   return (
     existing.find(
       (training) =>
         training.date === date &&
-        training.teamIds.includes(teamId) &&
+        training.teamIds.some((teamId) => teamIds.includes(teamId)) &&
         timesOverlap(startTime, endTime, training.startTime, training.endTime),
     ) ?? null
   );
 }
 
-const sameTeams = (a: readonly number[], b: readonly number[]) =>
+export const sameTeams = (a: readonly number[], b: readonly number[]) =>
   a.length === b.length && [...a].sort().join(",") === [...b].sort().join(",");
 
 /** The repeats of `source`, itself included: on the same weekday, at the same start and end, for the same teams,
@@ -111,12 +111,13 @@ export function findSimilarTrainings(
     .sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
 }
 
-/** A training of the same team(s) on the same day that `training` would overlap if moved to the new times, leaving
- *  out the trainings being changed together with it. */
+/** A training of any of `teamIds` (the training's teams after the change) on the same day that `training` would
+ *  overlap at `startTime`–`endTime` (its times after the change), leaving out the trainings changed together with it. */
 export function findChangeClash(
   training: ScheduleTraining,
   startTime: string,
   endTime: string,
+  teamIds: readonly number[],
   trainings: readonly ScheduleTraining[],
   changingIds: ReadonlySet<number>,
 ): ScheduleTraining | null {
@@ -126,7 +127,7 @@ export function findChangeClash(
         !changingIds.has(other.id) &&
         other.id !== training.id &&
         other.date === training.date &&
-        other.teamIds.some((teamId) => training.teamIds.includes(teamId)) &&
+        other.teamIds.some((teamId) => teamIds.includes(teamId)) &&
         timesOverlap(startTime, endTime, other.startTime, other.endTime),
     ) ?? null
   );

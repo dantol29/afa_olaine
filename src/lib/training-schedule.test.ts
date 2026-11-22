@@ -38,15 +38,16 @@ describe("scheduleDates", () => {
 describe("findClash", () => {
   const existing = [training(1, "2026-11-23", "18:00", "19:30", [1, 2]), training(2, "2026-11-25", "18:00", "19:30", [3])];
 
-  test("finds an overlapping training of the same team on that day", () => {
-    assert.equal(findClash("2026-11-23", "19:00", "20:30", 2, existing)?.id, 1);
+  test("finds an overlapping training of any of the given teams on that day", () => {
+    assert.equal(findClash("2026-11-23", "19:00", "20:30", [2], existing)?.id, 1);
+    assert.equal(findClash("2026-11-23", "19:00", "20:30", [7, 1], existing)?.id, 1);
   });
 
   test("ignores touching times, other teams and other days", () => {
     assert.equal(timesOverlap("19:30", "21:00", "18:00", "19:30"), false);
-    assert.equal(findClash("2026-11-23", "19:30", "21:00", 1, existing), null);
-    assert.equal(findClash("2026-11-25", "18:00", "19:30", 1, existing), null);
-    assert.equal(findClash("2026-11-24", "18:00", "19:30", 1, existing), null);
+    assert.equal(findClash("2026-11-23", "19:30", "21:00", [1], existing), null);
+    assert.equal(findClash("2026-11-25", "18:00", "19:30", [1, 2], existing), null);
+    assert.equal(findClash("2026-11-24", "18:00", "19:30", [1], existing), null);
   });
 });
 
@@ -80,13 +81,18 @@ describe("findChangeClash", () => {
   const all = [moving, alsoMoving, other, otherTeam];
 
   test("finds another training of the team that the new time would overlap", () => {
-    assert.equal(findChangeClash(moving, "19:00", "20:30", all, new Set([1]))?.id, 2);
-    assert.equal(findChangeClash(moving, "20:30", "22:00", all, new Set([1]))?.id, 2);
+    assert.equal(findChangeClash(moving, "19:00", "20:30", [1], all, new Set([1]))?.id, 2);
+    assert.equal(findChangeClash(moving, "20:30", "22:00", [1], all, new Set([1]))?.id, 2);
+  });
+
+  test("checks the new teams: an added team's training at that time is a clash", () => {
+    assert.equal(findChangeClash(moving, "18:00", "19:30", [1, 5], all, new Set([1]))?.id, 4);
+    assert.equal(findChangeClash(moving, "17:00", "18:30", [1, 5], all, new Set([1])), null);
   });
 
   test("ignores the trainings changed together, other teams and the training itself", () => {
-    assert.equal(findChangeClash(moving, "18:30", "19:45", all, new Set([1, 2])), null);
-    assert.equal(findChangeClash(moving, "20:30", "22:00", all, new Set([1, 2]))?.id, 3);
-    assert.equal(findChangeClash(moving, "17:00", "18:30", all, new Set([1])), null);
+    assert.equal(findChangeClash(moving, "18:30", "19:45", [1], all, new Set([1, 2])), null);
+    assert.equal(findChangeClash(moving, "20:30", "22:00", [1], all, new Set([1, 2]))?.id, 3);
+    assert.equal(findChangeClash(moving, "17:00", "18:30", [1], all, new Set([1])), null);
   });
 });

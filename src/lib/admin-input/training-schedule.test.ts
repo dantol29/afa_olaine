@@ -10,7 +10,8 @@ function form(entries: [string, string][]) {
 }
 
 const base: [string, string][] = [
-  ["teamId", "4"],
+  ["teamIds", "4"],
+  ["teamIds", "1"],
   ["coachIds", "2"],
   ["startTime", "18:00"],
   ["endTime", "19:30"],
@@ -21,7 +22,7 @@ const base: [string, string][] = [
 describe("parseTrainingScheduleInput", () => {
   test("keeps the ticked dates once each, in order", () => {
     assert.deepEqual(parseTrainingScheduleInput(form([...base, ["dates", "2026-11-30"], ["dates", "2026-11-23"], ["dates", "2026-11-30"]])), {
-      teamId: 4,
+      teamIds: [1, 4],
       coachIds: [2],
       dates: ["2026-11-23", "2026-11-30"],
       startTime: "18:00",
@@ -51,23 +52,30 @@ describe("parseSimilarSelectionInput", () => {
 
 describe("parseSimilarChangeInput", () => {
   const selection: [string, string][] = [["until", "2026-12-31"], ["trainingIds", "5"], ["trainingIds", "6"]];
-  const parse = (extra: [string, string][]) => parseSimilarChangeInput(form([...selection, ...extra]));
+  const parse = (extra: [string, string][], teams: [string, string][] = [["newTeamIds", "3"]]) =>
+    parseSimilarChangeInput(form([...selection, ...teams, ...extra]));
 
   test("changes only what is given", () => {
     assert.deepEqual(parse([["newStartTime", "18:30"], ["newEndTime", "20:00"], ["newLocation", ""]]), {
       until: "2026-12-31",
       ids: [5, 6],
+      teamIds: [3],
       changes: { startTime: "18:30", endTime: "20:00" },
     });
     assert.deepEqual(parse([["newStartTime", ""], ["newEndTime", ""], ["newLocation", " Zāle "]]), {
       until: "2026-12-31",
       ids: [5, 6],
+      teamIds: [3],
       changes: { location: "Zāle" },
     });
   });
 
-  test("needs a change, both times and an end after the start", () => {
-    assert.deepEqual(parse([]), { error: "Norādi jauno laiku vai vietu." });
+  test("reads the teams, which alone may be the change (decided against the source training by the action)", () => {
+    assert.deepEqual(parse([], [["newTeamIds", "3"], ["newTeamIds", "1"]]), { until: "2026-12-31", ids: [5, 6], teamIds: [1, 3], changes: {} });
+    assert.deepEqual(parse([], []), { error: "Jāizvēlas vismaz viena komanda." });
+  });
+
+  test("needs both times and an end after the start", () => {
     assert.deepEqual(parse([["newStartTime", "18:30"]]), { error: "Jānorāda gan jaunais sākuma, gan beigu laiks." });
     assert.deepEqual(parse([["newStartTime", "18:30"], ["newEndTime", "18:00"]]), {
       error: "Beigu laikam jābūt vēlāk par sākuma laiku (tajā pašā dienā).",

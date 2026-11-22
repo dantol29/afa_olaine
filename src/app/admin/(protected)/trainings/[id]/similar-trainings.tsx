@@ -6,7 +6,7 @@ import { SuggestInput } from "@/components/admin/suggest-input";
 import { TimeSelect } from "@/components/admin/time-select";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { isEndAfterStart } from "@/lib/time-range";
-import { findChangeClash, weekdayLabel, type ScheduleTraining } from "@/lib/training-schedule";
+import { findChangeClash, sameTeams, weekdayLabel, type ScheduleTraining } from "@/lib/training-schedule";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { changeSimilarTrainings, deleteSimilarTrainings } from "../actions";
@@ -14,19 +14,24 @@ import { changeSimilarTrainings, deleteSimilarTrainings } from "../actions";
 const DELETE_SUBMITTER = "delete";
 
 /** "Līdzīgie treniņi": the repeats of this training (same weekday, start, end and teams) from its date up to a chosen
- *  date, each with a tick. The ticked ones can be moved to a new time and/or place, or deleted, after a confirmation.
- *  With a new time, a repeat that would then overlap another training of the team starts unticked. */
+ *  date, each with a tick. The ticked ones can be moved to a new time and/or place, given another set of teams (to
+ *  make them shared trainings), or deleted, after a confirmation. With a new time or teams, a repeat that would then
+ *  overlap another training of one of its teams starts unticked. */
 export function SimilarTrainings({
   trainingId,
   date,
+  teamIds,
   similar,
-  teamTrainings,
+  laterTrainings,
+  teamOptions,
   locations,
 }: {
   trainingId: number;
   date: string;
+  teamIds: number[];
   similar: ScheduleTraining[];
-  teamTrainings: ScheduleTraining[];
+  laterTrainings: ScheduleTraining[];
+  teamOptions: { id: number; name: string }[];
   locations: string[];
 }) {
   const [changeState, changeAction, changePending] = useActionState(changeSimilarTrainings.bind(null, trainingId), undefined);
@@ -35,22 +40,39 @@ export function SimilarTrainings({
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
+  const [newTeamIds, setNewTeamIds] = useState<number[]>(teamIds);
   // Ticks the admin changed by hand, by training id; every other row follows its clash.
   const [ticks, setTicks] = useState<Record<number, boolean>>({});
 
   const timesSet = isEndAfterStart(startTime, endTime);
+  const teamsChanged = newTeamIds.length > 0 && !sameTeams(newTeamIds, teamIds);
   const inRange = similar.filter((training) => training.date <= until);
   const changingIds = new Set(inRange.map((training) => training.id));
   const rows = inRange.map((training) => ({
     training,
-    clash: timesSet ? findChangeClash(training, startTime, endTime, teamTrainings, changingIds) : null,
+    clash:
+      timesSet || teamsChanged
+        ? findChangeClash(
+            training,
+            timesSet ? startTime : training.startTime,
+            timesSet ? endTime : training.endTime,
+            newTeamIds,
+            laterTrainings,
+            changingIds,
+          )
+        : null,
   }));
   const isTicked = (row: (typeof rows)[number]) => ticks[row.training.id] ?? row.clash === null;
   const tickedCount = rows.filter(isTicked).length;
-  const hasChange = timesSet || location.trim() !== "";
+  const hasChange = timesSet || location.trim() !== "" || teamsChanged;
+  const teamName = (id: number) => teamOptions.find((team) => team.id === id)?.name ?? "";
   const pending = changePending || deletePending;
   const error = changeState?.error ?? deleteState?.error;
   const unsavedFormRef = useUnsavedChangesGuard(pending, changeState ?? deleteState);
+
+  function toggleTeam(id: number) {
+    setNewTeamIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+  }
 
   function changeStartTime(value: string) {
     setStartTime(value);
@@ -72,7 +94,7 @@ export function SimilarTrainings({
         className="mt-3"
       >
         <p className="text-xs text-slate-500">
-          Tā pati nedēļas diena ({weekdayLabel(date).toLowerCase()}), laiks un komanda, sākot no {date}. Vieta un treneri netiek salīdzināti.
+          Tā pati nedēļas diena ({weekdayLabel(date).toLowerCase()}), laiks un komandas, sākot no {date}. Vieta un treneri netiek salīdzināti.
         </p>
         <label className="mt-3 block text-sm font-semibold text-club-navy">
           Līdz (ieskaitot)
@@ -105,7 +127,8 @@ export function SimilarTrainings({
                   {row.training.id === trainingId && " (šis)"}
                   {row.clash && (
                     <span className="block text-xs font-semibold text-amber-700">
-                      ⚠️ Pārklāsies ar {row.clash.startTime}–{row.clash.endTime}, {row.clash.location}
+                      ⚠️ Pārklāsies ar {row.clash.teamIds.map(teamName).filter(Boolean).join(", ")}{" "}
+                      {`${row.clash.startTime}–${row.clash.endTime}`}, {row.clash.location}
                     </span>
                   )}
                 </span>
@@ -115,8 +138,8 @@ export function SimilarTrainings({
         </ul>
 
         <fieldset className="mt-4 border-t border-slate-200 pt-4">
-          <legend className="sr-only">Jaunais laiks un vieta</legend>
-          <p className="text-xs text-slate-500">Mainīt: atstāj tukšu to, kas paliek kā ir.</p>
+          <legend className="sr-only">Jaunais laiks, vieta un komandas</legend>
+          <p className="text-xs text-slate-500">Mainīt: atstāj tukšu laiku vai vietu, ja tie paliek kā ir.</p>
           <div className="mt-2 flex gap-4">
             <TimeSelect name="newStartTime" label="Jauns sākums" value={startTime} onChange={changeStartTime} required={false} />
             <TimeSelect name="newEndTime" label="Jaunas beigas" value={endTime} onChange={setEndTime} required={false} />
@@ -134,6 +157,16 @@ export function SimilarTrainings({
             </button>
           )}
           <SuggestInput name="newLocation" label="Jauna vieta" value={location} onChange={setLocation} options={locations} className="mt-3" />
+          <p className="mt-3 text-sm font-semibold text-club-navy">Komandas</p>
+          <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
+            {teamOptions.map((team) => (
+              <label key={team.id} className="flex items-center gap-2 text-sm text-club-navy">
+                <input type="checkbox" name="newTeamIds" value={team.id} checked={newTeamIds.includes(team.id)} onChange={() => toggleTeam(team.id)} />
+                {team.name}
+              </label>
+            ))}
+          </div>
+          {newTeamIds.length === 0 && <p className="mt-1 text-xs text-club-red">Jāizvēlas vismaz viena komanda.</p>}
         </fieldset>
 
         {error && <p className="mt-3 text-sm font-semibold text-club-red">{error}</p>}
@@ -142,7 +175,7 @@ export function SimilarTrainings({
           <button
             type="submit"
             formAction={changeAction}
-            disabled={pending || tickedCount === 0 || !hasChange}
+            disabled={pending || tickedCount === 0 || !hasChange || newTeamIds.length === 0}
             className="rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-club-red-dark disabled:opacity-50"
           >
             {changePending ? "Saglabā..." : `Mainīt (${tickedCount})`}

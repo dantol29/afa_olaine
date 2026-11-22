@@ -15,13 +15,13 @@ import { SimilarTrainings } from "./similar-trainings";
 
 import { TrainingForm } from "./training-form";
 
-// The form edits one team per training (the first, as before); a copy takes the same team.
+// The form edits all the teams of a training; a copy takes the same teams.
 async function findTrainingFormValues(trainingId: number) {
   const training = await db.query.trainings.findFirst({
     where: (trainings, { eq }) => eq(trainings.id, trainingId),
     with: { trainingCoaches: true, trainingTeams: true },
   });
-  return training && { ...training, teamId: training.trainingTeams[0]?.teamId ?? 0 };
+  return training && { ...training, teamIds: training.trainingTeams.map((link) => link.teamId) };
 }
 
 export default async function AdminTrainingFormPage({
@@ -52,15 +52,15 @@ export default async function AdminTrainingFormPage({
   }
 
   // The repeats of the training being edited, for "Līdzīgie treniņi"; the page narrows them to an until-date. The
-  // team's other trainings from that date on let it warn when a new time would overlap one of them.
+  // other trainings from that date on let it warn when a new time or new teams would overlap one of them.
   let similar: ScheduleTraining[] = [];
-  let teamTrainings: ScheduleTraining[] = [];
+  let laterTrainings: ScheduleTraining[] = [];
   if (training) {
     const all = await loadScheduleTrainings();
     const source = all.find((item) => item.id === training.id);
     if (source) {
       similar = findSimilarTrainings(source, null, all);
-      teamTrainings = all.filter((item) => item.date >= source.date && item.teamIds.some((teamId) => source.teamIds.includes(teamId)));
+      laterTrainings = all.filter((item) => item.date >= source.date);
     }
   }
 
@@ -83,7 +83,15 @@ export default async function AdminTrainingFormPage({
           coachOptions={coachOptions}
           locations={locations}
         />
-        <SimilarTrainings trainingId={training.id} date={training.date} similar={similar} teamTrainings={teamTrainings} locations={locations} />
+        <SimilarTrainings
+          trainingId={training.id}
+          date={training.date}
+          teamIds={training.teamIds}
+          similar={similar}
+          laterTrainings={laterTrainings}
+          teamOptions={teamOptions}
+          locations={locations}
+        />
         </>
       ) : (
         <TrainingForm mode="create" teamOptions={teamOptions} coachOptions={coachOptions} locations={locations} copyOf={copyOf} />
