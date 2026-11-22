@@ -7,6 +7,7 @@ import { TimeSelect } from "@/components/admin/time-select";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { isEndAfterStart } from "@/lib/time-range";
 import { WEEKDAYS, findClash, scheduleDates, weekdayLabel, type ScheduleTraining } from "@/lib/training-schedule";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createTrainingSchedule } from "../actions";
 
@@ -30,6 +31,7 @@ export function ScheduleForm({
   existing: ScheduleTraining[];
 }) {
   const [state, action, pending] = useActionState(createTrainingSchedule, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const [teamId, setTeamId] = useState("");
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState("");
@@ -67,7 +69,7 @@ export function ScheduleForm({
   const tickedCount = plan.rows.filter(isTicked).length;
 
   return (
-    <form action={action} className="max-w-2xl">
+    <form ref={unsavedFormRef} action={action} className="max-w-2xl">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">Treniņi pēc grafika</h1>
 
       <label className="block text-sm font-semibold text-club-navy">

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useActionState } from "react";
 
 import { handleImageInputChange } from "@/lib/client-image-resize";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createPartner, updatePartner } from "../actions";
 
@@ -22,10 +23,11 @@ export function PartnerForm(
   const action =
     props.mode === "create" ? createPartner : updatePartner.bind(null, props.partner.id);
   const [state, formAction, pending] = useActionState(action, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const partner = props.mode === "edit" ? props.partner : null;
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauns partneris" : "Rediģēt partneri"}
       </h1>

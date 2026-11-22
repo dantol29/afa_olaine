@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { moveOutcome, type MoveMode, type MovePlayer, type MoveOutcome } from "@/lib/player-move";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { movePlayers, type PlayerMoveState } from "../actions";
 
@@ -30,6 +31,7 @@ export function PlayerMove({
     if (result?.saved) setTicked(new Set());
     return result;
   }, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
 
   const teamName = (id: number | string) => teamOptions.find((team) => team.id === Number(id))?.name ?? "";
   const from = Number(fromTeamId);
@@ -58,7 +60,7 @@ export function PlayerMove({
   }
 
   return (
-    <form
+    <form ref={unsavedFormRef}
       action={action}
       onSubmit={(event) => {
         const verb = mode === "move" ? "Pārcelt" : "Pievienot";

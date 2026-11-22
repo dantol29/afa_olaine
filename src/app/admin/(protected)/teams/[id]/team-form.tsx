@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { handleImageInputChange } from "@/lib/client-image-resize";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createTeam, updateTeam } from "../actions";
 
@@ -11,9 +12,10 @@ type Team = { id: number; name: string; groupPhotoUrl: string | null; isMain: bo
 export function TeamForm(props: { mode: "create" } | { mode: "edit"; team: Team }) {
   const action = props.mode === "create" ? createTeam : updateTeam.bind(null, props.team.id);
   const [state, formAction, pending] = useActionState(action, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauna komanda" : "Rediģēt komandu"}
       </h1>

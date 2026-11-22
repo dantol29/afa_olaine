@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useActionState } from "react";
 
 import { handleImageInputChange } from "@/lib/client-image-resize";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createClubLogo, updateClubLogo } from "../actions";
 
@@ -13,10 +14,11 @@ export function ClubLogoForm(props: { mode: "create" } | { mode: "edit"; club: C
   const action =
     props.mode === "create" ? createClubLogo : updateClubLogo.bind(null, props.club.id);
   const [state, formAction, pending] = useActionState(action, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const club = props.mode === "edit" ? props.club : null;
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauns kluba logo" : "Rediģēt kluba logo"}
       </h1>

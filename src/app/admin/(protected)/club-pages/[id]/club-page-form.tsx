@@ -8,6 +8,7 @@ import { createClubPage, updateClubPage } from "../actions";
 import { parseClubPageMedia } from "@/lib/club-page-media";
 import { PageActionsEditor } from "@/components/admin/page-actions-editor";
 import { PagePhotosEditor } from "@/components/admin/page-photos-editor";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 type ClubPage = {
   id: number;
@@ -31,12 +32,13 @@ export function ClubPageForm(props: { mode: "create" } | { mode: "edit"; page: C
   const page = props.mode === "edit" ? props.page : null;
   const action = props.mode === "create" ? createClubPage : updateClubPage.bind(null, props.page.id);
   const [state, formAction, pending] = useActionState(action, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const [slug, setSlug] = useState(page?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(props.mode === "edit");
   const media = parseClubPageMedia(page?.images);
 
   return (
-    <form action={formAction} className="max-w-2xl">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-2xl">
       <h1 className="mb-1 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauna kluba lapa" : "Rediģēt kluba lapu"}
       </h1>

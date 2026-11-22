@@ -6,6 +6,7 @@ import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form
 import { SuggestInput } from "@/components/admin/suggest-input";
 import { TimeSelect } from "@/components/admin/time-select";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createTraining, updateTraining } from "../actions";
 
@@ -37,6 +38,7 @@ export function TrainingForm(
   const isCopy = copy.isCopy || (props.mode === "create" && props.copyOf !== undefined);
   const state = isCreate ? createState : updateState;
   const pending = isCreate ? createPending : updatePending;
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const training = props.mode === "edit" ? props.training : props.copyOf ?? null;
   const selectedCoachIds = new Set(training?.trainingCoaches.map((tc) => tc.coachId) ?? []);
   const [startTime, setStartTime] = useState(training?.startTime ?? "");
@@ -55,7 +57,7 @@ export function TrainingForm(
   }
 
   return (
-    <form action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
+    <form ref={unsavedFormRef} action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {isCreate ? `Jauns treniņš${isCopy ? " (kopija)" : ""}` : "Rediģēt treniņu"}
       </h1>

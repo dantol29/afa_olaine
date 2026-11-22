@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import type { SiteSettings } from "@/lib/site-settings";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { updateSiteSettings } from "./actions";
 
@@ -39,9 +40,10 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
     updateSiteSettings,
     undefined,
   );
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
 
   return (
-    <form action={formAction} className="max-w-lg">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-lg">
       <h1 className="mb-1 text-2xl font-extrabold text-club-navy">
         Iestatījumi
       </h1>
