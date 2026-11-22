@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { parseGameInput } from "@/lib/admin-input/games";
+import { parseGameInput, parseScoreInput } from "@/lib/admin-input/games";
 import { formData, withFields } from "../../../test/form";
 
 const VALID = {
@@ -73,5 +73,20 @@ describe("parseGameInput", () => {
     assert.deepEqual(parse({ homeScore: "-1" }), SCORE_ERROR);
     assert.deepEqual(parse({ awayScore: "1.5" }), SCORE_ERROR);
     assert.deepEqual(parse({ awayScore: "divi" }), SCORE_ERROR);
+  });
+});
+
+describe("parseScoreInput", () => {
+  const SCORE_ERROR = { error: "Jāievada abi rezultāti — veseli skaitļi no 0." };
+
+  test("accepts two whole numbers, including 0", () => {
+    assert.deepEqual(parseScoreInput(formData({ homeScore: " 0 ", awayScore: "3" })), { homeScore: 0, awayScore: 3 });
+  });
+
+  test("requires both sides and rejects negative, fractional and non-numeric values", () => {
+    assert.deepEqual(parseScoreInput(formData({ homeScore: "2", awayScore: "" })), SCORE_ERROR);
+    assert.deepEqual(parseScoreInput(formData({ homeScore: "-1", awayScore: "0" })), SCORE_ERROR);
+    assert.deepEqual(parseScoreInput(formData({ homeScore: "1.5", awayScore: "0" })), SCORE_ERROR);
+    assert.deepEqual(parseScoreInput(formData({ homeScore: "divi", awayScore: "0" })), SCORE_ERROR);
   });
 });
