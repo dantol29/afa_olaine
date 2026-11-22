@@ -7,6 +7,7 @@ import { MIN_SHIRT_NUMBER } from "@/lib/admin-input/players";
 import { parseBirthdate, replaceDateSeparators } from "@/lib/birthdate";
 import { handleImageInputChange } from "@/lib/client-image-resize";
 import { positionOptions } from "@/lib/player-positions";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createPlayer, updatePlayer } from "../actions";
 
@@ -28,6 +29,7 @@ export function PlayerForm(
 ) {
   const action = props.mode === "create" ? createPlayer : updatePlayer.bind(null, props.player.id);
   const [state, formAction, pending] = useActionState(action, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const player = props.mode === "edit" ? props.player : null;
   const selectedTeamIds = new Set(player?.playerTeams.map((pt) => pt.teamId) ?? []);
 
@@ -48,7 +50,7 @@ export function PlayerForm(
   }, [birthdate]);
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauns spēlētājs" : "Rediģēt spēlētāju"}
       </h1>

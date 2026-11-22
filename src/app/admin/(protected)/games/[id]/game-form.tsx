@@ -9,6 +9,7 @@ import { TimeSelect } from "@/components/admin/time-select";
 import { MatchCard } from "@/components/match-card";
 import { buildGamePreview, type ClubHint, type LeagueLogoHint } from "@/lib/admin-preview";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createGame, updateGame } from "../actions";
 
@@ -52,6 +53,7 @@ export function GameForm(
   const isCopy = copy.isCopy || (props.mode === "create" && props.copyOf !== undefined);
   const state = isCreate ? createState : updateState;
   const pending = isCreate ? createPending : updatePending;
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const game = props.mode === "edit" ? props.game : props.copyOf ?? null;
   const [teamId, setTeamId] = useState(game ? String(game.teamId) : "");
   const [homeTeam, setHomeTeam] = useState(game?.homeTeam ?? "");
@@ -92,7 +94,7 @@ export function GameForm(
   };
 
   const form = (
-    <form action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
+    <form ref={unsavedFormRef} action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {isCreate ? `Jauna spēle${isCopy ? " (kopija)" : ""}` : "Rediģēt spēli"}
       </h1>

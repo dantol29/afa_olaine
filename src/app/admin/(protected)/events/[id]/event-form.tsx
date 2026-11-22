@@ -9,6 +9,7 @@ import { TimeSelect } from "@/components/admin/time-select";
 import { EventCard } from "@/components/event-card";
 import { buildEventPreview } from "@/lib/admin-preview";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createEvent, updateEvent } from "../actions";
 
@@ -42,6 +43,7 @@ export function EventForm(
   const isCopy = copy.isCopy || (props.mode === "create" && props.copyOf !== undefined);
   const state = isCreate ? createState : updateState;
   const pending = isCreate ? createPending : updatePending;
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const event = props.mode === "edit" ? props.event : props.copyOf ?? null;
   const [title, setTitle] = useState(event?.title ?? "");
   const [date, setDate] = useState(event?.date ?? "");
@@ -65,7 +67,7 @@ export function EventForm(
   }
 
   const form = (
-    <form action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
+    <form ref={unsavedFormRef} action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {isCreate ? `Jauns notikums${isCopy ? " (kopija)" : ""}` : "Rediģēt notikumu"}
       </h1>

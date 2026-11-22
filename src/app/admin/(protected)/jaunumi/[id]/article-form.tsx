@@ -7,6 +7,7 @@ import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { articleBodyToEditorHtml } from "@/lib/article-body";
 import { handleImageInputChange } from "@/lib/client-image-resize";
 import { MAX_BODY_LENGTH } from "@/lib/content-limits";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 import { createArticle, updateArticle } from "../actions";
 
 const CATEGORIES = ["Klubs", "Komandas", "Spēles", "Treniņi", "Pasākumi"] as const;
@@ -34,12 +35,13 @@ export function ArticleForm(
   const action =
     props.mode === "create" ? createArticle : updateArticle.bind(null, props.article.id);
   const [state, formAction, pending] = useActionState(action, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const article = props.mode === "edit" ? props.article : null;
 
   const highlightUrls = article?.highlights?.split("\n").filter(Boolean) ?? [];
 
   return (
-    <form action={formAction} className="max-w-2xl">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-2xl">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauns raksts" : "Rediģēt rakstu"}
       </h1>

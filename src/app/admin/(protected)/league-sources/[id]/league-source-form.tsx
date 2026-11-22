@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Image from "next/image";
 
 import { handleImageInputChange } from "@/lib/client-image-resize";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createLeagueSource, updateLeagueSource } from "../actions";
 
@@ -28,10 +29,11 @@ export function LeagueSourceForm(
   const action =
     props.mode === "create" ? createLeagueSource : updateLeagueSource.bind(null, props.source.id);
   const [state, formAction, pending] = useActionState(action, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const source = props.mode === "edit" ? props.source : null;
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauns līgas avots" : "Rediģēt līgas avotu"}
       </h1>

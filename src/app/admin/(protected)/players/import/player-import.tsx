@@ -18,6 +18,7 @@ import {
 } from "@/lib/player-import-rows";
 import { positionOptions } from "@/lib/player-positions";
 import { cn } from "@/lib/utils";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { savePlayerImport, type PlayerImportState } from "../actions";
 
@@ -86,6 +87,8 @@ export function PlayerImport({ teamOptions, players }: { teamOptions: TeamOption
     }
     return result;
   }, undefined);
+  // The pasted text sits outside the table's form, and checked rows are work too, so either counts as unsaved.
+  useUnsavedChangesGuard(pending, state, text.trim() !== "" || rows !== null);
 
   const chosenTeamId = teamId ? Number(teamId) : null;
   const payload = rows ? importPayload(rows, players) : [];

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useActionState } from "react";
 
 import { handleImageInputChange } from "@/lib/client-image-resize";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { createCoach, updateCoach } from "../actions";
 
@@ -25,11 +26,12 @@ export function CoachForm(
 ) {
   const action = props.mode === "create" ? createCoach : updateCoach.bind(null, props.coach.id);
   const [state, formAction, pending] = useActionState(action, undefined);
+  const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const coach = props.mode === "edit" ? props.coach : null;
   const selectedTeamIds = new Set(coach?.coachTeams.map((ct) => ct.teamId) ?? []);
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form ref={unsavedFormRef} action={formAction} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {props.mode === "create" ? "Jauns treneris" : "Rediģēt treneri"}
       </h1>

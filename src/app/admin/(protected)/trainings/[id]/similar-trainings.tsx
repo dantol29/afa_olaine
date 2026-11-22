@@ -7,6 +7,7 @@ import { TimeSelect } from "@/components/admin/time-select";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { isEndAfterStart } from "@/lib/time-range";
 import { findChangeClash, weekdayLabel, type ScheduleTraining } from "@/lib/training-schedule";
+import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 
 import { changeSimilarTrainings, deleteSimilarTrainings } from "../actions";
 
@@ -49,6 +50,7 @@ export function SimilarTrainings({
   const hasChange = timesSet || location.trim() !== "";
   const pending = changePending || deletePending;
   const error = changeState?.error ?? deleteState?.error;
+  const unsavedFormRef = useUnsavedChangesGuard(pending, changeState ?? deleteState);
 
   function changeStartTime(value: string) {
     setStartTime(value);
@@ -58,7 +60,7 @@ export function SimilarTrainings({
   return (
     <details className="mt-8 max-w-md rounded-xl border border-slate-200 p-4">
       <summary className="cursor-pointer text-sm font-semibold text-club-navy">Līdzīgie treniņi…</summary>
-      <form
+      <form ref={unsavedFormRef}
         onSubmit={(event) => {
           const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
           const message =
