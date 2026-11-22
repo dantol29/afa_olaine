@@ -42,14 +42,14 @@ export default async function AdminCoachesPage() {
               data-admin-search-item={`${coach.name} ${coach.position} ${teamNames(coach)}`}
               className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
             >
-              <div className="relative aspect-square bg-club-gray-light">
+              <div className="relative aspect-[3/4] bg-club-gray-light">
                 {coach.photoUrl ? (
                   <Image
                     src={coach.photoUrl}
                     alt={coach.name}
                     fill
                     sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                    className="object-cover"
+                    className="object-contain object-bottom"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">

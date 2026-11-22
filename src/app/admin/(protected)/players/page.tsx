@@ -79,14 +79,14 @@ export default async function AdminPlayersPage() {
                     data-admin-search-item={`${player.name} ${player.birthdate} ${team.name} ${player.number ?? ""} ${player.position ?? ""}`}
                     className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
                   >
-                    <div className="relative aspect-square bg-club-gray-light">
+                    <div className="relative aspect-[3/4] bg-club-gray-light">
                       {player.photoUrl ? (
                         <Image
                           src={player.photoUrl}
                           alt={player.name}
                           fill
                           sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                          className="object-cover"
+                          className="object-contain object-bottom"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center">
@@ -94,7 +94,7 @@ export default async function AdminPlayersPage() {
                         </div>
                       )}
                       {player.number !== null && (
-                        <span className="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-club-navy text-xs font-bold text-white">
+                        <span className="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-club-red text-xs font-bold text-white">
                           {player.number}
                         </span>
                       )}
