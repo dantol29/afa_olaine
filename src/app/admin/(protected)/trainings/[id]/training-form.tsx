@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
 import { LocationInput } from "@/components/admin/location-input";
 import { TimeSelect } from "@/components/admin/time-select";
+import { VenueLoad } from "@/components/admin/venue-load";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 import type { LocationHint } from "@/lib/venue";
@@ -43,6 +44,7 @@ export function TrainingForm(
   const training = props.mode === "edit" ? props.training : props.copyOf ?? null;
   const selectedTeamIds = new Set(training?.teamIds ?? []);
   const selectedCoachIds = new Set(training?.trainingCoaches.map((tc) => tc.coachId) ?? []);
+  const [date, setDate] = useState(training?.date ?? "");
   const [startTime, setStartTime] = useState(training?.startTime ?? "");
   const [endTime, setEndTime] = useState(training?.endTime ?? "");
   const [location, setLocation] = useState(training?.location ?? "Olaines pilsētas stadions");
@@ -101,7 +103,8 @@ export function TrainingForm(
           type="date"
           name="date"
           required
-          defaultValue={training?.date ?? ""}
+          value={date}
+          onChange={(event) => setDate(event.target.value)}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
         />
       </label>
@@ -112,6 +115,10 @@ export function TrainingForm(
       </div>
 
       <LocationInput name="location" label="Vieta" required value={location} onChange={changeLocation} options={props.locations} className="mt-4" />
+      <VenueLoad
+        planned={{ kind: "training", location, date, startTime, endTime }}
+        excludeKey={props.mode === "edit" && !copy.isCopy ? `afa:training-${props.trainingId}` : undefined}
+      />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Piezīmes (nav obligāts)

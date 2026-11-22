@@ -7,6 +7,7 @@ import { FormWithPreview } from "@/components/admin/form-preview";
 import { SuggestInput } from "@/components/admin/suggest-input";
 import { LocationInput } from "@/components/admin/location-input";
 import { TimeSelect } from "@/components/admin/time-select";
+import { VenueLoad } from "@/components/admin/venue-load";
 import { EventCard } from "@/components/event-card";
 import { buildEventPreview } from "@/lib/admin-preview";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
@@ -95,6 +96,10 @@ export function EventForm(
       </div>
 
       <LocationInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
+      <VenueLoad
+        planned={{ kind: "event", location, date, startTime, endTime }}
+        excludeKey={props.mode === "edit" && !copy.isCopy ? `afa:event-${props.eventId}` : undefined}
+      />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Komanda (nav obligāta — atstāj tukšu visam klubam)
