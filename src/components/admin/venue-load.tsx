@@ -7,6 +7,7 @@ import { clashLevel, wallClockMinutes, worstLevel, type ClashLevel, type Planned
 import { isSameVenue } from "@/lib/venue";
 
 import { useVenueBookings } from "./use-venue-bookings";
+import { formatDayMonth } from "@/lib/date-display";
 
 const CLUB_LOGOS = { afa: "/afaolaine-logo.png", fk: "/fk-olaine-crest.png" } as const;
 const LOGO_SIZE = 16;
@@ -33,7 +34,7 @@ export function fkNote(fk: VenueBookings["fk"]): string | null {
 }
 
 function timeText(booking: VenueBooking) {
-  return `${booking.startTime}–${booking.endDate ? `${booking.endDate.slice(8, 10)}.${booking.endDate.slice(5, 7)}. ` : ""}${booking.endTime}`;
+  return `${booking.startTime}–${booking.endDate ? `${formatDayMonth(booking.endDate)} ` : ""}${booking.endTime}`;
 }
 
 /** "Vietas noslodze": every AFA and FK booking at the form's place on its date, the ones that clash with the form's
@@ -74,7 +75,7 @@ export function VenueLoad({ planned, excludeKey }: { planned: PlannedBooking; ex
             <li key={booking.key} className={`flex items-center gap-2 rounded px-2 py-1 ${ROW_STYLE[level ?? "none"]}`}>
               <Image src={CLUB_LOGOS[booking.club]} alt={booking.club === "afa" ? "AFA" : "FK"} width={LOGO_SIZE} height={LOGO_SIZE} className="shrink-0 object-contain" />
               <span className="w-28 shrink-0 tabular-nums">
-                {booking.date !== date && `${booking.date.slice(8, 10)}.${booking.date.slice(5, 7)}. `}
+                {booking.date !== date && `${formatDayMonth(booking.date)} `}
                 {timeText(booking)}
               </span>
               <span className="min-w-0 truncate">{booking.title}</span>

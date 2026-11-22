@@ -14,6 +14,8 @@ import type { LocationHint } from "@/lib/venue";
 import { findVenueClashes, worstLevel, type VenueClash } from "@/lib/venue-clash";
 
 import { createTrainingSchedule } from "../actions";
+import { formatDate } from "@/lib/date-display";
+import { DateField } from "@/components/admin/date-field";
 
 type Option = { id: number; name: string };
 
@@ -142,14 +144,8 @@ export function ScheduleForm({
       </div>
 
       <div className="mt-4 flex gap-4">
-        <label className="flex-1 text-sm font-semibold text-club-navy">
-          No
-          <input type="date" required min={today} value={from} onChange={(event) => setFrom(event.target.value)} className={INPUT_CLASS} />
-        </label>
-        <label className="flex-1 text-sm font-semibold text-club-navy">
-          Līdz
-          <input type="date" required min={from || today} value={to} onChange={(event) => setTo(event.target.value)} className={INPUT_CLASS} />
-        </label>
+        <DateField label="No" min={today} value={from} onChange={setFrom} className="flex-1" />
+        <DateField label="Līdz" min={from || today} value={to} onChange={setTo} className="flex-1" />
       </div>
 
       <LocationInput name="location" label="Vieta" required value={location} onChange={setLocation} options={locations} className="mt-4" />
@@ -177,7 +173,7 @@ export function ScheduleForm({
                     checked={isTicked(row)}
                     onChange={(event) => setTicks((current) => ({ ...current, [row.date]: event.target.checked }))}
                   />
-                  <span className="w-24 font-semibold">{row.date}</span>
+                  <span className="w-24 font-semibold">{formatDate(row.date)}</span>
                   <span className="w-28 text-slate-500">{weekdayLabel(row.date)}</span>
                   <span className="min-w-0">
                     {row.clash && (

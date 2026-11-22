@@ -14,6 +14,7 @@ import { toDateKey } from "@/lib/calendar";
 import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 
 import { deleteEvent } from "./actions";
+import { formatEventDates } from "@/lib/event-dates";
 
 export default async function AdminEventsPage({ searchParams }: { searchParams: Promise<Record<string, SearchParamValue>> }) {
   const query = await searchParams;
@@ -66,11 +67,10 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
           basePath="/admin/events"
           emptyText="Vēl nav neviena notikuma."
           renderRow={(event) => (
-            <tr data-admin-search-item={`${event.title} ${event.date} ${event.startTime} ${event.teamName ?? "Viss klubs"}`} key={event.id} className="border-b border-slate-100 last:border-0">
+            <tr data-admin-search-item={`${event.title} ${event.date} ${formatEventDates(event.date, event.endDate)} ${event.startTime} ${event.teamName ?? "Viss klubs"}`} key={event.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 font-semibold text-club-navy">{event.title}</td>
               <td className="p-4 text-club-navy">
-                {event.date}
-                {event.endDate && ` – ${event.endDate}`}
+                {formatEventDates(event.date, event.endDate)}
               </td>
               <td className="p-4 text-slate-500">
                 {event.startTime}–{event.endTime}

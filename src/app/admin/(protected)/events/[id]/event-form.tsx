@@ -15,6 +15,7 @@ import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 import type { LocationHint } from "@/lib/venue";
 
 import { createEvent, updateEvent } from "../actions";
+import { DateField } from "@/components/admin/date-field";
 
 export type EventFormValues = {
   title: string;
@@ -82,36 +83,23 @@ export function EventForm(
 
       <SuggestInput name="title" label="Nosaukums" required value={title} onChange={edit(setTitle)} options={props.hints.titles} />
 
-      <label className="mt-4 block text-sm font-semibold text-club-navy">
-        Datums
-        <input
-          type="date"
-          name="date"
-          required
-          value={date}
-          onChange={(changeEvent) => setDate(changeEvent.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        />
-      </label>
+      <DateField name="date" label="Datums" required value={date} onChange={edit(setDate)} className="mt-4" />
 
       <label className="mt-2 flex items-center gap-2 text-sm text-club-navy">
         <input type="checkbox" checked={isMultiDay} onChange={(changeEvent) => setIsMultiDay(changeEvent.target.checked)} />
         Vairākas dienas
       </label>
       {isMultiDay && (
-        <label className="mt-2 block text-sm font-semibold text-club-navy">
-          Beigu datums
-          <input
-            type="date"
-            name="endDate"
-            required
-            min={date || undefined}
-            value={endDate}
-            onChange={(changeEvent) => setEndDate(changeEvent.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-          <span className="mt-1 block text-xs font-normal text-slate-500">Sākuma laiks ir pirmajā dienā, beigu laiks — pēdējā.</span>
-        </label>
+        <DateField
+          name="endDate"
+          label="Beigu datums"
+          hint="Sākuma laiks ir pirmajā dienā, beigu laiks — pēdējā."
+          required
+          min={date || undefined}
+          value={endDate}
+          onChange={edit(setEndDate)}
+          className="mt-2"
+        />
       )}
 
       <div className="mt-4 flex gap-4">

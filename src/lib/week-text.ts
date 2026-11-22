@@ -2,6 +2,7 @@
 // it. Dates are "YYYY-MM-DD" (Riga), times "HH:MM", as stored.
 import { addDays } from "@/lib/admin-attention";
 import { WEEKDAYS, isoWeekday } from "@/lib/training-schedule";
+import { formatDayMonth } from "@/lib/date-display";
 
 export const DAYS_PER_WEEK = 7;
 
@@ -25,7 +26,7 @@ export function defaultWeekStart(today: string): string {
 }
 
 /** "24.11." */
-const shortDate = (date: string) => `${date.slice(8, 10)}.${date.slice(5, 7)}.`;
+const shortDate = formatDayMonth;
 
 function describe(item: WeekItem): string {
   if (item.kind === "training") return `${item.startTime}–${item.endTime} Treniņš`;

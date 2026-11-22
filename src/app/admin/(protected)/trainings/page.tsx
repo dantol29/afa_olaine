@@ -13,6 +13,7 @@ import { db } from "@/db/client";
 import { compareLatvian, uniqueSortedLabels } from "@/lib/ordering";
 
 import { deleteTraining } from "./actions";
+import { formatDate } from "@/lib/date-display";
 
 const teamNames = (training: { trainingTeams: { team: { name: string } | null }[] }) =>
   uniqueSortedLabels(training.trainingTeams.map(({ team }) => team?.name)).join(", ");
@@ -78,8 +79,8 @@ export default async function AdminTrainingsPage({ searchParams }: { searchParam
           basePath="/admin/trainings"
           emptyText="Vēl nav neviena treniņa."
           renderRow={(training) => (
-            <tr data-admin-search-item={`${training.date} ${training.startTime} ${teamNames(training)} ${coachNames(training).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
-              <td className="p-4 text-club-navy">{training.date}</td>
+            <tr data-admin-search-item={`${training.date} ${formatDate(training.date)} ${training.startTime} ${teamNames(training)} ${coachNames(training).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
+              <td className="p-4 text-club-navy">{formatDate(training.date)}</td>
               <td className="p-4 text-slate-500">
                 {training.startTime}–{training.endTime}
               </td>
@@ -90,10 +91,10 @@ export default async function AdminTrainingsPage({ searchParams }: { searchParam
               <td className="p-4 text-slate-500">{training.location}</td>
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-4">
-                  <CopyRowLink href={copyHref("trainings", training.id)} label={`Kopēt treniņu ${training.date}`} />
+                  <CopyRowLink href={copyHref("trainings", training.id)} label={`Kopēt treniņu ${formatDate(training.date)}`} />
                   <Link
                     href={`/admin/trainings/${training.id}`}
-                    aria-label={`Rediģēt treniņu ${training.date}`}
+                    aria-label={`Rediģēt treniņu ${formatDate(training.date)}`}
                     title="Rediģēt"
                     className="flex h-8 w-8 items-center justify-center rounded-lg text-club-navy transition hover:bg-club-gray-light"
                   >

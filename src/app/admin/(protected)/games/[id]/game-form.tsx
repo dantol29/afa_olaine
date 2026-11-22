@@ -15,6 +15,7 @@ import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 import type { LocationHint } from "@/lib/venue";
 
 import { createGame, updateGame } from "../actions";
+import { DateField } from "@/components/admin/date-field";
 
 export type GameFormValues = {
   teamId: number;
@@ -157,17 +158,7 @@ export function GameForm(
         </label>
       </div>
 
-      <label className="mt-4 block text-sm font-semibold text-club-navy">
-        Datums
-        <input
-          type="date"
-          name="date"
-          required
-          value={date}
-          onChange={(event) => setDate(event.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        />
-      </label>
+      <DateField name="date" label="Datums" required value={date} onChange={edit(setDate)} className="mt-4" />
 
       <div className="mt-4 flex gap-4">
         <TimeSelect name="startTime" label="Sākuma laiks" value={startTime} onChange={changeStartTime} />
