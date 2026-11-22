@@ -11,6 +11,7 @@ import { findPossibleDuplicate } from "@/lib/lff-duplicates";
 import { cn } from "@/lib/utils";
 
 import { applyLffChanges, confirmImport } from "./actions";
+import { formatDate } from "@/lib/date-display";
 
 export default async function AdminLeagueSourceImportPage({
   params,
@@ -234,7 +235,7 @@ export default async function AdminLeagueSourceImportPage({
                         })}
                       />
                     </td>
-                    <td className="p-4 text-club-navy">{fixture.date}</td>
+                    <td className="p-4 text-club-navy">{formatDate(fixture.date)}</td>
                     <td className="p-4 text-slate-500">
                       {timeDiffers && (
                         <span className="block text-slate-400 line-through">
@@ -270,7 +271,7 @@ export default async function AdminLeagueSourceImportPage({
                     <td className="p-4 text-slate-500">
                       {possibleCopy ? (
                         <span className="font-semibold text-red-500">
-                          iespējams dublikāts: jau ir {possibleCopy.date}{" "}
+                          iespējams dublikāts: jau ir {formatDate(possibleCopy.date)}{" "}
                           {possibleCopy.source === "lff" ? "(importēta no LFF)" : "(ievadīta manuāli)"}
                         </span>
                       ) : differs

@@ -4,10 +4,7 @@ import { useState } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-
-const MONTHS = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
-const WEEKDAYS = ["P", "O", "T", "C", "P", "S", "Sv"];
+import { CalendarMonthGrid, MONTHS, dateKeyOf } from "@/components/calendar-month-grid";
 
 export function CalendarDatePicker({ value, onSelect }: {
   value: Date;
@@ -18,9 +15,6 @@ export function CalendarDatePicker({ value, onSelect }: {
   const [year, setYear] = useState(String(value.getUTCFullYear()));
   const numericYear = Number(year);
   const validYear = /^\d{4}$/.test(year) && numericYear >= 100 && numericYear <= 9998;
-  const firstDay = validYear ? new Date(Date.UTC(numericYear, month, 1)) : null;
-  const offset = firstDay ? (firstDay.getUTCDay() + 6) % 7 : 0;
-  const days = validYear ? new Date(Date.UTC(numericYear, month + 1, 0)).getUTCDate() : 0;
 
   function moveMonth(delta: number) {
     const date = new Date(Date.UTC(numericYear, month + delta, 1));
@@ -55,18 +49,17 @@ export function CalendarDatePicker({ value, onSelect }: {
               <input aria-label="Gads" type="text" inputMode="numeric" maxLength={4} value={year} onChange={(event) => setYear(event.target.value.replace(/\D/g, ""))} className="h-9 w-14 rounded-lg bg-slate-100 px-1 text-center text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-club-red" />
               <button type="button" aria-label="Nākamais mēnesis" disabled={!validYear} onClick={() => moveMonth(1)} className={navClass}><ChevronRight className="size-4" /></button>
             </div>
-            <div className="grid grid-cols-7 text-center">
-              {WEEKDAYS.map((label, index) => <span key={index} aria-hidden="true" className="py-2 text-xs text-slate-500">{label}</span>)}
-              {Array.from({ length: offset }, (_, index) => <span key={`blank-${index}`} />)}
-              {Array.from({ length: days }, (_, index) => {
-                const day = index + 1;
-                const selected = value.getUTCFullYear() === numericYear && value.getUTCMonth() === month && value.getUTCDate() === day;
-                const date = new Date(Date.UTC(numericYear, month, day));
-                return <button key={day} type="button" aria-pressed={selected} aria-label={date.toLocaleDateString("lv-LV", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" })} onClick={() => { onSelect(date); setOpen(false); }} className={cn("flex h-11 items-center justify-center rounded-lg text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-club-red", selected ? "bg-club-red font-semibold text-white" : "hover:bg-slate-100")}>
-                  {day}
-                </button>;
-              })}
-            </div>
+            {validYear && (
+              <CalendarMonthGrid
+                year={numericYear}
+                month={month}
+                selectedKey={dateKeyOf(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate())}
+                onPick={(dateKey) => {
+                  onSelect(new Date(`${dateKey}T00:00:00Z`));
+                  setOpen(false);
+                }}
+              />
+            )}
             {!validYear && <p role="status" className="py-4 text-sm text-slate-500">Ievadiet četrciparu gadu (0100–9998).</p>}
           </Popover.Popup>
         </Popover.Positioner>

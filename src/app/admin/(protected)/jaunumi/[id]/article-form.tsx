@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { articleBodyToEditorHtml } from "@/lib/article-body";
@@ -9,6 +9,7 @@ import { handleImageInputChange } from "@/lib/client-image-resize";
 import { MAX_BODY_LENGTH } from "@/lib/content-limits";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 import { createArticle, updateArticle } from "../actions";
+import { DateField } from "@/components/admin/date-field";
 
 const CATEGORIES = ["Klubs", "Komandas", "Spēles", "Treniņi", "Pasākumi"] as const;
 
@@ -37,6 +38,7 @@ export function ArticleForm(
   const [state, formAction, pending] = useActionState(action, undefined);
   const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const article = props.mode === "edit" ? props.article : null;
+  const [date, setDate] = useState(article?.date ?? "");
 
   const highlightUrls = article?.highlights?.split("\n").filter(Boolean) ?? [];
 
@@ -69,16 +71,7 @@ export function ArticleForm(
       </label>
 
       <div className="mt-4 flex gap-4">
-        <label className="block flex-1 text-sm font-semibold text-club-navy">
-          Datums
-          <input
-            type="date"
-            name="date"
-            required
-            defaultValue={article?.date ?? ""}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-        </label>
+        <DateField name="date" label="Datums" required value={date} onChange={setDate} className="flex-1" />
 
         <label className="block flex-1 text-sm font-semibold text-club-navy">
           Kategorija

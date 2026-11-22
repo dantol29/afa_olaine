@@ -27,6 +27,7 @@ import { loadVenueBookings } from "@/lib/venue-bookings";
 import { venueClashPairs, type VenueBooking } from "@/lib/venue-clash";
 
 import { ScoreForm } from "./score-form";
+import { formatDate, formatDayMonth } from "@/lib/date-display";
 
 const EDIT_PATH = { game: "games", training: "trainings", event: "events" } as const;
 const BOOKING_KEY = /^(game|training|event)-(\d+)$/;
@@ -73,7 +74,7 @@ export default async function AdminHomePage() {
       <Block key="score" title="Spēles bez rezultāta">
         {noScore.map((game) => (
           <Row key={game.id} side={<ScoreForm gameId={game.id} />}>
-            {game.date} · {game.homeTeam || "?"} – {game.awayTeam || "?"} <Muted>({teamName(game.teamId)})</Muted>{" "}
+            {formatDate(game.date)} · {game.homeTeam || "?"} – {game.awayTeam || "?"} <Muted>({teamName(game.teamId)})</Muted>{" "}
             <Link href={`/admin/games/${game.id}`} className="text-xs font-semibold text-club-red hover:underline">
               atvērt →
             </Link>
@@ -99,7 +100,7 @@ export default async function AdminHomePage() {
       <Block key="trainings" title={`Beidzas treniņi (nākamajās ${TRAINING_LOOKAHEAD_DAYS} dienās nav neviena)`}>
         {runningOut.map(({ team, lastDate }) => (
           <Row key={team.id} href="/admin/trainings/schedule" action="pēc grafika">
-            {team.name} <Muted>· pēdējais {lastDate}</Muted>
+            {team.name} <Muted>· pēdējais {formatDate(lastDate)}</Muted>
           </Row>
         ))}
       </Block>
@@ -108,7 +109,7 @@ export default async function AdminHomePage() {
       <Block key="clashes" title={`Pārklāšanās (nākamās ${CLASH_DAYS} dienas)`}>
         {clashes.map((clash) => (
           <Row key={`${clash.first.kind}-${clash.first.id}-${clash.second.kind}-${clash.second.id}`}>
-            {clash.date} · {clash.teamName}:{" "}
+            {formatDate(clash.date)} · {clash.teamName}:{" "}
             {[clash.first, clash.second].map((item, index) => (
               <span key={`${item.kind}-${item.id}`}>
                 {index > 0 && " un "}
@@ -126,7 +127,7 @@ export default async function AdminHomePage() {
         {venueClashes.map((pair) => (
           <Row key={`${pair.first.key}|${pair.second.key}`}>
             {/* The later start is the first day both are on. */}
-            <span className={pair.level === "red" ? "text-red-600" : "text-amber-600"}>{pair.level === "red" ? "🔴" : "🟠"}</span> {pair.second.date} ·{" "}
+            <span className={pair.level === "red" ? "text-red-600" : "text-amber-600"}>{pair.level === "red" ? "🔴" : "🟠"}</span> {formatDate(pair.second.date)} ·{" "}
             {pair.first.location}: <BookingLink booking={pair.first} /> un <BookingLink booking={pair.second} />
           </Row>
         ))}
@@ -145,7 +146,7 @@ export default async function AdminHomePage() {
       <Block key="logos" title={`Klubi bez logo (spēlēs nākamajās ${LOGO_LOOKAHEAD_DAYS} dienās)`}>
         {noLogo.map(({ name, game }) => (
           <Row key={name} href="/admin/club-logos/new" action="pievienot logo">
-            {name} <Muted>· {game.date}, {game.homeTeam || "?"} – {game.awayTeam || "?"}</Muted>
+            {name} <Muted>· {formatDate(game.date)}, {game.homeTeam || "?"} – {game.awayTeam || "?"}</Muted>
           </Row>
         ))}
       </Block>
@@ -154,7 +155,7 @@ export default async function AdminHomePage() {
       <Block key="bad-times" title="Nepareizs laiks (beigas nav pēc sākuma) — netiek rādīti kalendāros">
         {badTimes.map((entry) => (
           <Row key={`${entry.kind}-${entry.id}`} href={`/admin/${EDIT_PATH[entry.kind]}/${entry.id}`} action="labot">
-            {entry.date} · {entry.label} <Muted>{entry.startTime}–{entry.endTime}</Muted>
+            {formatDate(entry.date)} · {entry.label} <Muted>{entry.startTime}–{entry.endTime}</Muted>
           </Row>
         ))}
       </Block>
@@ -201,9 +202,8 @@ export default async function AdminHomePage() {
 
 /** A booking links to its edit page. */
 function BookingLink({ booking }: { booking: VenueBooking }) {
-  const dayMonth = (date: string) => `${date.slice(8, 10)}.${date.slice(5, 7)}.`;
   const text = booking.endDate
-    ? `${booking.title} ${dayMonth(booking.date)} ${booking.startTime}–${dayMonth(booking.endDate)} ${booking.endTime}`
+    ? `${booking.title} ${formatDayMonth(booking.date)} ${booking.startTime}–${formatDayMonth(booking.endDate)} ${booking.endTime}`
     : `${booking.title} ${booking.startTime}–${booking.endTime}`;
   const match = BOOKING_KEY.exec(booking.key);
   if (!match) return <span className="font-semibold">{text}</span>;

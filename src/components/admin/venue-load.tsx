@@ -4,6 +4,7 @@ import { clashLevel, wallClockMinutes, worstLevel, type ClashLevel, type Planned
 import { isSameVenue } from "@/lib/venue";
 
 import { useVenueBookings } from "./use-venue-bookings";
+import { formatDayMonth } from "@/lib/date-display";
 
 const ROW_STYLE: Record<ClashLevel | "none", string> = {
   red: "border-l-4 border-red-600 bg-red-600/10",
@@ -17,7 +18,7 @@ const SUMMARY: Record<ClashLevel, { text: string; style: string }> = {
 };
 
 function timeText(booking: VenueBooking) {
-  return `${booking.startTime}–${booking.endDate ? `${booking.endDate.slice(8, 10)}.${booking.endDate.slice(5, 7)}. ` : ""}${booking.endTime}`;
+  return `${booking.startTime}–${booking.endDate ? `${formatDayMonth(booking.endDate)} ` : ""}${booking.endTime}`;
 }
 
 /** "Vietas noslodze": every booking of the club at the form's place on its date, the ones that clash with the form's
@@ -56,7 +57,7 @@ export function VenueLoad({ planned, excludeKey }: { planned: PlannedBooking; ex
           {rows.map(({ booking, level }) => (
             <li key={booking.key} className={`flex items-center gap-2 rounded px-2 py-1 ${ROW_STYLE[level ?? "none"]}`}>
               <span className="w-28 shrink-0 tabular-nums">
-                {booking.date !== date && `${booking.date.slice(8, 10)}.${booking.date.slice(5, 7)}. `}
+                {booking.date !== date && `${formatDayMonth(booking.date)} `}
                 {timeText(booking)}
               </span>
               <span className="min-w-0 truncate">{booking.title}</span>
