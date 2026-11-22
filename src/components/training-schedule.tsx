@@ -14,6 +14,7 @@ import {
   trainingTeamOptions,
 } from "@/lib/training-filters";
 import { replaceSearchParam } from "@/lib/url-state";
+import { TeamCalendarSubscribe } from "@/components/team-calendar-subscribe";
 import { useUrlParam } from "@/lib/use-url-param";
 
 const monthFormatter = new Intl.DateTimeFormat("lv-LV", { month: "long", timeZone: "UTC" });
@@ -67,7 +68,7 @@ function relevantMonth(trainings: TrainingListItem[], todayKey: string) {
 /** `trainings` arrive in date, time, id order (`getAllTrainingsFromDb`); the list and `relevantMonth` rely on it.
  *  The selected team and day live in the URL (`?komanda=<team id>&datums=YYYY-MM-DD`); `initialTeam` and `initialDate`
  *  are the raw URL values the server saw, so the HTML and the first client render agree. */
-export function TrainingSchedule({ trainings, todayKey, initialTeam, initialDate }: { trainings: TrainingListItem[]; todayKey: string; initialTeam: string | null; initialDate: string | null }) {
+export function TrainingSchedule({ trainings, todayKey, initialTeam, initialDate, siteUrl }: { trainings: TrainingListItem[]; todayKey: string; initialTeam: string | null; initialDate: string | null; siteUrl: string }) {
   const teamOptions = trainingTeamOptions(trainings);
   const teamId = parseTeamIdParam(useUrlParam(TRAINING_TEAM_PARAM, initialTeam), teamOptions);
   const selectedDate = parseDateKeyParam(useUrlParam(TRAINING_DATE_PARAM, initialDate));
@@ -142,7 +143,8 @@ export function TrainingSchedule({ trainings, todayKey, initialTeam, initialDate
           )}
         </div>
 
-        <div className="self-start bg-[#1b1b1b] p-5 sm:p-7 lg:p-5 xl:p-7" aria-label="Treniņu kalendārs">
+        <div className="self-start">
+        <div className="bg-[#1b1b1b] p-5 sm:p-7 lg:p-5 xl:p-7" aria-label="Treniņu kalendārs">
           <div className="mb-6 flex items-center justify-between gap-3">
             <h2 className="font-heading text-[29px] font-semibold uppercase leading-none sm:text-[35px] lg:text-[29px] xl:text-[35px]">{displayMonth(visibleMonth)}</h2>
             <div className="flex gap-2">
@@ -173,6 +175,10 @@ export function TrainingSchedule({ trainings, todayKey, initialTeam, initialDate
             })}
           </div>
           <div className="mt-5 flex items-center gap-2 border-t border-white/15 pt-4 font-sans text-xs text-white/60"><span className="size-1.5 rounded-full bg-[#fbb040]" /> Dienas ar treniņiem</div>
+        </div>
+        {teamId !== null && (
+          <TeamCalendarSubscribe teamId={teamId} teamName={teamOptions.find((team) => team.id === teamId)?.name ?? ""} siteUrl={siteUrl} />
+        )}
         </div>
       </div>
     </section>
