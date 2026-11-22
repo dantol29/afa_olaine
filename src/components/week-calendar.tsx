@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
+import { splitIntoDays } from "@/lib/day-pieces";
 import { compareByStart, uniqueSortedLabels } from "@/lib/ordering";
 import {
   Select,
@@ -537,9 +538,23 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     const map = new Map<string, CalendarEvent[]>();
     for (const event of filteredEvents) {
       if (event.allDay) continue;
-      const list = map.get(event.dateKey) ?? [];
-      list.push(event);
-      map.set(event.dateKey, list);
+      // A multi-day event shows on each of its days, from its start or midnight to its end or the day's end.
+      for (const piece of splitIntoDays(event.start, event.end)) {
+        const dayEvent =
+          piece.parts === 1
+            ? event
+            : {
+                ...event,
+                title: `${event.title} (${piece.part}. diena no ${piece.parts})`,
+                start: piece.start,
+                end: piece.end,
+                dateKey: piece.dateKey,
+                timeLabel: formatClockTime(piece.start),
+              };
+        const list = map.get(piece.dateKey) ?? [];
+        list.push(dayEvent);
+        map.set(piece.dateKey, list);
+      }
     }
     return map;
   }, [filteredEvents]);

@@ -34,7 +34,8 @@ function rigaDateKey(date: Date) {
 }
 
 /** The checks FK Olaine applies to every event (parseEvent in its src/lib/shared-calendar.ts), restated here
- *  so a change on either side shows up as a failing test. FK rejects the whole feed if one event fails. */
+ *  so a change on either side shows up as a failing test. Since FK's multi-day support (shared database 0.1.4) an
+ *  event may start before the range as long as it ends within or after it; FK skips an event that fails. */
 function assertPassesFkRules(payload: Feed, from: string, to: string) {
   assert.equal(payload.version, 1);
   assert.equal(payload.club, "AFA Olaine");
@@ -46,7 +47,7 @@ function assertPassesFkRules(payload: Feed, from: string, to: string) {
     assert.equal(typeof event.uid, "string");
     assert.equal(typeof event.title, "string");
     assert.equal(typeof event.dateKey, "string");
-    assert.ok(String(event.dateKey) >= from && String(event.dateKey) <= to, `${event.uid} dateKey outside the range`);
+    assert.ok(String(event.dateKey) <= to && rigaDateKey(new Date(end.getTime() - 1)) >= from, `${event.uid} does not overlap the range`);
     assert.ok(Number.isFinite(start.getTime()) && Number.isFinite(end.getTime()), `${event.uid} has an invalid date`);
     assert.ok(end > start, `${event.uid} must end after it starts`);
     assert.equal(rigaDateKey(start), event.dateKey, `${event.uid} dateKey must be the Riga date of start`);
@@ -207,5 +208,27 @@ describe("shared calendar example file", () => {
 
   test("passes the rules FK Olaine applies", () => {
     assertPassesFkRules(JSON.parse(readFileSync(GOLDEN_FILE, "utf8")), FROM, TO);
+  });
+});
+
+describe("shared calendar multi-day events", () => {
+  // Riga moves to summer time on 28 March 2027, inside this event.
+  before(async () => {
+    await insertEvent({ title: "Treniņnometne", date: "2027-03-27", endDate: "2027-03-29", startTime: "10:00", endTime: "16:00" });
+  });
+
+  test("sends an event that started before the range but still runs in it, whole", async () => {
+    const payload = await feed("2027-03-28", "2027-03-31");
+    assertPassesFkRules(payload, "2027-03-28", "2027-03-31");
+    const [camp] = payload.events;
+    assert.equal(payload.events.length, 1);
+    assert.equal(camp.title, "Treniņnometne");
+    assert.equal(camp.dateKey, "2027-03-27");
+    assert.equal(camp.start, "2027-03-27T08:00:00.000Z");
+    assert.equal(camp.end, "2027-03-29T13:00:00.000Z");
+  });
+
+  test("leaves it out of a range after its last day", async () => {
+    assert.deepEqual((await feed("2027-03-30", "2027-04-05")).events, []);
   });
 });

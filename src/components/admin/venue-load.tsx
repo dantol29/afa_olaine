@@ -40,7 +40,8 @@ function timeText(booking: VenueBooking) {
  *  time marked red or orange (see src/lib/venue-clash.ts). Advisory only: it never blocks saving. */
 export function VenueLoad({ planned, excludeKey }: { planned: PlannedBooking; excludeKey?: string }) {
   const { date } = planned;
-  const venue = useVenueBookings(date, date);
+  const lastDay = planned.endDate && planned.endDate > date ? planned.endDate : date;
+  const venue = useVenueBookings(date, lastDay);
 
   if (!date || !planned.location?.trim()) {
     return <p className="mt-2 text-xs text-slate-500">Vietas noslodze: izvēlies datumu un vietu.</p>;
@@ -52,7 +53,7 @@ export function VenueLoad({ planned, excludeKey }: { planned: PlannedBooking; ex
     .filter((booking) => booking.key !== excludeKey && isSameVenue(booking.location, planned.location))
     .map((booking) => ({ booking, level: planned.startTime && planned.endTime ? clashLevel(planned, booking) : null }))
     // The neighbouring days only matter when they clash.
-    .filter((row) => row.booking.date === date || row.booking.endDate === date || row.level !== null)
+    .filter((row) => (row.booking.date <= lastDay && (row.booking.endDate ?? row.booking.date) >= date) || row.level !== null)
     .sort((a, b) => wallClockMinutes(a.booking.date, a.booking.startTime) - wallClockMinutes(b.booking.date, b.booking.startTime));
   const worst = worstLevel(rows.flatMap((row) => (row.level ? [{ booking: row.booking, level: row.level }] : [])));
   const note = fkNote(venue.data.fk);

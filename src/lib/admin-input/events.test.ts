@@ -24,6 +24,7 @@ describe("parseEventInput", () => {
       title: "Kluba sapulce",
       date: "2026-10-14",
       startTime: "18:00",
+      endDate: null,
       endTime: "19:00",
       location: "Olaines stadions",
       notes: null,
@@ -45,5 +46,24 @@ describe("parseEventInput", () => {
     assert.deepEqual(parse({ endTime: "18:00", location: "" }), {
       error: "Beigu laikam jābūt vēlāk par sākuma laiku (tajā pašā dienā).",
     });
+  });
+
+  test("keeps the end date of a multi-day event, where the end time may be before the start time", () => {
+    const camp = parse({ endDate: "2026-10-16", startTime: "18:00", endTime: "12:00" });
+    assert.ok(!("error" in camp));
+    assert.equal(camp.endDate, "2026-10-16");
+  });
+
+  test("stores no end date for a one-day event, even when it is given as the start date", () => {
+    const sameDay = parse({ endDate: "2026-10-14" });
+    assert.ok(!("error" in sameDay));
+    assert.equal(sameDay.endDate, null);
+    assert.deepEqual(parse({ endDate: "2026-10-14", endTime: "17:00" }), {
+      error: "Beigu laikam jābūt vēlāk par sākuma laiku (tajā pašā dienā).",
+    });
+  });
+
+  test("rejects an end date before the start date", () => {
+    assert.deepEqual(parse({ endDate: "2026-10-13" }), { error: "Beigu datums nevar būt pirms sākuma datuma." });
   });
 });

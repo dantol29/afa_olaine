@@ -40,6 +40,15 @@ describe("buildWeekText", () => {
     );
   });
 
+  test("lists a multi-day event with its first and last day in every week it overlaps", () => {
+    const tournament: WeekItem = {
+      kind: "event", date: "2026-12-05", endDate: "2026-12-07", startTime: "10:00", endTime: "16:00", location: "Ogre", title: "Turnīrs",
+    };
+    assert.equal(buildWeekText("WU12", "2026-11-30", [tournament]).split("\n")[1], "S 05.12.–P 07.12. 10:00–16:00 Turnīrs, Ogre");
+    assert.equal(buildWeekText("WU12", "2026-12-07", [tournament]).split("\n")[1], "S 05.12.–P 07.12. 10:00–16:00 Turnīrs, Ogre");
+    assert.equal(buildWeekText("WU12", "2026-12-14", [tournament]).split("\n")[1], "Šajā nedēļā nav ierakstu.");
+  });
+
   test("says so when the week has nothing", () => {
     assert.equal(buildWeekText("WU12", "2026-12-07", items), "WU12 — grafiks 07.12.–13.12.\nŠajā nedēļā nav ierakstu.");
   });

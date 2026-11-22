@@ -1,6 +1,7 @@
 // The admin home "Uzmanību" summary: only what needs someone to act. Each check takes data already loaded from the
 // database and returns the items to show; an empty result hides its block. Pure, so the page and the tests share it.
 // Dates are "YYYY-MM-DD" (Riga), times "HH:MM", birthdates "DD.MM.GGGG.", as stored.
+import { eventDatesProblem } from "@/lib/event-dates";
 import { nameKey } from "@/lib/player-import";
 import { isEndAfterStart } from "@/lib/time-range";
 import { timesOverlap } from "@/lib/training-schedule";
@@ -32,7 +33,7 @@ export type AttentionGame = {
   awayScore: number | null;
 };
 export type AttentionTraining = { id: number; date: string; startTime: string; endTime: string; teamIds: number[] };
-export type AttentionEvent = { id: number; title: string; date: string; startTime: string; endTime: string };
+export type AttentionEvent = { id: number; title: string; date: string; endDate?: string | null; startTime: string; endTime: string };
 export type AttentionPlayer = { id: number; name: string; birthdate: string; teamIds: number[] };
 export type AttentionSyncStatus = {
   job: string;
@@ -164,7 +165,7 @@ export function entriesWithBadTimes(
   return [
     ...games.filter(bad).map((game) => ({ kind: "game" as const, id: game.id, label: gameLabel(game), date: game.date, startTime: game.startTime, endTime: game.endTime })),
     ...trainings.filter(bad).map((training) => ({ kind: "training" as const, id: training.id, label: "Treniņš", date: training.date, startTime: training.startTime, endTime: training.endTime })),
-    ...events.filter(bad).map((event) => ({ kind: "event" as const, id: event.id, label: event.title, date: event.date, startTime: event.startTime, endTime: event.endTime })),
+    ...events.filter((event) => eventDatesProblem(event.date, event.startTime, event.endDate ?? null, event.endTime) !== null).map((event) => ({ kind: "event" as const, id: event.id, label: event.title, date: event.date, startTime: event.startTime, endTime: event.endTime })),
   ].sort((a, b) => a.date.localeCompare(b.date));
 }
 

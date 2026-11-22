@@ -22,6 +22,7 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
       id: events.id,
       title: events.title,
       date: events.date,
+      endDate: events.endDate,
       startTime: events.startTime,
       endTime: events.endTime,
       teamName: teams.name,
@@ -67,7 +68,10 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
           renderRow={(event) => (
             <tr data-admin-search-item={`${event.title} ${event.date} ${event.startTime} ${event.teamName ?? "Viss klubs"}`} key={event.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 font-semibold text-club-navy">{event.title}</td>
-              <td className="p-4 text-club-navy">{event.date}</td>
+              <td className="p-4 text-club-navy">
+                {event.date}
+                {event.endDate && ` – ${event.endDate}`}
+              </td>
               <td className="p-4 text-slate-500">
                 {event.startTime}–{event.endTime}
               </td>

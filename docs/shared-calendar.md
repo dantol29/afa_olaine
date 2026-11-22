@@ -51,6 +51,15 @@ Implemented in `/Users/daniilstolmacovs/Desktop/fk_olaine` on 2026-10-11:
 Deployment and configuring both servers are still required. Overlap warnings
 are advisory; the separate databases do not provide an atomic reservation lock.
 
+## Multi-day events
+
+Since the shared database 0.1.4 an event can have an `end_date`. Its feed item
+then has `start` on the first day and `end` on the last day, and `dateKey` is the
+first day. The feed returns every item that overlaps `from..to`, so an event that
+started before `from` but still runs is included. FK Olaine needs its multi-day
+support (it cuts such an event into one entry per day) before AFA has any
+multi-day event; older FK code skips or rejects them.
+
 ## FK feed for AFA
 
 FK serves its own bookings the same way at `/api/shared-calendar`, with the same

@@ -115,6 +115,7 @@ export const getAllEventsFromDb = cache(async function getAllEventsFromDb(): Pro
         title: eventsTable.title,
         date: eventsTable.date,
         startTime: eventsTable.startTime,
+        endDate: eventsTable.endDate,
         endTime: eventsTable.endTime,
         location: eventsTable.location,
         teamId: eventsTable.teamId,
@@ -138,11 +139,13 @@ export const getAllEventsFromDb = cache(async function getAllEventsFromDb(): Pro
         month: MONTHS[month - 1] ?? "",
         year: String(year),
         rawDate: row.date,
+        rawEndDate: row.endDate,
         startTime: row.startTime,
         endTime: row.endTime,
         location: row.location,
         team,
-        isPast: row.date < todayKey,
+        // A multi-day event is current until its last day is over.
+        isPast: (row.endDate ?? row.date) < todayKey,
       };
     });
   } catch {

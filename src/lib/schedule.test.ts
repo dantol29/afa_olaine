@@ -21,7 +21,7 @@ function game(id: number, rawDate: string, time: string, team: typeof MAIN, isPa
 
 function event(id: number, rawDate: string, startTime: string, team: typeof MAIN | null, isPast = false): ScheduleEvent {
   return {
-    id, title: `Pasākums ${id}`, day: "", month: "", year: "", rawDate, startTime, endTime: "18:00",
+    id, title: `Pasākums ${id}`, day: "", month: "", year: "", rawDate, rawEndDate: null, startTime, endTime: "18:00",
     location: "Olaine", team, isPast,
   };
 }
