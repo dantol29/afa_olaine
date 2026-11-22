@@ -37,7 +37,17 @@ export default async function AdminPlayersPage() {
           + Pievienot
         </Link>
       </div>
-      <AdminSearch placeholder="Meklēt spēlētājus…" />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <AdminSearch placeholder="Meklēt spēlētājus…" />
+        </div>
+        <Link
+          href="/admin/players/import"
+          className="flex h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-club-navy shadow-sm hover:bg-slate-50"
+        >
+          Importēt sarakstu
+        </Link>
+      </div>
 
       {totalPlayers === 0 ? (
         <p className="rounded-xl bg-white p-8 text-center text-sm text-slate-400 shadow-sm">

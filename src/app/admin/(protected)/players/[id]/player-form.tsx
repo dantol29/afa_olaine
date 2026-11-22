@@ -6,6 +6,7 @@ import { useActionState, useLayoutEffect, useRef, useState } from "react";
 import { MIN_SHIRT_NUMBER } from "@/lib/admin-input/players";
 import { parseBirthdate, replaceDateSeparators } from "@/lib/birthdate";
 import { handleImageInputChange } from "@/lib/client-image-resize";
+import { positionOptions } from "@/lib/player-positions";
 
 import { createPlayer, updatePlayer } from "../actions";
 
@@ -104,13 +105,18 @@ export function PlayerForm(
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Pozīcija (nav obligāta)
-        <input
-          type="text"
+        <select
           name="position"
-          placeholder="Piem., Aizsargs"
           defaultValue={player?.position ?? ""}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        />
+        >
+          <option value="">—</option>
+          {positionOptions(player?.position).map((position) => (
+            <option key={position} value={position}>
+              {position}
+            </option>
+          ))}
+        </select>
       </label>
 
       <fieldset className="mt-4">
