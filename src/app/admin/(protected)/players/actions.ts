@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath, updateTag } from "next/cache";
 import { PUBLIC_CONTENT_CACHE_TAG } from "@/lib/public-data-cache";
 import { redirect } from "next/navigation";
@@ -9,6 +9,7 @@ import { db } from "@/db/client";
 import { playerTeams, players, teams } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
 import { parsePlayerImport } from "@/lib/admin-input/player-import";
+import { parsePlayerMoveInput } from "@/lib/admin-input/player-move";
 import { parsePlayerInput } from "@/lib/admin-input/players";
 import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 
@@ -173,4 +174,47 @@ export async function savePlayerImport(_prevState: PlayerImportState, formData: 
   revalidatePath("/sitemap.xml");
   revalidatePath("/");
   return { saved: { created: creates.length, updated: updates.length } };
+}
+
+export type PlayerMoveState = { error?: string; saved?: { changed: number; lostGoals: number } } | undefined;
+
+/** Adds the ticked players of one team to another, or moves them there. Moving drops only the link to the source
+ *  team (and the goals kept for it); a player already in the target team keeps that link and its goals. */
+export async function movePlayers(_prevState: PlayerMoveState, formData: FormData): Promise<PlayerMoveState> {
+  await requireAdminSession();
+
+  const parsed = parsePlayerMoveInput(formData);
+  if ("error" in parsed) return parsed;
+  const { fromTeamId, toTeamId, mode, playerIds } = parsed;
+
+  const foundTeams = await db.select({ id: teams.id }).from(teams).where(inArray(teams.id, [fromTeamId, toTeamId]));
+  if (foundTeams.length !== 2) return { error: "Komanda nav atrasta." };
+  const links = await db.select().from(playerTeams).where(inArray(playerTeams.playerId, playerIds));
+  const sourceLinks = links.filter((link) => link.teamId === fromTeamId);
+  if (sourceLinks.length !== playerIds.length) return { error: "Saraksts ir mainījies. Atver lapu vēlreiz un pārbaudi." };
+  const inTarget = new Set(links.filter((link) => link.teamId === toTeamId).map((link) => link.playerId));
+
+  const joining = playerIds.filter((playerId) => !inTarget.has(playerId));
+  const changed = mode === "move" ? playerIds.length : joining.length;
+  if (changed === 0) return { error: "Visi atzīmētie jau ir šajā komandā." };
+
+  await db.transaction(async (tx) => {
+    if (joining.length > 0) {
+      await tx.insert(playerTeams).values(joining.map((playerId) => ({ playerId, teamId: toTeamId, goals: 0 }))).onConflictDoNothing();
+    }
+    if (mode === "move") {
+      await tx.delete(playerTeams).where(and(eq(playerTeams.teamId, fromTeamId), inArray(playerTeams.playerId, playerIds)));
+    }
+  });
+
+  revalidatePath("/komanda/speletaji/[id]", "page");
+  updateTag(PUBLIC_CONTENT_CACHE_TAG);
+  revalidatePath("/admin/players");
+  revalidatePath("/admin/players/move");
+  revalidatePath("/komanda");
+  revalidatePath("/akademija");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/");
+  const lostGoals = mode === "move" ? sourceLinks.reduce((sum, link) => sum + link.goals, 0) : 0;
+  return { saved: { changed, lostGoals } };
 }

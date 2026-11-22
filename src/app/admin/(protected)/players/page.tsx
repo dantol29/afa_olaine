@@ -41,12 +41,20 @@ export default async function AdminPlayersPage() {
         <div className="min-w-0 flex-1">
           <AdminSearch placeholder="Meklēt spēlētājus…" />
         </div>
-        <Link
-          href="/admin/players/import"
-          className="flex h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-club-navy shadow-sm hover:bg-slate-50"
-        >
-          Importēt sarakstu
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/players/move"
+            className="flex h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-club-navy shadow-sm hover:bg-slate-50"
+          >
+            Pārvietot
+          </Link>
+          <Link
+            href="/admin/players/import"
+            className="flex h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-club-navy shadow-sm hover:bg-slate-50"
+          >
+            Importēt sarakstu
+          </Link>
+        </div>
       </div>
 
       {totalPlayers === 0 ? (
@@ -60,6 +68,9 @@ export default async function AdminPlayersPage() {
               <div className="mb-3 flex items-baseline gap-3">
                 <h2 className="text-lg font-bold text-club-navy">{team.name}</h2>
                 <span className="text-sm text-slate-400">{team.players.length} spēlētāji</span>
+                <Link href={`/admin/players/move?no=${team.id}`} className="ml-auto text-sm font-semibold text-slate-500 hover:text-club-navy">
+                  Pārvietot…
+                </Link>
               </div>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {team.players.map((player) => (
