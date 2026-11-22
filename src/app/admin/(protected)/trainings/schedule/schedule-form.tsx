@@ -4,11 +4,14 @@ import { useActionState, useMemo, useState } from "react";
 
 import { LocationInput } from "@/components/admin/location-input";
 import { TimeSelect } from "@/components/admin/time-select";
+import { useVenueBookings } from "@/components/admin/use-venue-bookings";
+import { VenueClashNote, fkNote } from "@/components/admin/venue-load";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { isEndAfterStart } from "@/lib/time-range";
 import { WEEKDAYS, findClash, scheduleDates, weekdayLabel, type ScheduleTraining } from "@/lib/training-schedule";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 import type { LocationHint } from "@/lib/venue";
+import { findVenueClashes, worstLevel, type VenueClash } from "@/lib/venue-clash";
 
 import { createTrainingSchedule } from "../actions";
 
@@ -17,7 +20,8 @@ type Option = { id: number; name: string };
 const INPUT_CLASS = "mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red";
 
 /** The schedule form: the fields shared by every training, then the dates they give, each with a tick. A date on
- *  which one of the chosen teams already trains at an overlapping time starts unticked. */
+ *  which one of the chosen teams already trains at an overlapping time, or with a red venue clash (a game at the
+ *  place, see src/lib/venue-clash.ts), starts unticked; an orange venue clash is shown but stays ticked. */
 export function ScheduleForm({
   today,
   teamOptions,
@@ -57,6 +61,8 @@ export function ScheduleForm({
   }
 
   const timesReady = isEndAfterStart(startTime, endTime);
+  const venue = useVenueBookings(from, to);
+  const venueBookings = venue.status === "ready" ? venue.data.bookings : null;
   const plan = useMemo(() => {
     if (!from || !to) return { rows: [], error: null };
     const result = scheduleDates(from, to, weekdays);
@@ -66,11 +72,16 @@ export function ScheduleForm({
       rows: result.dates.map((date) => ({
         date,
         clash: teamIds.length > 0 && timesReady ? findClash(date, startTime, endTime, teamIds, existing) : null,
+        venueClashes:
+          timesReady && venueBookings && location.trim()
+            ? findVenueClashes({ kind: "training", location, date, startTime, endTime }, venueBookings)
+            : [],
       })),
     };
-  }, [from, to, weekdays, teamIds, timesReady, startTime, endTime, existing]);
+  }, [from, to, weekdays, teamIds, timesReady, startTime, endTime, existing, location, venueBookings]);
 
-  const isTicked = (row: { date: string; clash: ScheduleTraining | null }) => ticks[row.date] ?? row.clash === null;
+  const isTicked = (row: { date: string; clash: ScheduleTraining | null; venueClashes: VenueClash[] }) =>
+    ticks[row.date] ?? (row.clash === null && worstLevel(row.venueClashes) !== "red");
   const tickedCount = plan.rows.filter(isTicked).length;
 
   return (
@@ -168,11 +179,14 @@ export function ScheduleForm({
                   />
                   <span className="w-24 font-semibold">{row.date}</span>
                   <span className="w-28 text-slate-500">{weekdayLabel(row.date)}</span>
-                  {row.clash && (
-                    <span className="text-xs font-semibold text-amber-700">
-                      ⚠️ Jau ir treniņš {row.clash.startTime}–{row.clash.endTime}, {row.clash.location}
-                    </span>
-                  )}
+                  <span className="min-w-0">
+                    {row.clash && (
+                      <span className="block text-xs font-semibold text-amber-700">
+                        ⚠️ Jau ir treniņš {row.clash.startTime}–{row.clash.endTime}, {row.clash.location}
+                      </span>
+                    )}
+                    <VenueClashNote clashes={row.venueClashes} />
+                  </span>
                 </label>
               </li>
             ))}
@@ -180,6 +194,10 @@ export function ScheduleForm({
         )}
         {plan.rows.length > 0 && !(teamIds.length > 0 && timesReady) && (
           <p className="mt-2 text-xs text-slate-500">Pārklāšanās ar esošajiem treniņiem tiks parādīta, kad izvēlēta komanda un laiks.</p>
+        )}
+        {plan.rows.length > 0 && venue.status === "failed" && <p className="mt-2 text-xs text-club-red">Vietas noslodzi neizdevās ielādēt.</p>}
+        {plan.rows.length > 0 && venue.status === "ready" && fkNote(venue.data.fk) && (
+          <p className="mt-2 text-xs text-slate-500">{fkNote(venue.data.fk)}</p>
         )}
       </section>
 

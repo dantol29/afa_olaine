@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { clashLevel, findVenueClashes, worstLevel, type PlannedBooking, type VenueBooking } from "./venue-clash";
+import { clashLevel, findVenueClashes, venueClashPairs, worstLevel, type PlannedBooking, type VenueBooking } from "./venue-clash";
 
 const STADIUM = "Olaines pilsētas stadions";
 
@@ -58,4 +58,24 @@ test("findVenueClashes lists red first, then by start, and worstLevel sums them 
   assert.equal(worstLevel(clashes), "red");
   assert.equal(worstLevel(clashes.filter((clash) => clash.level === "orange")), "orange");
   assert.equal(worstLevel([]), null);
+});
+
+test("venueClashPairs lists red pairs and cross-club orange pairs that involve AFA", () => {
+  const pairs = venueClashPairs([
+    booked("afa:training-1", "training", "17:00", "18:30", { club: "afa" }),
+    booked("afa:training-2", "training", "18:00", "19:30", { club: "afa" }),
+    booked("afa:game-3", "game", "12:00", "13:45", { club: "afa" }),
+    booked("afa:training-4", "training", "10:00", "11:40", { club: "afa" }),
+    booked("fk:training-5", "training", "18:00", "19:00"),
+    booked("fk:game-6", "game", "20:00", "21:45", { date: "2026-11-29" }),
+    booked("fk:training-7", "training", "20:30", "21:30", { date: "2026-11-29" }),
+  ]);
+  assert.deepEqual(
+    pairs.map((pair) => [pair.level, pair.first.key, pair.second.key]),
+    [
+      ["red", "afa:training-4", "afa:game-3"],
+      ["orange", "afa:training-1", "fk:training-5"],
+      ["orange", "afa:training-2", "fk:training-5"],
+    ],
+  );
 });

@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
 
-import { loadVenueDay } from "@/app/admin/(protected)/venue-actions";
 import type { VenueBookings } from "@/lib/venue-bookings";
-import { clashLevel, wallClockMinutes, type ClashLevel, type PlannedBooking, type VenueBooking } from "@/lib/venue-clash";
+import { clashLevel, wallClockMinutes, worstLevel, type ClashLevel, type PlannedBooking, type VenueBooking, type VenueClash } from "@/lib/venue-clash";
 import { isSameVenue } from "@/lib/venue";
+
+import { useVenueBookings } from "./use-venue-bookings";
 
 const CLUB_LOGOS = { afa: "/afaolaine-logo.png", fk: "/fk-olaine-crest.png" } as const;
 const LOGO_SIZE = 16;
@@ -22,7 +22,7 @@ const SUMMARY: Record<ClashLevel, { text: string; style: string }> = {
   orange: { text: "🟠 Pārbaudi: vietā tajā pašā laikā ir cits treniņš vai notikums.", style: "text-amber-600" },
 };
 
-function fkNote(fk: VenueBookings["fk"]): string | null {
+export function fkNote(fk: VenueBookings["fk"]): string | null {
   if (fk.status === "unconfigured") return "FK dati nav pieslēgti — redzami tikai AFA ieraksti.";
   if (fk.status === "unavailable") return `FK dati nav pieejami: ${fk.error ?? ""} Redzami tikai AFA ieraksti.`;
   if (fk.status === "stale" && fk.updatedAt) {
@@ -39,39 +39,23 @@ function timeText(booking: VenueBooking) {
 /** "Vietas noslodze": every AFA and FK booking at the form's place on its date, the ones that clash with the form's
  *  time marked red or orange (see src/lib/venue-clash.ts). Advisory only: it never blocks saving. */
 export function VenueLoad({ planned, excludeKey }: { planned: PlannedBooking; excludeKey?: string }) {
-  const [day, setDay] = useState<{ date: string; data: VenueBookings | null } | null>(null);
   const { date } = planned;
-
-  useEffect(() => {
-    if (!date) return;
-    let current = true;
-    loadVenueDay(date)
-      .then((data) => {
-        if (current) setDay({ date, data });
-      })
-      .catch(() => {
-        if (current) setDay({ date, data: null });
-      });
-    return () => {
-      current = false;
-    };
-  }, [date]);
+  const venue = useVenueBookings(date, date);
 
   if (!date || !planned.location?.trim()) {
     return <p className="mt-2 text-xs text-slate-500">Vietas noslodze: izvēlies datumu un vietu.</p>;
   }
-  if (!day || day.date !== date) return <p className="mt-2 text-xs text-slate-500">Vietas noslodze: ielādē…</p>;
-  if (!day.data) return <p className="mt-2 text-xs text-club-red">Vietas noslodzi neizdevās ielādēt.</p>;
-
+  if (venue.status === "loading" || venue.status === "idle") return <p className="mt-2 text-xs text-slate-500">Vietas noslodze: ielādē…</p>;
+  if (venue.status === "failed") return <p className="mt-2 text-xs text-club-red">Vietas noslodzi neizdevās ielādēt.</p>;
   const plannedStart = planned.startTime ? wallClockMinutes(date, planned.startTime) : null;
-  const rows = day.data.bookings
+  const rows = venue.data.bookings
     .filter((booking) => booking.key !== excludeKey && isSameVenue(booking.location, planned.location))
     .map((booking) => ({ booking, level: planned.startTime && planned.endTime ? clashLevel(planned, booking) : null }))
     // The neighbouring days only matter when they clash.
     .filter((row) => row.booking.date === date || row.booking.endDate === date || row.level !== null)
     .sort((a, b) => wallClockMinutes(a.booking.date, a.booking.startTime) - wallClockMinutes(b.booking.date, b.booking.startTime));
-  const worst = rows.some((row) => row.level === "red") ? "red" : rows.some((row) => row.level === "orange") ? "orange" : null;
-  const note = fkNote(day.data.fk);
+  const worst = worstLevel(rows.flatMap((row) => (row.level ? [{ booking: row.booking, level: row.level }] : [])));
+  const note = fkNote(venue.data.fk);
 
   return (
     <section aria-label="Vietas noslodze" className="mt-3 rounded-lg border border-slate-200 p-3 text-sm">
@@ -99,5 +83,20 @@ export function VenueLoad({ planned, excludeKey }: { planned: PlannedBooking; ex
       )}
       {note && <p className="mt-2 text-xs text-slate-500">{note}</p>}
     </section>
+  );
+}
+
+const CLUB_LABEL = { afa: "AFA", fk: "FK" } as const;
+
+/** The clash of one row in a list of dates: the worst level and the first clash, with how many more there are. */
+export function VenueClashNote({ clashes }: { clashes: readonly VenueClash[] }) {
+  const level = worstLevel(clashes);
+  if (!level) return null;
+  const [first, ...rest] = clashes;
+  return (
+    <span className={`block text-xs font-semibold ${level === "red" ? "text-red-600" : "text-amber-600"}`}>
+      {level === "red" ? "🔴" : "🟠"} {CLUB_LABEL[first.booking.club]}: {first.booking.title} {timeText(first.booking)}, {first.booking.location}
+      {rest.length > 0 && ` (+${rest.length})`}
+    </span>
   );
 }

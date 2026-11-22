@@ -81,3 +81,28 @@ export function worstLevel(clashes: readonly VenueClash[]): ClashLevel | null {
   if (clashes.some((clash) => clash.level === "red")) return "red";
   return clashes.length > 0 ? "orange" : null;
 }
+
+export type VenueClashPair = { level: ClashLevel; first: VenueBooking; second: VenueBooking };
+
+/** Clashing pairs worth an admin's attention, red first, then by date. A pair needs at least one AFA booking (FK's
+ *  own clashes are FK's to sort out). Orange pairs within AFA are left out: two AFA teams sharing a pitch is the
+ *  usual arrangement and is planned in AFA's own forms; orange pairs with FK are listed, because AFA cannot see them
+ *  being planned. */
+export function venueClashPairs(bookings: readonly VenueBooking[]): VenueClashPair[] {
+  const pairs: VenueClashPair[] = [];
+  for (let i = 0; i < bookings.length; i++) {
+    for (let j = i + 1; j < bookings.length; j++) {
+      const [first, second] = [bookings[i], bookings[j]];
+      if (first.club !== "afa" && second.club !== "afa") continue;
+      const level = clashLevel(first, second);
+      if (!level || (level === "orange" && first.club === second.club)) continue;
+      const [earlier, later] = wallClockMinutes(first.date, first.startTime) <= wallClockMinutes(second.date, second.startTime) ? [first, second] : [second, first];
+      pairs.push({ level, first: earlier, second: later });
+    }
+  }
+  return pairs.sort(
+    (a, b) =>
+      Number(a.level === "orange") - Number(b.level === "orange") ||
+      wallClockMinutes(a.first.date, a.first.startTime) - wallClockMinutes(b.first.date, b.first.startTime),
+  );
+}
