@@ -3,7 +3,11 @@
 import { useActionState, useState } from "react";
 
 import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
+import { FormWithPreview } from "@/components/admin/form-preview";
+import { SuggestInput } from "@/components/admin/suggest-input";
 import { TimeSelect } from "@/components/admin/time-select";
+import { EventCard } from "@/components/event-card";
+import { buildEventPreview } from "@/lib/admin-preview";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 
 import { createEvent, updateEvent } from "../actions";
@@ -18,11 +22,14 @@ export type EventFormValues = {
   teamId: number | null;
 };
 type TeamOption = { id: number; name: string };
+/** Values used before, offered while typing, and the stripe the card preview draws. */
+export type EventFormHints = { titles: string[]; locations: string[]; borderStripe: string };
 
 export function EventForm(
-  props:
-    | { mode: "create"; teamOptions: TeamOption[]; copyOf?: EventFormValues }
-    | { mode: "edit"; eventId: number; event: EventFormValues; teamOptions: TeamOption[] },
+  props: { teamOptions: TeamOption[]; hints: EventFormHints } & (
+    | { mode: "create"; copyOf?: EventFormValues }
+    | { mode: "edit"; eventId: number; event: EventFormValues }
+  ),
 ) {
   const copy = useFormCopy();
   // Both actions are set up so an edit form can turn into a copy (a create) without losing what is typed.
@@ -36,31 +43,35 @@ export function EventForm(
   const state = isCreate ? createState : updateState;
   const pending = isCreate ? createPending : updatePending;
   const event = props.mode === "edit" ? props.event : props.copyOf ?? null;
+  const [title, setTitle] = useState(event?.title ?? "");
+  const [date, setDate] = useState(event?.date ?? "");
   const [startTime, setStartTime] = useState(event?.startTime ?? "");
   const [endTime, setEndTime] = useState(event?.endTime ?? "");
+  const [location, setLocation] = useState(event?.location ?? "");
+  const [teamId, setTeamId] = useState(event?.teamId == null ? "" : String(event.teamId));
+  const preview = buildEventPreview(
+    { title, date, startTime, endTime, location, teamId: teamId ? Number(teamId) : null },
+    props.teamOptions,
+  );
+  // Picking a suggestion fires no input event, so it marks the form as edited here.
+  const edit = (set: (value: string) => void) => (value: string) => {
+    copy.markDirty();
+    set(value);
+  };
 
   function changeStartTime(value: string) {
     setStartTime(value);
     if (!endTime) setEndTime(defaultEndTime(value, DEFAULT_DURATION_MINUTES.event));
   }
 
-  return (
+  const form = (
     <form action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {isCreate ? `Jauns notikums${isCopy ? " (kopija)" : ""}` : "Rediģēt notikumu"}
       </h1>
       {isCopy && <CopyNotice />}
 
-      <label className="block text-sm font-semibold text-club-navy">
-        Nosaukums
-        <input
-          type="text"
-          name="title"
-          required
-          defaultValue={event?.title ?? ""}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        />
-      </label>
+      <SuggestInput name="title" label="Nosaukums" required value={title} onChange={edit(setTitle)} options={props.hints.titles} />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Datums
@@ -68,7 +79,8 @@ export function EventForm(
           type="date"
           name="date"
           required
-          defaultValue={event?.date ?? ""}
+          value={date}
+          onChange={(changeEvent) => setDate(changeEvent.target.value)}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
         />
       </label>
@@ -78,22 +90,14 @@ export function EventForm(
         <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
       </div>
 
-      <label className="mt-4 block text-sm font-semibold text-club-navy">
-        Vieta
-        <input
-          type="text"
-          name="location"
-          required
-          defaultValue={event?.location ?? ""}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        />
-      </label>
+      <SuggestInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Komanda (nav obligāta — atstāj tukšu visam klubam)
         <select
           name="teamId"
-          defaultValue={event?.teamId ?? ""}
+          value={teamId}
+          onChange={(changeEvent) => setTeamId(changeEvent.target.value)}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
         >
           <option value="">Viss klubs</option>
@@ -127,4 +131,6 @@ export function EventForm(
       {!isCreate && <CopyFormButton onClick={copy.startCopy} />}
     </form>
   );
+
+  return <FormWithPreview form={form} preview={<EventCard event={preview} borderStripe={props.hints.borderStripe} />} />;
 }

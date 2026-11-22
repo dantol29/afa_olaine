@@ -6,13 +6,10 @@ import { db } from "@/db/client";
 import { events as eventsTable, games as gamesTable, teams as teamsTable } from "@/db/schema";
 import { toDateKey } from "@/lib/calendar";
 import { resolveClubLogos } from "@/lib/club-logos";
-import { colorFor, initialsFor, MONTHS, type Team, type UpcomingGame } from "@/lib/games";
+import { clubDisplay, MONTHS, type UpcomingGame } from "@/lib/games";
 import type { ScheduleEvent } from "@/lib/schedule";
-import { getLeagueSourceMetadata, leagueLogoForGame } from "@/lib/league-source-metadata";
-
-function teamDisplay(name: string, logo: string | null): Team {
-  return logo ? { name, logo } : { name, initials: initialsFor(name), color: colorFor(name) };
-}
+import { leagueLogoForGame } from "@/lib/league-logo";
+import { getLeagueSourceMetadata } from "@/lib/league-source-metadata";
 
 const WEEKDAY_ABBR: Record<string, string> = {
   pirmdiena: "PIRMD.",
@@ -89,8 +86,8 @@ export const getAllGamesFromDb = cache(async function getAllGamesFromDb(): Promi
         time: row.startTime,
         league: row.league ?? "Draudzības spēle",
         leagueLogoUrl: leagueLogoForGame(sources, row.teamId, row.league),
-        home: teamDisplay(row.homeTeam, logos.get(row.homeTeam) ?? null),
-        away: teamDisplay(row.awayTeam, logos.get(row.awayTeam) ?? null),
+        home: clubDisplay(row.homeTeam, logos.get(row.homeTeam) ?? null),
+        away: clubDisplay(row.awayTeam, logos.get(row.awayTeam) ?? null),
         venue: row.location,
         teamName: row.teamName,
         teamId: row.teamId,

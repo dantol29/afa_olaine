@@ -1,4 +1,10 @@
-const DEFAULT_BORDER_COLOR = "#fbb040";
+/** The club's amber, used when a crest gives no colors. */
+export const DEFAULT_BORDER_COLOR = "#fbb040";
+
+/** A one-color card stripe. Stripes are drawn as a background image, which takes a gradient but not a bare color. */
+export function solidStripe(color: string) {
+  return `linear-gradient(${color}, ${color})`;
+}
 
 function hexColor(red: number, green: number, blue: number) {
   return `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;

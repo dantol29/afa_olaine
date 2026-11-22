@@ -6,6 +6,7 @@ import { sortByName } from "@/lib/ordering";
 import { coaches, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
 import { copySourceId } from "@/lib/admin-copy";
+import { getLocationHints } from "@/lib/admin-form-hints";
 import type { SearchParamValue } from "@/lib/url-state";
 
 import { TrainingForm } from "./training-form";
@@ -27,9 +28,10 @@ export default async function AdminTrainingFormPage({
   searchParams: Promise<Record<string, SearchParamValue>>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const [teamRows, coachRows] = await Promise.all([
+  const [teamRows, coachRows, locations] = await Promise.all([
     db.select().from(teams),
     db.select({ id: coaches.id, name: coaches.name }).from(coaches),
+    getLocationHints(),
   ]);
   const teamOptions = sortByName(teamRows, (team) => team.name);
   const coachOptions = sortByName(coachRows, (coach) => coach.name);
@@ -61,9 +63,10 @@ export default async function AdminTrainingFormPage({
           training={training}
           teamOptions={teamOptions}
           coachOptions={coachOptions}
+          locations={locations}
         />
       ) : (
-        <TrainingForm mode="create" teamOptions={teamOptions} coachOptions={coachOptions} copyOf={copyOf} />
+        <TrainingForm mode="create" teamOptions={teamOptions} coachOptions={coachOptions} locations={locations} copyOf={copyOf} />
       )}
 
       <div className="mt-10">

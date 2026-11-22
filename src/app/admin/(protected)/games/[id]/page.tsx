@@ -7,6 +7,7 @@ import { sortByName } from "@/lib/ordering";
 import { games, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
 import { copySourceId } from "@/lib/admin-copy";
+import { getClubHints, getLeagueHints, getLeagueLogoHints, getLocationHints } from "@/lib/admin-form-hints";
 import type { SearchParamValue } from "@/lib/url-state";
 
 import { GameForm } from "./game-form";
@@ -24,7 +25,15 @@ export default async function AdminGameFormPage({
   searchParams: Promise<Record<string, SearchParamValue>>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const teamOptions = sortByName(await db.select().from(teams), (team) => team.name);
+  const [teamRows, clubs, locations, leagues, leagueLogos] = await Promise.all([
+    db.select().from(teams),
+    getClubHints(),
+    getLocationHints(),
+    getLeagueHints(),
+    getLeagueLogoHints(),
+  ]);
+  const teamOptions = sortByName(teamRows, (team) => team.name);
+  const hints = { clubs, locations, leagues, leagueLogos };
 
   let game = null;
   let copyOf = undefined;
@@ -48,9 +57,9 @@ export default async function AdminGameFormPage({
   return (
     <div>
       {game ? (
-        <GameForm mode="edit" gameId={game.id} game={game} teamOptions={teamOptions} />
+        <GameForm mode="edit" gameId={game.id} game={game} teamOptions={teamOptions} hints={hints} />
       ) : (
-        <GameForm mode="create" teamOptions={teamOptions} copyOf={copyOf} />
+        <GameForm mode="create" teamOptions={teamOptions} copyOf={copyOf} hints={hints} />
       )}
 
       <div className="mt-10">

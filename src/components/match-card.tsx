@@ -1,17 +1,22 @@
 import Image from "next/image";
 import { TeamLogo } from "./team-logo";
 
-import { MONTHS, type Team, type UpcomingGame } from "@/lib/games";
+import { colorFor, initialsFor, MONTHS, type Team, type UpcomingGame } from "@/lib/games";
 
 export type MatchCardGame = UpcomingGame & { homeScore?: number | null; awayScore?: number | null };
 
 function dateLabel(game: UpcomingGame) {
   const month = MONTHS.indexOf(game.month) + 1;
-  return `${game.day}.${String(month).padStart(2, "0")}.${game.year} ${game.time}`;
+  // The admin preview shows a card before its date is picked.
+  const monthText = month > 0 ? String(month).padStart(2, "0") : "--";
+  return `${game.day}.${monthText}.${game.year} ${game.time}`;
 }
 
 function MatchCrest({ team }: { team: Team }) {
-  return <TeamLogo src={team.logo} name={team.name} width={62} height={62} className="size-[62px] object-contain" fallbackClassName="grid size-[62px] place-items-center rounded-full border border-white/45 font-heading text-lg text-white" />;
+  // A club without a logo shows its initials on its own color, as the admin lists do.
+  const initials = team.initials ?? initialsFor(team.name);
+  const color = team.color ?? colorFor(team.name);
+  return <TeamLogo src={team.logo} name={team.name} width={62} height={62} className="size-[62px] object-contain" fallbackText={initials} fallbackClassName={`grid size-[62px] place-items-center rounded-full font-heading text-lg text-white ${color}`} />;
 }
 
 export function MatchCard({

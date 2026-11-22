@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
+import { SuggestInput } from "@/components/admin/suggest-input";
 import { TimeSelect } from "@/components/admin/time-select";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 
@@ -22,8 +23,8 @@ type CoachOption = { id: number; name: string };
 
 export function TrainingForm(
   props:
-    | { mode: "create"; teamOptions: TeamOption[]; coachOptions: CoachOption[]; copyOf?: TrainingFormValues }
-    | { mode: "edit"; trainingId: number; training: TrainingFormValues; teamOptions: TeamOption[]; coachOptions: CoachOption[] },
+    | { mode: "create"; teamOptions: TeamOption[]; coachOptions: CoachOption[]; locations: string[]; copyOf?: TrainingFormValues }
+    | { mode: "edit"; trainingId: number; training: TrainingFormValues; teamOptions: TeamOption[]; coachOptions: CoachOption[]; locations: string[] },
 ) {
   const copy = useFormCopy();
   // Both actions are set up so an edit form can turn into a copy (a create) without losing what is typed.
@@ -40,6 +41,13 @@ export function TrainingForm(
   const selectedCoachIds = new Set(training?.trainingCoaches.map((tc) => tc.coachId) ?? []);
   const [startTime, setStartTime] = useState(training?.startTime ?? "");
   const [endTime, setEndTime] = useState(training?.endTime ?? "");
+  const [location, setLocation] = useState(training?.location ?? "Olaines pilsētas stadions");
+
+  // Picking a suggestion fires no input event, so it marks the form as edited here.
+  function changeLocation(value: string) {
+    copy.markDirty();
+    setLocation(value);
+  }
 
   function changeStartTime(value: string) {
     setStartTime(value);
@@ -105,16 +113,7 @@ export function TrainingForm(
         <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
       </div>
 
-      <label className="mt-4 block text-sm font-semibold text-club-navy">
-        Vieta
-        <input
-          type="text"
-          name="location"
-          required
-          defaultValue={training?.location ?? "Olaines pilsētas stadions"}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        />
-      </label>
+      <SuggestInput name="location" label="Vieta" required value={location} onChange={changeLocation} options={props.locations} className="mt-4" />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Piezīmes (nav obligāts)

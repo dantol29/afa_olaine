@@ -3,9 +3,8 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
-import { smoothLogoStripe } from "@/lib/logo-color-core";
+import { DEFAULT_BORDER_COLOR, smoothLogoStripe, solidStripe } from "@/lib/logo-color-core";
 
-const DEFAULT_BORDER_COLOR = "#fbb040";
 const stripeCache = new Map<string, Promise<string>>();
 
 async function logoBuffer(logo: string) {
@@ -31,13 +30,16 @@ async function extractLogoStripe(logo: string) {
   return smoothLogoStripe(data, info.width, info.height, 14, DEFAULT_BORDER_COLOR);
 }
 
-/** Maps the center line of a crest to a cached, crisp CSS border stripe. */
+/** Maps the center line of a crest to a cached, crisp CSS border stripe; a club without a usable logo gets a solid
+ *  stripe in the fallback color. */
 export function getLogoBorderStripe(logo?: string, fallback = DEFAULT_BORDER_COLOR): Promise<string> {
-  if (!logo) return Promise.resolve(fallback);
+  if (!logo) return Promise.resolve(solidStripe(fallback));
   const cached = stripeCache.get(logo);
   if (cached) return cached;
 
-  const stripe = extractLogoStripe(logo).catch(() => fallback);
+  const stripe = extractLogoStripe(logo)
+    .then((value) => (value.startsWith("linear-gradient") ? value : solidStripe(value)))
+    .catch(() => solidStripe(fallback));
   stripeCache.set(logo, stripe);
   return stripe;
 }

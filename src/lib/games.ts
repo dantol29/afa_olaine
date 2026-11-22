@@ -23,6 +23,11 @@ export type UpcomingGame = {
   leagueLogoUrl?: string | null;
 };
 
+/** How a club shows on a card: its logo, or initials on a stable color when no logo is on file. */
+export function clubDisplay(name: string, logo: string | null): Team {
+  return logo ? { name, logo } : { name, initials: initialsFor(name), color: colorFor(name) };
+}
+
 export function isOlaine(name: string) {
   return /olaine/i.test(name);
 }
