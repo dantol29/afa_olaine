@@ -110,3 +110,24 @@ export function findSimilarTrainings(
     )
     .sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
 }
+
+/** A training of the same team(s) on the same day that `training` would overlap if moved to the new times, leaving
+ *  out the trainings being changed together with it. */
+export function findChangeClash(
+  training: ScheduleTraining,
+  startTime: string,
+  endTime: string,
+  trainings: readonly ScheduleTraining[],
+  changingIds: ReadonlySet<number>,
+): ScheduleTraining | null {
+  return (
+    trainings.find(
+      (other) =>
+        !changingIds.has(other.id) &&
+        other.id !== training.id &&
+        other.date === training.date &&
+        other.teamIds.some((teamId) => training.teamIds.includes(teamId)) &&
+        timesOverlap(startTime, endTime, other.startTime, other.endTime),
+    ) ?? null
+  );
+}

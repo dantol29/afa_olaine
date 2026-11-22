@@ -11,11 +11,14 @@ export function TimeSelect({
   label,
   value,
   onChange,
+  required = true,
 }: {
   name: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
+  /** False for an optional time, such as a new time that may be left as it is. */
+  required?: boolean;
 }) {
   const { hour, minute } = splitTime(value);
 
@@ -25,7 +28,7 @@ export function TimeSelect({
       <div className="mt-1.5 flex items-center gap-1.5">
         <select
           aria-label={`${label}: stundas`}
-          required
+          required={required}
           value={hour}
           onChange={(event) => onChange(`${event.target.value}:${minute || "00"}`)}
           className={SELECT_CLASS}
@@ -36,7 +39,7 @@ export function TimeSelect({
         <span aria-hidden="true">:</span>
         <select
           aria-label={`${label}: minūtes`}
-          required
+          required={required}
           disabled={!hour}
           value={minute}
           onChange={(event) => onChange(`${hour}:${event.target.value}`)}
