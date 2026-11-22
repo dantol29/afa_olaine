@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { TrainingSchedule } from "@/components/training-schedule";
 import { toDateKey } from "@/lib/calendar";
 import { TRAINING_DATE_PARAM, TRAINING_TEAM_PARAM } from "@/lib/training-filters";
+import { getSiteUrl } from "@/lib/site-url";
 import { getAllTrainingsFromDb } from "@/lib/trainings-server";
 import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 
@@ -30,6 +31,7 @@ export default async function TrainingsPage({ searchParams }: { searchParams: Pr
         todayKey={toDateKey(new Date())}
         initialTeam={firstSearchParam(params[TRAINING_TEAM_PARAM]) ?? null}
         initialDate={firstSearchParam(params[TRAINING_DATE_PARAM]) ?? null}
+        siteUrl={getSiteUrl()}
       />
       <SiteEnding />
     </main>
