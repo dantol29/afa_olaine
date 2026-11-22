@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
+  House,
   Award,
   ArrowUpRight,
   CalendarDays,
@@ -27,7 +28,10 @@ import {
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/login/actions";
 
+const HOME_HREF = "/admin";
+
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: HOME_HREF, label: "Sākums", icon: House },
   { href: "/admin/teams", label: "Komandas", icon: Users },
   { href: "/admin/players", label: "Spēlētāji", icon: UserRound },
   { href: "/admin/coaches", label: "Treneri", icon: Award },
@@ -60,7 +64,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
         <nav aria-label="Administrācijas navigācija" className="mt-6 flex flex-col gap-1">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+            // Every admin path starts with the home path, so home is active only on itself.
+            const isActive = item.href === HOME_HREF ? pathname === HOME_HREF : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
               <Link
