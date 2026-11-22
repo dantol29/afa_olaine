@@ -240,6 +240,12 @@
   color: #f4f4f4;
 }
 
+/* Native date pickers draw their calendar icon and popup for a light page unless told otherwise; on the dark admin
+ * the icon was invisible. */
+.admin-theme input[type="date"] {
+  color-scheme: dark;
+}
+
 .admin-theme .admin-main h1 {
   color: #fff;
   font-size: clamp(2.25rem, 3vw, 3.5rem);

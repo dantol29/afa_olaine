@@ -5,15 +5,19 @@ import Link from "next/link";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
-import { compareLatvian } from "@/lib/ordering";
+import { compareLatvian, sortByName } from "@/lib/ordering";
 
 import { deleteClubLogo } from "./actions";
 
 export default async function AdminClubLogosPage() {
-  const rows = await db.query.clubLogos.findMany({
-    with: { names: true },
-    orderBy: (clubLogos, { asc }) => [asc(clubLogos.id)],
-  });
+  // Each logo can be known by several names; the list follows the first of them in Latvian order.
+  const rows = sortByName(
+    (await db.query.clubLogos.findMany({ with: { names: true } })).map((club) => ({
+      ...club,
+      sortedNames: club.names.map((n) => n.name).sort(compareLatvian),
+    })),
+    (club) => club.sortedNames[0] ?? "",
+  );
 
   return (
     <div>
@@ -43,11 +47,7 @@ export default async function AdminClubLogosPage() {
           </thead>
           <tbody>
             {rows.map((club) => {
-              const namesLabel =
-                club.names
-                  .map((n) => n.name)
-                  .sort(compareLatvian)
-                  .join(", ") || "—";
+              const namesLabel = club.sortedNames.join(", ") || "—";
               return (
                 <tr data-admin-search-item={namesLabel} key={club.id} className="border-b border-slate-100 last:border-0">
                   <td className="p-4">

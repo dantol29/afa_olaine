@@ -2,6 +2,12 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 
 import { DeleteButton } from "@/components/admin/delete-button";
+import { AdminScheduleRows } from "@/components/admin/admin-schedule-rows";
+import { CopyRowLink } from "@/components/admin/form-copy";
+import { copyHref } from "@/lib/admin-copy";
+import { SHOW_ALL_PAST_PARAM, isShowAllPast, splitAdminSchedule } from "@/lib/admin-schedule-list";
+import { toDateKey } from "@/lib/calendar";
+import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
 import { compareLatvian, uniqueSortedLabels } from "@/lib/ordering";
@@ -15,11 +21,16 @@ const teamNames = (training: { trainingTeams: { team: { name: string } | null }[
 const coachNames = (training: { trainingCoaches: { coach: { name: string } | null }[] }) =>
   training.trainingCoaches.flatMap(({ coach }) => (coach ? [coach.name] : [])).sort(compareLatvian);
 
-export default async function AdminTrainingsPage() {
+export default async function AdminTrainingsPage({ searchParams }: { searchParams: Promise<Record<string, SearchParamValue>> }) {
+  const query = await searchParams;
   const rows = await db.query.trainings.findMany({
     with: { trainingTeams: { with: { team: true } }, trainingCoaches: { with: { coach: true } } },
-    orderBy: (trainings, { asc }) => [asc(trainings.date), asc(trainings.startTime), asc(trainings.id)],
   });
+  const { upcoming, past, hiddenPastCount } = splitAdminSchedule(
+    rows,
+    toDateKey(new Date()),
+    isShowAllPast(firstSearchParam(query[SHOW_ALL_PAST_PARAM])),
+  );
 
   return (
     <div>
@@ -45,8 +56,14 @@ export default async function AdminTrainingsPage() {
             <th className="p-4" />
           </tr>
         </thead>
-        <tbody>
-          {rows.map((training) => (
+        <AdminScheduleRows
+          upcoming={upcoming}
+          past={past}
+          hiddenPastCount={hiddenPastCount}
+          columnCount={6}
+          basePath="/admin/trainings"
+          emptyText="Vēl nav neviena treniņa."
+          renderRow={(training) => (
             <tr data-admin-search-item={`${training.date} ${training.startTime} ${teamNames(training)} ${coachNames(training).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 text-club-navy">{training.date}</td>
               <td className="p-4 text-slate-500">
@@ -59,6 +76,7 @@ export default async function AdminTrainingsPage() {
               <td className="p-4 text-slate-500">{training.location}</td>
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-4">
+                  <CopyRowLink href={copyHref("trainings", training.id)} label={`Kopēt treniņu ${training.date}`} />
                   <Link
                     href={`/admin/trainings/${training.id}`}
                     aria-label={`Rediģēt treniņu ${training.date}`}
@@ -74,15 +92,8 @@ export default async function AdminTrainingsPage() {
                 </div>
               </td>
             </tr>
-          ))}
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={6} className="p-4 text-center text-slate-400">
-                Vēl nav neviena treniņa.
-              </td>
-            </tr>
           )}
-        </tbody>
+        />
       </table>
     </div>
   );

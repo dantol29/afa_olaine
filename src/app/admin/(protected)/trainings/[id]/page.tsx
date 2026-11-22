@@ -5,15 +5,28 @@ import { db } from "@/db/client";
 import { sortByName } from "@/lib/ordering";
 import { coaches, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
+import { copySourceId } from "@/lib/admin-copy";
+import type { SearchParamValue } from "@/lib/url-state";
 
 import { TrainingForm } from "./training-form";
 
+// The form edits one team per training (the first, as before); a copy takes the same team.
+async function findTrainingFormValues(trainingId: number) {
+  const training = await db.query.trainings.findFirst({
+    where: (trainings, { eq }) => eq(trainings.id, trainingId),
+    with: { trainingCoaches: true, trainingTeams: true },
+  });
+  return training && { ...training, teamId: training.trainingTeams[0]?.teamId ?? 0 };
+}
+
 export default async function AdminTrainingFormPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, SearchParamValue>>;
 }) {
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const [teamRows, coachRows] = await Promise.all([
     db.select().from(teams),
     db.select({ id: coaches.id, name: coaches.name }).from(coaches),
@@ -22,12 +35,13 @@ export default async function AdminTrainingFormPage({
   const coachOptions = sortByName(coachRows, (coach) => coach.name);
 
   let training = null;
-  if (id !== "new") {
-    const trainingId = Number(id);
-    training = await db.query.trainings.findFirst({
-      where: (trainings, { eq }) => eq(trainings.id, trainingId),
-      with: { trainingCoaches: true, trainingTeams: true },
-    });
+  let copyOf = undefined;
+  if (id === "new") {
+    // `?kopija=<id>` fills the new-training form from that training, with its team and coaches.
+    const sourceId = copySourceId(query);
+    copyOf = sourceId === null ? undefined : await findTrainingFormValues(sourceId);
+  } else {
+    training = await findTrainingFormValues(Number(id));
     if (!training) notFound();
   }
 
@@ -43,12 +57,13 @@ export default async function AdminTrainingFormPage({
       {training ? (
         <TrainingForm
           mode="edit"
-          training={{ ...training, teamId: training.trainingTeams[0]?.teamId ?? 0 }}
+          trainingId={training.id}
+          training={training}
           teamOptions={teamOptions}
           coachOptions={coachOptions}
         />
       ) : (
-        <TrainingForm mode="create" teamOptions={teamOptions} coachOptions={coachOptions} />
+        <TrainingForm mode="create" teamOptions={teamOptions} coachOptions={coachOptions} copyOf={copyOf} />
       )}
 
       <div className="mt-10">

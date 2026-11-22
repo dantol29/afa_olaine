@@ -6,21 +6,35 @@ import { db } from "@/db/client";
 import { sortByName } from "@/lib/ordering";
 import { games, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
+import { copySourceId } from "@/lib/admin-copy";
+import type { SearchParamValue } from "@/lib/url-state";
 
 import { GameForm } from "./game-form";
 
+async function findGame(gameId: number) {
+  const [game] = await db.select().from(games).where(eq(games.id, gameId));
+  return game;
+}
+
 export default async function AdminGameFormPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, SearchParamValue>>;
 }) {
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const teamOptions = sortByName(await db.select().from(teams), (team) => team.name);
 
   let game = null;
-  if (id !== "new") {
-    const gameId = Number(id);
-    [game] = await db.select().from(games).where(eq(games.id, gameId));
+  let copyOf = undefined;
+  if (id === "new") {
+    // `?kopija=<id>` fills the new-game form from that game, without its score; saving creates a manual game.
+    const sourceId = copySourceId(query);
+    const source = sourceId === null ? undefined : await findGame(sourceId);
+    copyOf = source && { ...source, homeScore: null, awayScore: null };
+  } else {
+    game = await findGame(Number(id));
     if (!game) notFound();
   }
 
@@ -34,9 +48,9 @@ export default async function AdminGameFormPage({
   return (
     <div>
       {game ? (
-        <GameForm mode="edit" game={game} teamOptions={teamOptions} />
+        <GameForm mode="edit" gameId={game.id} game={game} teamOptions={teamOptions} />
       ) : (
-        <GameForm mode="create" teamOptions={teamOptions} />
+        <GameForm mode="create" teamOptions={teamOptions} copyOf={copyOf} />
       )}
 
       <div className="mt-10">
