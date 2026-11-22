@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { compareByStart, compareLatvian, compareTeamOrder, orderRoster, sortByName, teamOptionsInOrder, uniqueSortedLabels } from "@/lib/ordering";
+import { compareByStart, compareLatvian, compareTeamOrder, orderRoster, sortByName, sortTeams, teamOptionsInOrder, uniqueSortedLabels } from "@/lib/ordering";
 
 type Person = { name: string; photo: boolean; id: number };
 
@@ -79,4 +79,15 @@ describe("team order", () => {
     ]);
     assert.deepEqual(options, [{ id: 3, name: "WU12" }, { id: 5, name: "U9" }]);
   });
+});
+
+test("sortTeams keeps the admin display order, not the alphabet, and leaves the input alone", () => {
+  const teams = [
+    { id: 7, name: "WU8", sort: 4 },
+    { id: 3, name: "WU12", sort: 2 },
+    { id: 1, name: "2. liga", sort: 0 },
+    { id: 4, name: "WU10", sort: 3 },
+  ];
+  assert.deepEqual(sortTeams(teams).map((team) => team.name), ["2. liga", "WU12", "WU10", "WU8"]);
+  assert.equal(teams[0].name, "WU8");
 });

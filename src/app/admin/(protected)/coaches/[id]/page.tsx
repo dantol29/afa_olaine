@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { db } from "@/db/client";
-import { sortByName } from "@/lib/ordering";
+import { sortTeams } from "@/lib/ordering";
 import { teams } from "@/db/schema";
 
 import { CoachForm } from "./coach-form";
@@ -12,7 +12,7 @@ export default async function AdminCoachFormPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const teamOptions = sortByName(await db.select().from(teams), (team) => team.name);
+  const teamOptions = sortTeams(await db.select().from(teams));
 
   if (id === "new") {
     return <CoachForm mode="create" teamOptions={teamOptions} />;

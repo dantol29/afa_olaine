@@ -21,7 +21,7 @@ import {
 } from "@/lib/admin-attention";
 import { toDateKey } from "@/lib/calendar";
 import { resolveClubLogos } from "@/lib/club-logos";
-import { sortByName } from "@/lib/ordering";
+import { sortByName, sortTeams } from "@/lib/ordering";
 import { loadScheduleTrainings } from "@/lib/training-schedule-server";
 import { loadVenueBookings } from "@/lib/venue-bookings";
 import { venueClashPairs, type VenueBooking } from "@/lib/venue-clash";
@@ -37,7 +37,7 @@ export default async function AdminHomePage() {
   const now = new Date();
   const today = toDateKey(now);
   const [teamRows, gameRows, trainingRows, eventRows, playerRows, statusRows, venueBookings] = await Promise.all([
-    db.select({ id: teams.id, name: teams.name }).from(teams),
+    db.select({ id: teams.id, name: teams.name, sort: teams.sort }).from(teams),
     db.select().from(games),
     loadScheduleTrainings(),
     db.select().from(events),
@@ -45,7 +45,7 @@ export default async function AdminHomePage() {
     db.select().from(cronJobStatuses),
     loadVenueBookings(today, addDays(today, CLASH_DAYS)),
   ]);
-  const teamList = sortByName(teamRows, (team) => team.name);
+  const teamList = sortTeams(teamRows);
   const players: AttentionPlayer[] = sortByName(playerRows, (player) => player.name).map((player) => ({
     id: player.id,
     name: player.name,

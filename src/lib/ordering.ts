@@ -38,6 +38,11 @@ export function compareTeamOrder(a: { id: number; sort: number }, b: { id: numbe
   return a.sort - b.sort || a.id - b.id;
 }
 
+/** Sorted copy of teams in the admin display order: the site's filters and the admin's team lists agree. */
+export function sortTeams<T extends { id: number; sort: number }>(teams: readonly T[]): T[] {
+  return [...teams].sort(compareTeamOrder);
+}
+
 /** Team filter options: each team once, in the admin display order. */
 export function teamOptionsInOrder(teams: Iterable<OrderedTeam>): { id: number; name: string }[] {
   const teamsById = new Map<number, OrderedTeam>();
