@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { WeekCalendar } from "@/components/week-calendar";
 import { db } from "@/db/client";
-import { sortByName } from "@/lib/ordering";
+import { sortTeams } from "@/lib/ordering";
 import { games, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
 import { copySourceId } from "@/lib/admin-copy";
@@ -32,7 +32,7 @@ export default async function AdminGameFormPage({
     getLeagueHints(),
     getLeagueLogoHints(),
   ]);
-  const teamOptions = sortByName(teamRows, (team) => team.name);
+  const teamOptions = sortTeams(teamRows);
   const hints = { clubs, locations, leagues, leagueLogos };
 
   let game = null;

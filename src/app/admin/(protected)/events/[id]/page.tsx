@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
 import { db } from "@/db/client";
-import { sortByName } from "@/lib/ordering";
+import { sortTeams } from "@/lib/ordering";
 import { events, teams } from "@/db/schema";
 import { copySourceId } from "@/lib/admin-copy";
 import { getEventTitleHints, getLocationHints } from "@/lib/admin-form-hints";
@@ -30,7 +30,7 @@ export default async function AdminEventFormPage({
     getLocationHints(),
     getEventBorderStripe(),
   ]);
-  const teamOptions = sortByName(teamRows, (team) => team.name);
+  const teamOptions = sortTeams(teamRows);
   const hints = { titles, locations, borderStripe };
 
   if (id === "new") {

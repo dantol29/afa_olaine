@@ -4,7 +4,7 @@ import { db } from "@/db/client";
 import { events, games, teams, trainings } from "@/db/schema";
 import { addDays } from "@/lib/admin-attention";
 import { toDateKey } from "@/lib/calendar";
-import { sortByName } from "@/lib/ordering";
+import { sortTeams } from "@/lib/ordering";
 import { DAYS_PER_WEEK, defaultWeekStart, weekStart, type WeekItem } from "@/lib/week-text";
 
 import { WeekText } from "./week-text";
@@ -17,7 +17,7 @@ export default async function WeekTextPage() {
   const lastDay = addDays(nextMonday, DAYS_PER_WEEK - 1);
 
   const [teamRows, trainingRows, gameRows, eventRows] = await Promise.all([
-    db.select({ id: teams.id, name: teams.name }).from(teams),
+    db.select({ id: teams.id, name: teams.name, sort: teams.sort }).from(teams),
     db.query.trainings.findMany({
       where: and(gte(trainings.date, thisMonday), lte(trainings.date, lastDay)),
       with: { trainingTeams: true },
@@ -56,7 +56,7 @@ export default async function WeekTextPage() {
 
   return (
     <WeekText
-      teamOptions={sortByName(teamRows, (team) => team.name)}
+      teamOptions={sortTeams(teamRows)}
       itemsByTeam={itemsByTeam}
       initialMonday={defaultWeekStart(today)}
       weeks={[
