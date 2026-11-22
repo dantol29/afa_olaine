@@ -5,15 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-  House,
-  Award,
   ArrowUpRight,
+  Award,
   CalendarDays,
   Dumbbell,
   FileText,
   Handshake,
+  House,
   ImageIcon,
   LogOut,
+  MapPin,
   Menu,
   Newspaper,
   Settings,
@@ -38,6 +39,7 @@ const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/trainings", label: "Treniņi", icon: Dumbbell },
   { href: "/admin/events", label: "Notikumi", icon: CalendarDays },
   { href: "/admin/games", label: "Spēles", icon: Volleyball },
+  { href: "/admin/venues", label: "Vietas", icon: MapPin },
   { href: "/admin/league-sources", label: "Līgu avoti", icon: Trophy },
   { href: "/admin/club-pages", label: "Kluba lapas", icon: FileText },
   { href: "/admin/club-logos", label: "Klubu logo", icon: ImageIcon },
