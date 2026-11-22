@@ -4,6 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { DeleteButton } from "@/components/admin/delete-button";
+import { AdminScheduleRows } from "@/components/admin/admin-schedule-rows";
+import { CopyRowLink } from "@/components/admin/form-copy";
+import { copyHref } from "@/lib/admin-copy";
+import { SHOW_ALL_PAST_PARAM, isShowAllPast, splitAdminSchedule } from "@/lib/admin-schedule-list";
+import { toDateKey } from "@/lib/calendar";
+import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
 import { games, teams } from "@/db/schema";
@@ -45,7 +51,8 @@ function ClubBadge({ name, logo }: { name: string; logo: string | null }) {
   );
 }
 
-export default async function AdminGamesPage() {
+export default async function AdminGamesPage({ searchParams }: { searchParams: Promise<Record<string, SearchParamValue>> }) {
+  const query = await searchParams;
   const rows = await db
     .select({
       id: games.id,
@@ -61,8 +68,12 @@ export default async function AdminGamesPage() {
       teamName: teams.name,
     })
     .from(games)
-    .innerJoin(teams, eq(games.teamId, teams.id))
-    .orderBy(games.date, games.startTime, games.id);
+    .innerJoin(teams, eq(games.teamId, teams.id));
+  const { upcoming, past, hiddenPastCount } = splitAdminSchedule(
+    rows,
+    toDateKey(new Date()),
+    isShowAllPast(firstSearchParam(query[SHOW_ALL_PAST_PARAM])),
+  );
 
   const logos = await resolveClubLogos(rows.flatMap((row) => [row.homeTeam, row.awayTeam]));
 
@@ -93,8 +104,14 @@ export default async function AdminGamesPage() {
             <th className="p-4" />
           </tr>
         </thead>
-        <tbody>
-          {rows.map((game) => {
+        <AdminScheduleRows
+          upcoming={upcoming}
+          past={past}
+          hiddenPastCount={hiddenPastCount}
+          columnCount={9}
+          basePath="/admin/games"
+          emptyText="Vēl nav nevienas spēles."
+          renderRow={(game) => {
             const dateDisplay = formatDateDisplay(game.date);
             return (
             <tr data-admin-search-item={`${game.date} ${dateDisplay} ${game.startTime} ${game.teamName} ${game.homeTeam} ${game.awayTeam} ${game.league ?? ""} ${game.location}`} key={game.id} className="border-b border-slate-100 last:border-0">
@@ -116,6 +133,7 @@ export default async function AdminGamesPage() {
               <td className="p-4 text-slate-500">{game.location}</td>
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-4">
+                  <CopyRowLink href={copyHref("games", game.id)} label={`Kopēt spēli "${game.homeTeam} – ${game.awayTeam}"`} />
                   <Link
                     href={`/admin/games/${game.id}`}
                     aria-label={`Rediģēt spēli "${game.homeTeam} – ${game.awayTeam}"`}
@@ -132,15 +150,8 @@ export default async function AdminGamesPage() {
               </td>
             </tr>
             );
-          })}
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={9} className="p-4 text-center text-slate-400">
-                Vēl nav nevienas spēles.
-              </td>
-            </tr>
-          )}
-        </tbody>
+          }}
+        />
       </table>
     </div>
   );

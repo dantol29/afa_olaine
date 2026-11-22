@@ -1,11 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+
+import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
+import { TimeSelect } from "@/components/admin/time-select";
+import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 
 import { createTraining, updateTraining } from "../actions";
 
-type Training = {
-  id: number;
+export type TrainingFormValues = {
   teamId: number;
   date: string;
   startTime: string;
@@ -19,20 +22,36 @@ type CoachOption = { id: number; name: string };
 
 export function TrainingForm(
   props:
-    | { mode: "create"; teamOptions: TeamOption[]; coachOptions: CoachOption[] }
-    | { mode: "edit"; training: Training; teamOptions: TeamOption[]; coachOptions: CoachOption[] },
+    | { mode: "create"; teamOptions: TeamOption[]; coachOptions: CoachOption[]; copyOf?: TrainingFormValues }
+    | { mode: "edit"; trainingId: number; training: TrainingFormValues; teamOptions: TeamOption[]; coachOptions: CoachOption[] },
 ) {
-  const action =
-    props.mode === "create" ? createTraining : updateTraining.bind(null, props.training.id);
-  const [state, formAction, pending] = useActionState(action, undefined);
-  const training = props.mode === "edit" ? props.training : null;
+  const copy = useFormCopy();
+  // Both actions are set up so an edit form can turn into a copy (a create) without losing what is typed.
+  const [createState, createAction, createPending] = useActionState(createTraining, undefined);
+  const [updateState, updateAction, updatePending] = useActionState(
+    props.mode === "edit" ? updateTraining.bind(null, props.trainingId) : createTraining,
+    undefined,
+  );
+  const isCreate = props.mode === "create" || copy.isCopy;
+  const isCopy = copy.isCopy || (props.mode === "create" && props.copyOf !== undefined);
+  const state = isCreate ? createState : updateState;
+  const pending = isCreate ? createPending : updatePending;
+  const training = props.mode === "edit" ? props.training : props.copyOf ?? null;
   const selectedCoachIds = new Set(training?.trainingCoaches.map((tc) => tc.coachId) ?? []);
+  const [startTime, setStartTime] = useState(training?.startTime ?? "");
+  const [endTime, setEndTime] = useState(training?.endTime ?? "");
+
+  function changeStartTime(value: string) {
+    setStartTime(value);
+    if (!endTime) setEndTime(defaultEndTime(value, DEFAULT_DURATION_MINUTES.training));
+  }
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
-        {props.mode === "create" ? "Jauns treniņš" : "Rediģēt treniņu"}
+        {isCreate ? `Jauns treniņš${isCopy ? " (kopija)" : ""}` : "Rediģēt treniņu"}
       </h1>
+      {isCopy && <CopyNotice />}
 
       <label className="block text-sm font-semibold text-club-navy">
         Komanda
@@ -82,26 +101,8 @@ export function TrainingForm(
       </label>
 
       <div className="mt-4 flex gap-4">
-        <label className="flex-1 text-sm font-semibold text-club-navy">
-          Sākuma laiks
-          <input
-            type="time"
-            name="startTime"
-            required
-            defaultValue={training?.startTime ?? ""}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-        </label>
-        <label className="flex-1 text-sm font-semibold text-club-navy">
-          Beigu laiks
-          <input
-            type="time"
-            name="endTime"
-            required
-            defaultValue={training?.endTime ?? ""}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-        </label>
+        <TimeSelect name="startTime" label="Sākuma laiks" value={startTime} onChange={changeStartTime} />
+        <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
       </div>
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
@@ -134,6 +135,7 @@ export function TrainingForm(
       >
         {pending ? "Saglabā..." : "Saglabāt"}
       </button>
+      {!isCreate && <CopyFormButton onClick={copy.startCopy} />}
     </form>
   );
 }

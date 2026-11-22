@@ -2,14 +2,21 @@ import { eq } from "drizzle-orm";
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 
+import { AdminScheduleRows } from "@/components/admin/admin-schedule-rows";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
+import { CopyRowLink } from "@/components/admin/form-copy";
 import { db } from "@/db/client";
 import { events, teams } from "@/db/schema";
+import { copyHref } from "@/lib/admin-copy";
+import { SHOW_ALL_PAST_PARAM, isShowAllPast, splitAdminSchedule } from "@/lib/admin-schedule-list";
+import { toDateKey } from "@/lib/calendar";
+import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 
 import { deleteEvent } from "./actions";
 
-export default async function AdminEventsPage() {
+export default async function AdminEventsPage({ searchParams }: { searchParams: Promise<Record<string, SearchParamValue>> }) {
+  const query = await searchParams;
   const rows = await db
     .select({
       id: events.id,
@@ -20,8 +27,12 @@ export default async function AdminEventsPage() {
       teamName: teams.name,
     })
     .from(events)
-    .leftJoin(teams, eq(events.teamId, teams.id))
-    .orderBy(events.date, events.startTime, events.id);
+    .leftJoin(teams, eq(events.teamId, teams.id));
+  const { upcoming, past, hiddenPastCount } = splitAdminSchedule(
+    rows,
+    toDateKey(new Date()),
+    isShowAllPast(firstSearchParam(query[SHOW_ALL_PAST_PARAM])),
+  );
 
   return (
     <div>
@@ -46,8 +57,14 @@ export default async function AdminEventsPage() {
             <th className="p-4" />
           </tr>
         </thead>
-        <tbody>
-          {rows.map((event) => (
+        <AdminScheduleRows
+          upcoming={upcoming}
+          past={past}
+          hiddenPastCount={hiddenPastCount}
+          columnCount={5}
+          basePath="/admin/events"
+          emptyText="Vēl nav neviena notikuma."
+          renderRow={(event) => (
             <tr data-admin-search-item={`${event.title} ${event.date} ${event.startTime} ${event.teamName ?? "Viss klubs"}`} key={event.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 font-semibold text-club-navy">{event.title}</td>
               <td className="p-4 text-club-navy">{event.date}</td>
@@ -57,6 +74,7 @@ export default async function AdminEventsPage() {
               <td className="p-4 text-slate-500">{event.teamName ?? "Viss klubs"}</td>
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-4">
+                  <CopyRowLink href={copyHref("events", event.id)} label={`Kopēt notikumu "${event.title}"`} />
                   <Link
                     href={`/admin/events/${event.id}`}
                     aria-label={`Rediģēt notikumu "${event.title}"`}
@@ -72,15 +90,8 @@ export default async function AdminEventsPage() {
                 </div>
               </td>
             </tr>
-          ))}
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={5} className="p-4 text-center text-slate-400">
-                Vēl nav neviena notikuma.
-              </td>
-            </tr>
           )}
-        </tbody>
+        />
       </table>
     </div>
   );

@@ -1,11 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+
+import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
+import { TimeSelect } from "@/components/admin/time-select";
+import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 
 import { createGame, updateGame } from "../actions";
 
-type Game = {
-  id: number;
+export type GameFormValues = {
   teamId: number;
   homeTeam: string;
   awayTeam: string;
@@ -22,18 +25,35 @@ type TeamOption = { id: number; name: string };
 
 export function GameForm(
   props:
-    | { mode: "create"; teamOptions: TeamOption[] }
-    | { mode: "edit"; game: Game; teamOptions: TeamOption[] },
+    | { mode: "create"; teamOptions: TeamOption[]; copyOf?: GameFormValues }
+    | { mode: "edit"; gameId: number; game: GameFormValues; teamOptions: TeamOption[] },
 ) {
-  const action = props.mode === "create" ? createGame : updateGame.bind(null, props.game.id);
-  const [state, formAction, pending] = useActionState(action, undefined);
-  const game = props.mode === "edit" ? props.game : null;
+  const copy = useFormCopy();
+  // Both actions are set up so an edit form can turn into a copy (a create) without losing what is typed.
+  const [createState, createAction, createPending] = useActionState(createGame, undefined);
+  const [updateState, updateAction, updatePending] = useActionState(
+    props.mode === "edit" ? updateGame.bind(null, props.gameId) : createGame,
+    undefined,
+  );
+  const isCreate = props.mode === "create" || copy.isCopy;
+  const isCopy = copy.isCopy || (props.mode === "create" && props.copyOf !== undefined);
+  const state = isCreate ? createState : updateState;
+  const pending = isCreate ? createPending : updatePending;
+  const game = props.mode === "edit" ? props.game : props.copyOf ?? null;
+  const [startTime, setStartTime] = useState(game?.startTime ?? "");
+  const [endTime, setEndTime] = useState(game?.endTime ?? "");
+
+  function changeStartTime(value: string) {
+    setStartTime(value);
+    if (!endTime) setEndTime(defaultEndTime(value, DEFAULT_DURATION_MINUTES.game));
+  }
 
   return (
-    <form action={formAction} className="max-w-md">
+    <form action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
-        {props.mode === "create" ? "Jauna spēle" : "Rediģēt spēli"}
+        {isCreate ? `Jauna spēle${isCopy ? " (kopija)" : ""}` : "Rediģēt spēli"}
       </h1>
+      {isCopy && <CopyNotice />}
 
       <label className="block text-sm font-semibold text-club-navy">
         Komanda
@@ -85,10 +105,12 @@ export function GameForm(
           <input
             type="number"
             name="homeScore"
+            // A copy never carries the score; remounting clears what the edit form showed.
+            key={isCopy ? "copy" : "original"}
             min="0"
             step="1"
             inputMode="numeric"
-            defaultValue={game?.homeScore ?? ""}
+            defaultValue={isCopy ? "" : game?.homeScore ?? ""}
             className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
           />
         </label>
@@ -97,10 +119,11 @@ export function GameForm(
           <input
             type="number"
             name="awayScore"
+            key={isCopy ? "copy" : "original"}
             min="0"
             step="1"
             inputMode="numeric"
-            defaultValue={game?.awayScore ?? ""}
+            defaultValue={isCopy ? "" : game?.awayScore ?? ""}
             className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
           />
         </label>
@@ -118,26 +141,8 @@ export function GameForm(
       </label>
 
       <div className="mt-4 flex gap-4">
-        <label className="flex-1 text-sm font-semibold text-club-navy">
-          Sākuma laiks
-          <input
-            type="time"
-            name="startTime"
-            required
-            defaultValue={game?.startTime ?? ""}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-        </label>
-        <label className="flex-1 text-sm font-semibold text-club-navy">
-          Beigu laiks
-          <input
-            type="time"
-            name="endTime"
-            required
-            defaultValue={game?.endTime ?? ""}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-        </label>
+        <TimeSelect name="startTime" label="Sākuma laiks" value={startTime} onChange={changeStartTime} />
+        <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
       </div>
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
@@ -181,6 +186,7 @@ export function GameForm(
       >
         {pending ? "Saglabā..." : "Saglabāt"}
       </button>
+      {!isCreate && <CopyFormButton onClick={copy.startCopy} />}
     </form>
   );
 }

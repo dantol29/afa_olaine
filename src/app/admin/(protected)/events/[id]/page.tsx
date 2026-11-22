@@ -4,24 +4,35 @@ import { notFound } from "next/navigation";
 import { db } from "@/db/client";
 import { sortByName } from "@/lib/ordering";
 import { events, teams } from "@/db/schema";
+import { copySourceId } from "@/lib/admin-copy";
+import type { SearchParamValue } from "@/lib/url-state";
 
 import { EventForm } from "./event-form";
 
+async function findEvent(eventId: number) {
+  const [event] = await db.select().from(events).where(eq(events.id, eventId));
+  return event;
+}
+
 export default async function AdminEventFormPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, SearchParamValue>>;
 }) {
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const teamOptions = sortByName(await db.select().from(teams), (team) => team.name);
 
   if (id === "new") {
-    return <EventForm mode="create" teamOptions={teamOptions} />;
+    // `?kopija=<id>` opens the new-event form filled from that event; an unknown id opens an empty form.
+    const sourceId = copySourceId(query);
+    const source = sourceId === null ? undefined : await findEvent(sourceId);
+    return <EventForm mode="create" teamOptions={teamOptions} copyOf={source} />;
   }
 
-  const eventId = Number(id);
-  const [event] = await db.select().from(events).where(eq(events.id, eventId));
+  const event = await findEvent(Number(id));
   if (!event) notFound();
 
-  return <EventForm mode="edit" event={event} teamOptions={teamOptions} />;
+  return <EventForm mode="edit" eventId={event.id} event={event} teamOptions={teamOptions} />;
 }
