@@ -5,11 +5,13 @@ import { useActionState, useState } from "react";
 import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
 import { FormWithPreview } from "@/components/admin/form-preview";
 import { SuggestInput } from "@/components/admin/suggest-input";
+import { LocationInput } from "@/components/admin/location-input";
 import { TimeSelect } from "@/components/admin/time-select";
 import { EventCard } from "@/components/event-card";
 import { buildEventPreview } from "@/lib/admin-preview";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
+import type { LocationHint } from "@/lib/venue";
 
 import { createEvent, updateEvent } from "../actions";
 
@@ -24,7 +26,7 @@ export type EventFormValues = {
 };
 type TeamOption = { id: number; name: string };
 /** Values used before, offered while typing, and the stripe the card preview draws. */
-export type EventFormHints = { titles: string[]; locations: string[]; borderStripe: string };
+export type EventFormHints = { titles: string[]; locations: LocationHint[]; borderStripe: string };
 
 export function EventForm(
   props: { teamOptions: TeamOption[]; hints: EventFormHints } & (
@@ -92,7 +94,7 @@ export function EventForm(
         <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
       </div>
 
-      <SuggestInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
+      <LocationInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Komanda (nav obligāta — atstāj tukšu visam klubam)

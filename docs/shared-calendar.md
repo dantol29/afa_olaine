@@ -50,3 +50,16 @@ Implemented in `/Users/daniilstolmacovs/Desktop/fk_olaine` on 2026-10-11:
 
 Deployment and configuring both servers are still required. Overlap warnings
 are advisory; the separate databases do not provide an atomic reservation lock.
+
+## FK feed for AFA
+
+FK serves its own bookings the same way at `/api/shared-calendar`, with the same
+secret (see FK's `docs/shared-calendar.md`). AFA reads it in `src/lib/fk-calendar.ts`
+when `FK_CALENDAR_URL` is set, for admin warnings only; nothing is stored:
+
+- a successful answer is kept in memory for 60 seconds per date range;
+- when FK cannot answer, the last answer is used and marked stale; a failure is
+  retried after 10 seconds;
+- one invalid FK booking is skipped, a wrong overall shape fails the answer;
+- place suggestions in the admin forms list AFA's places and FK's places, each
+  marked with the club(s) that write it exactly that way.

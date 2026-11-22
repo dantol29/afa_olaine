@@ -2,12 +2,13 @@
 
 import { useActionState, useMemo, useState } from "react";
 
-import { SuggestInput } from "@/components/admin/suggest-input";
+import { LocationInput } from "@/components/admin/location-input";
 import { TimeSelect } from "@/components/admin/time-select";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { isEndAfterStart } from "@/lib/time-range";
 import { WEEKDAYS, findClash, scheduleDates, weekdayLabel, type ScheduleTraining } from "@/lib/training-schedule";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
+import type { LocationHint } from "@/lib/venue";
 
 import { createTrainingSchedule } from "../actions";
 
@@ -27,7 +28,7 @@ export function ScheduleForm({
   today: string;
   teamOptions: Option[];
   coachOptions: Option[];
-  locations: string[];
+  locations: LocationHint[];
   existing: ScheduleTraining[];
 }) {
   const [state, action, pending] = useActionState(createTrainingSchedule, undefined);
@@ -140,7 +141,7 @@ export function ScheduleForm({
         </label>
       </div>
 
-      <SuggestInput name="location" label="Vieta" required value={location} onChange={setLocation} options={locations} className="mt-4" />
+      <LocationInput name="location" label="Vieta" required value={location} onChange={setLocation} options={locations} className="mt-4" />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Piezīmes (nav obligāts)

@@ -94,8 +94,22 @@ Every `local:*` command goes through `scripts/local/run.mjs`. It loads only
 - `NODE_ENV` is `production`;
 - `TURSO_DATABASE_URL` is not a `file:` URL, or `TURSO_AUTH_TOKEN` is set;
 - `SMTP_HOST` is set to anything other than a loopback address;
-- `SHARED_CALENDAR_SECRET` is set;
+- `SHARED_CALENDAR_SECRET` is set to anything other than a made-up value starting with `local-`;
+- `FK_CALENDAR_URL` is set to anything other than a localhost address;
 - `SITE_URL` does not point to localhost.
+
+## Running FK Olaine beside it
+
+To see FK bookings (venue clash warnings, FK places in the place suggestions),
+run a local FK Olaine checkout on port 3001 with its own local database, and
+give both sites the same made-up secret:
+
+- AFA `.env.local`: `SHARED_CALENDAR_SECRET=local-<random>` and
+  `FK_CALENDAR_URL=http://localhost:3001/api/shared-calendar`;
+- FK `.env.local`: the same `SHARED_CALENDAR_SECRET` and
+  `AFA_CALENDAR_URL=http://localhost:3000/api/shared-calendar`.
+
+Without them AFA works as before, with its own places and bookings only.
 
 ## Notes
 

@@ -5,11 +5,13 @@ import { useActionState, useMemo, useState } from "react";
 import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
 import { ClubSuggestionIcon, FormWithPreview } from "@/components/admin/form-preview";
 import { SuggestInput } from "@/components/admin/suggest-input";
+import { LocationInput } from "@/components/admin/location-input";
 import { TimeSelect } from "@/components/admin/time-select";
 import { MatchCard } from "@/components/match-card";
 import { buildGamePreview, type ClubHint, type LeagueLogoHint } from "@/lib/admin-preview";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
+import type { LocationHint } from "@/lib/venue";
 
 import { createGame, updateGame } from "../actions";
 
@@ -28,7 +30,7 @@ export type GameFormValues = {
 };
 type TeamOption = { id: number; name: string };
 /** Values used before, offered while typing, and what the card preview needs. */
-export type GameFormHints = { clubs: ClubHint[]; locations: string[]; leagues: string[]; leagueLogos: LeagueLogoHint[] };
+export type GameFormHints = { clubs: ClubHint[]; locations: LocationHint[]; leagues: string[]; leagueLogos: LeagueLogoHint[] };
 
 const DEFAULT_LOCATION = "Olaines pilsētas stadions";
 
@@ -171,7 +173,7 @@ export function GameForm(
         <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
       </div>
 
-      <SuggestInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
+      <LocationInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
 
       <SuggestInput name="league" label="Sacensības (nav obligāts)" placeholder="Draudzības spēle" value={league} onChange={edit(setLeague)} options={props.hints.leagues} className="mt-4" />
 

@@ -12,6 +12,8 @@ const projectRoot = path.resolve(import.meta.dirname, "../..");
 const envFile = path.join(projectRoot, ".env.local");
 const envTemplate = path.join(import.meta.dirname, "env.local.example");
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+// A shared calendar secret made up for a local FK site; a production secret is a plain random value without it.
+const LOCAL_SECRET_PREFIX = "local-";
 // Next.js also loads these files; any of them could inject a production value.
 const CONFLICTING_ENV_FILES = [
   ".env",
@@ -37,7 +39,16 @@ function findIsolationProblems(env) {
   if (env.NODE_ENV === "production") problems.push("NODE_ENV must not be production.");
   if (!env.TURSO_DATABASE_URL?.startsWith("file:")) problems.push("TURSO_DATABASE_URL must be a local file: URL.");
   if (env.TURSO_AUTH_TOKEN) problems.push("TURSO_AUTH_TOKEN must be empty.");
-  if (env.SHARED_CALENDAR_SECRET) problems.push("SHARED_CALENDAR_SECRET must be empty.");
+  if (env.SHARED_CALENDAR_SECRET && !env.SHARED_CALENDAR_SECRET.startsWith(LOCAL_SECRET_PREFIX)) {
+    problems.push(`SHARED_CALENDAR_SECRET must be empty or a made-up local value starting with "${LOCAL_SECRET_PREFIX}".`);
+  }
+  if (env.FK_CALENDAR_URL) {
+    try {
+      if (!LOOPBACK_HOSTS.has(new URL(env.FK_CALENDAR_URL).hostname)) problems.push("FK_CALENDAR_URL must be empty or point to a local FK site.");
+    } catch {
+      problems.push("FK_CALENDAR_URL must be a local URL such as http://localhost:3001/api/shared-calendar.");
+    }
+  }
   if (env.SMTP_HOST && !LOOPBACK_HOSTS.has(env.SMTP_HOST)) problems.push("SMTP_HOST must be empty or a loopback address.");
   try {
     if (!LOOPBACK_HOSTS.has(new URL(env.SITE_URL).hostname)) problems.push("SITE_URL must point to localhost.");

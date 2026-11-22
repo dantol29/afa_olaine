@@ -2,12 +2,13 @@
 
 import { useActionState, useState } from "react";
 
-import { SuggestInput } from "@/components/admin/suggest-input";
+import { LocationInput } from "@/components/admin/location-input";
 import { TimeSelect } from "@/components/admin/time-select";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { isEndAfterStart } from "@/lib/time-range";
 import { findChangeClash, sameTeams, weekdayLabel, type ScheduleTraining } from "@/lib/training-schedule";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
+import type { LocationHint } from "@/lib/venue";
 
 import { changeSimilarTrainings, deleteSimilarTrainings } from "../actions";
 
@@ -32,7 +33,7 @@ export function SimilarTrainings({
   similar: ScheduleTraining[];
   laterTrainings: ScheduleTraining[];
   teamOptions: { id: number; name: string }[];
-  locations: string[];
+  locations: LocationHint[];
 }) {
   const [changeState, changeAction, changePending] = useActionState(changeSimilarTrainings.bind(null, trainingId), undefined);
   const [deleteState, deleteAction, deletePending] = useActionState(deleteSimilarTrainings.bind(null, trainingId), undefined);
@@ -156,7 +157,7 @@ export function SimilarTrainings({
               Notīrīt laiku
             </button>
           )}
-          <SuggestInput name="newLocation" label="Jauna vieta" value={location} onChange={setLocation} options={locations} className="mt-3" />
+          <LocationInput name="newLocation" label="Jauna vieta" value={location} onChange={setLocation} options={locations} className="mt-3" />
           <p className="mt-3 text-sm font-semibold text-club-navy">Komandas</p>
           <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
             {teamOptions.map((team) => (

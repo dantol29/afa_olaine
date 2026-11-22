@@ -3,10 +3,11 @@
 import { useActionState, useState } from "react";
 
 import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
-import { SuggestInput } from "@/components/admin/suggest-input";
+import { LocationInput } from "@/components/admin/location-input";
 import { TimeSelect } from "@/components/admin/time-select";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
+import type { LocationHint } from "@/lib/venue";
 
 import { createTraining, updateTraining } from "../actions";
 
@@ -24,8 +25,8 @@ type CoachOption = { id: number; name: string };
 
 export function TrainingForm(
   props:
-    | { mode: "create"; teamOptions: TeamOption[]; coachOptions: CoachOption[]; locations: string[]; copyOf?: TrainingFormValues }
-    | { mode: "edit"; trainingId: number; training: TrainingFormValues; teamOptions: TeamOption[]; coachOptions: CoachOption[]; locations: string[] },
+    | { mode: "create"; teamOptions: TeamOption[]; coachOptions: CoachOption[]; locations: LocationHint[]; copyOf?: TrainingFormValues }
+    | { mode: "edit"; trainingId: number; training: TrainingFormValues; teamOptions: TeamOption[]; coachOptions: CoachOption[]; locations: LocationHint[] },
 ) {
   const copy = useFormCopy();
   // Both actions are set up so an edit form can turn into a copy (a create) without losing what is typed.
@@ -110,7 +111,7 @@ export function TrainingForm(
         <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
       </div>
 
-      <SuggestInput name="location" label="Vieta" required value={location} onChange={changeLocation} options={props.locations} className="mt-4" />
+      <LocationInput name="location" label="Vieta" required value={location} onChange={changeLocation} options={props.locations} className="mt-4" />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Piezīmes (nav obligāts)

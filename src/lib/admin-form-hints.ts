@@ -5,7 +5,10 @@ import { db } from "@/db/client";
 import { clubLogoNames, clubLogos, events, games, leagueSources, trainings } from "@/db/schema";
 import type { ClubHint, LeagueLogoHint } from "@/lib/admin-preview";
 import { pinFirst, rankByFrequency, rankByRecency } from "@/lib/admin-suggestions";
+import { toDateKey } from "@/lib/calendar";
+import { getFkSchedule } from "@/lib/fk-calendar";
 import { isOlaine } from "@/lib/games";
+import type { LocationHint } from "@/lib/venue";
 import { getLogoBorderStripe } from "@/lib/logo-color";
 
 // What the admin forms suggest and preview with. The lists are small (tens of values), so each form gets them whole.
@@ -29,14 +32,29 @@ export async function getClubHints(): Promise<ClubHint[]> {
   );
 }
 
-/** Places of games, trainings and events, the most used first. */
-export async function getLocationHints(): Promise<string[]> {
-  const rows = await Promise.all([
-    db.select({ location: games.location }).from(games),
-    db.select({ location: trainings.location }).from(trainings),
-    db.select({ location: events.location }).from(events),
+/** How far back and ahead FK's bookings are read for place suggestions. */
+const FK_LOCATION_WINDOW_DAYS = 365;
+const DAY_MS = 86_400_000;
+
+/** Places of AFA's games, trainings and events, the most used first, then the places only FK uses (for example a
+ *  hall AFA has not trained in yet). A spelling both sites use is one hint with both sources; spellings that differ
+ *  stay separate, each with its own source, until the admin makes them one. Without FK, AFA's places alone. */
+export async function getLocationHints(): Promise<LocationHint[]> {
+  const now = Date.now();
+  const [rows, fk] = await Promise.all([
+    Promise.all([
+      db.select({ location: games.location }).from(games),
+      db.select({ location: trainings.location }).from(trainings),
+      db.select({ location: events.location }).from(events),
+    ]),
+    getFkSchedule(toDateKey(new Date(now - FK_LOCATION_WINDOW_DAYS * DAY_MS)), toDateKey(new Date(now + FK_LOCATION_WINDOW_DAYS * DAY_MS))),
   ]);
-  return rankByFrequency(rows.flat().map((row) => row.location));
+  const afaNames = rankByFrequency(rows.flat().map((row) => row.location));
+  const fkNames = new Set(rankByFrequency(fk.bookings.flatMap((booking) => (booking.location?.trim() ? [booking.location.trim()] : []))));
+  const hints: LocationHint[] = afaNames.map((name) => ({ name, sources: fkNames.has(name) ? ["afa", "fk"] : ["afa"] }));
+  const afaSet = new Set(afaNames);
+  for (const name of fkNames) if (!afaSet.has(name)) hints.push({ name, sources: ["fk"] });
+  return hints;
 }
 
 /** League names of earlier games and of the league sources, the most used first. */
