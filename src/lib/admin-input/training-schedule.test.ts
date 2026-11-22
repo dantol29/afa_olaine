@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { parseSimilarDeleteInput, parseTrainingScheduleInput } from "@/lib/admin-input/training-schedule";
+import { parseSimilarChangeInput, parseSimilarSelectionInput, parseTrainingScheduleInput } from "@/lib/admin-input/training-schedule";
 
 function form(entries: [string, string][]) {
   const data = new FormData();
@@ -41,10 +41,37 @@ describe("parseTrainingScheduleInput", () => {
   });
 });
 
-describe("parseSimilarDeleteInput", () => {
+describe("parseSimilarSelectionInput", () => {
   test("needs an until-date and at least one training", () => {
-    assert.deepEqual(parseSimilarDeleteInput(form([["until", "2026-12-31"], ["trainingIds", "5"], ["trainingIds", "5"]])), { until: "2026-12-31", ids: [5] });
-    assert.deepEqual(parseSimilarDeleteInput(form([["trainingIds", "5"]])), { error: "Jānorāda datums, līdz kuram dzēst." });
-    assert.deepEqual(parseSimilarDeleteInput(form([["until", "2026-12-31"]])), { error: "Nav atzīmēts neviens treniņš." });
+    assert.deepEqual(parseSimilarSelectionInput(form([["until", "2026-12-31"], ["trainingIds", "5"], ["trainingIds", "5"]])), { until: "2026-12-31", ids: [5] });
+    assert.deepEqual(parseSimilarSelectionInput(form([["trainingIds", "5"]])), { error: "Jānorāda datums «Līdz»." });
+    assert.deepEqual(parseSimilarSelectionInput(form([["until", "2026-12-31"]])), { error: "Nav atzīmēts neviens treniņš." });
+  });
+});
+
+describe("parseSimilarChangeInput", () => {
+  const selection: [string, string][] = [["until", "2026-12-31"], ["trainingIds", "5"], ["trainingIds", "6"]];
+  const parse = (extra: [string, string][]) => parseSimilarChangeInput(form([...selection, ...extra]));
+
+  test("changes only what is given", () => {
+    assert.deepEqual(parse([["newStartTime", "18:30"], ["newEndTime", "20:00"], ["newLocation", ""]]), {
+      until: "2026-12-31",
+      ids: [5, 6],
+      changes: { startTime: "18:30", endTime: "20:00" },
+    });
+    assert.deepEqual(parse([["newStartTime", ""], ["newEndTime", ""], ["newLocation", " Zāle "]]), {
+      until: "2026-12-31",
+      ids: [5, 6],
+      changes: { location: "Zāle" },
+    });
+  });
+
+  test("needs a change, both times and an end after the start", () => {
+    assert.deepEqual(parse([]), { error: "Norādi jauno laiku vai vietu." });
+    assert.deepEqual(parse([["newStartTime", "18:30"]]), { error: "Jānorāda gan jaunais sākuma, gan beigu laiks." });
+    assert.deepEqual(parse([["newStartTime", "18:30"], ["newEndTime", "18:00"]]), {
+      error: "Beigu laikam jābūt vēlāk par sākuma laiku (tajā pašā dienā).",
+    });
+    assert.deepEqual(parseSimilarChangeInput(form([["newLocation", "Zāle"]])), { error: "Jānorāda datums «Līdz»." });
   });
 });

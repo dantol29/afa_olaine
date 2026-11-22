@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { findClash, findSimilarTrainings, isoWeekday, scheduleDates, timesOverlap, type ScheduleTraining } from "@/lib/training-schedule";
+import { findChangeClash, findClash, findSimilarTrainings, isoWeekday, scheduleDates, timesOverlap, type ScheduleTraining } from "@/lib/training-schedule";
 
 const training = (id: number, date: string, startTime = "18:00", endTime = "19:30", teamIds = [1]): ScheduleTraining => ({
   id,
@@ -69,5 +69,24 @@ describe("findSimilarTrainings", () => {
 
   test("stops at the until-date, inclusive", () => {
     assert.deepEqual(findSimilarTrainings(source, "2026-12-07", all).map((item) => item.id), [10, 11, 12]);
+  });
+});
+
+describe("findChangeClash", () => {
+  const moving = training(1, "2026-11-23", "18:00", "19:30", [1]);
+  const alsoMoving = training(2, "2026-11-23", "19:30", "21:00", [1]);
+  const other = training(3, "2026-11-23", "20:00", "21:30", [1, 2]);
+  const otherTeam = training(4, "2026-11-23", "19:00", "20:30", [5]);
+  const all = [moving, alsoMoving, other, otherTeam];
+
+  test("finds another training of the team that the new time would overlap", () => {
+    assert.equal(findChangeClash(moving, "19:00", "20:30", all, new Set([1]))?.id, 2);
+    assert.equal(findChangeClash(moving, "20:30", "22:00", all, new Set([1]))?.id, 2);
+  });
+
+  test("ignores the trainings changed together, other teams and the training itself", () => {
+    assert.equal(findChangeClash(moving, "18:30", "19:45", all, new Set([1, 2])), null);
+    assert.equal(findChangeClash(moving, "20:30", "22:00", all, new Set([1, 2]))?.id, 3);
+    assert.equal(findChangeClash(moving, "17:00", "18:30", all, new Set([1])), null);
   });
 });
