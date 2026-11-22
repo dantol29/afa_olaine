@@ -16,7 +16,7 @@ type Option = { id: number; name: string };
 const INPUT_CLASS = "mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red";
 
 /** The schedule form: the fields shared by every training, then the dates they give, each with a tick. A date on
- *  which the team already trains at an overlapping time starts unticked. */
+ *  which one of the chosen teams already trains at an overlapping time starts unticked. */
 export function ScheduleForm({
   today,
   teamOptions,
@@ -32,7 +32,7 @@ export function ScheduleForm({
 }) {
   const [state, action, pending] = useActionState(createTrainingSchedule, undefined);
   const unsavedFormRef = useUnsavedChangesGuard(pending, state);
-  const [teamId, setTeamId] = useState("");
+  const [teamIds, setTeamIds] = useState<number[]>([]);
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -45,6 +45,10 @@ export function ScheduleForm({
   function changeStartTime(value: string) {
     setStartTime(value);
     if (!endTime) setEndTime(defaultEndTime(value, DEFAULT_DURATION_MINUTES.training));
+  }
+
+  function toggleTeam(id: number) {
+    setTeamIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   }
 
   function toggleWeekday(day: number) {
@@ -60,10 +64,10 @@ export function ScheduleForm({
       error: null,
       rows: result.dates.map((date) => ({
         date,
-        clash: teamId && timesReady ? findClash(date, startTime, endTime, Number(teamId), existing) : null,
+        clash: teamIds.length > 0 && timesReady ? findClash(date, startTime, endTime, teamIds, existing) : null,
       })),
     };
-  }, [from, to, weekdays, teamId, timesReady, startTime, endTime, existing]);
+  }, [from, to, weekdays, teamIds, timesReady, startTime, endTime, existing]);
 
   const isTicked = (row: { date: string; clash: ScheduleTraining | null }) => ticks[row.date] ?? row.clash === null;
   const tickedCount = plan.rows.filter(isTicked).length;
@@ -72,19 +76,18 @@ export function ScheduleForm({
     <form ref={unsavedFormRef} action={action} className="max-w-2xl">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">Treniņi pēc grafika</h1>
 
-      <label className="block text-sm font-semibold text-club-navy">
-        Komanda
-        <select name="teamId" required value={teamId} onChange={(event) => setTeamId(event.target.value)} className={INPUT_CLASS}>
-          <option value="" disabled>
-            Izvēlies komandu
-          </option>
+      <fieldset>
+        <legend className="text-sm font-semibold text-club-navy">Komandas</legend>
+        <p className="text-xs text-slate-500">Kopīgam treniņam atzīmē vairākas.</p>
+        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
           {teamOptions.map((team) => (
-            <option key={team.id} value={team.id}>
+            <label key={team.id} className="flex items-center gap-2 text-sm text-club-navy">
+              <input type="checkbox" name="teamIds" value={team.id} checked={teamIds.includes(team.id)} onChange={() => toggleTeam(team.id)} />
               {team.name}
-            </option>
+            </label>
           ))}
-        </select>
-      </label>
+        </div>
+      </fieldset>
 
       <fieldset className="mt-4">
         <legend className="text-sm font-semibold text-club-navy">Treneri (nav obligāts)</legend>
@@ -174,7 +177,7 @@ export function ScheduleForm({
             ))}
           </ul>
         )}
-        {plan.rows.length > 0 && !(teamId && timesReady) && (
+        {plan.rows.length > 0 && !(teamIds.length > 0 && timesReady) && (
           <p className="mt-2 text-xs text-slate-500">Pārklāšanās ar esošajiem treniņiem tiks parādīta, kad izvēlēta komanda un laiks.</p>
         )}
       </section>
@@ -183,7 +186,7 @@ export function ScheduleForm({
 
       <button
         type="submit"
-        disabled={pending || tickedCount === 0}
+        disabled={pending || tickedCount === 0 || teamIds.length === 0}
         className="mt-6 rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-club-red-dark disabled:opacity-50"
       >
         {pending ? "Saglabā..." : `Izveidot (${tickedCount})`}

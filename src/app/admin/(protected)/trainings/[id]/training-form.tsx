@@ -11,7 +11,7 @@ import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 import { createTraining, updateTraining } from "../actions";
 
 export type TrainingFormValues = {
-  teamId: number;
+  teamIds: number[];
   date: string;
   startTime: string;
   endTime: string;
@@ -40,6 +40,7 @@ export function TrainingForm(
   const pending = isCreate ? createPending : updatePending;
   const unsavedFormRef = useUnsavedChangesGuard(pending, state);
   const training = props.mode === "edit" ? props.training : props.copyOf ?? null;
+  const selectedTeamIds = new Set(training?.teamIds ?? []);
   const selectedCoachIds = new Set(training?.trainingCoaches.map((tc) => tc.coachId) ?? []);
   const [startTime, setStartTime] = useState(training?.startTime ?? "");
   const [endTime, setEndTime] = useState(training?.endTime ?? "");
@@ -63,24 +64,18 @@ export function TrainingForm(
       </h1>
       {isCopy && <CopyNotice />}
 
-      <label className="block text-sm font-semibold text-club-navy">
-        Komanda
-        <select
-          name="teamId"
-          required
-          defaultValue={training?.teamId ?? ""}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        >
-          <option value="" disabled>
-            Izvēlies komandu
-          </option>
+      <fieldset>
+        <legend className="text-sm font-semibold text-club-navy">Komandas</legend>
+        <p className="text-xs text-slate-500">Kopīgam treniņam atzīmē vairākas.</p>
+        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
           {props.teamOptions.map((team) => (
-            <option key={team.id} value={team.id}>
+            <label key={team.id} className="flex items-center gap-2 text-sm text-club-navy">
+              <input type="checkbox" name="teamIds" value={team.id} defaultChecked={selectedTeamIds.has(team.id)} />
               {team.name}
-            </option>
+            </label>
           ))}
-        </select>
-      </label>
+        </div>
+      </fieldset>
 
       <fieldset className="mt-4">
         <legend className="text-sm font-semibold text-club-navy">Treneri (nav obligāts)</legend>
