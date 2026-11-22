@@ -1,9 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 
 import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form-copy";
+import { ClubSuggestionIcon, FormWithPreview } from "@/components/admin/form-preview";
+import { SuggestInput } from "@/components/admin/suggest-input";
 import { TimeSelect } from "@/components/admin/time-select";
+import { MatchCard } from "@/components/match-card";
+import { buildGamePreview, type ClubHint, type LeagueLogoHint } from "@/lib/admin-preview";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 
 import { createGame, updateGame } from "../actions";
@@ -22,11 +26,20 @@ export type GameFormValues = {
   notes: string | null;
 };
 type TeamOption = { id: number; name: string };
+/** Values used before, offered while typing, and what the card preview needs. */
+export type GameFormHints = { clubs: ClubHint[]; locations: string[]; leagues: string[]; leagueLogos: LeagueLogoHint[] };
+
+const DEFAULT_LOCATION = "Olaines pilsētas stadions";
+
+function scoreText(score: number | null | undefined) {
+  return score == null ? "" : String(score);
+}
 
 export function GameForm(
-  props:
-    | { mode: "create"; teamOptions: TeamOption[]; copyOf?: GameFormValues }
-    | { mode: "edit"; gameId: number; game: GameFormValues; teamOptions: TeamOption[] },
+  props: { teamOptions: TeamOption[]; hints: GameFormHints } & (
+    | { mode: "create"; copyOf?: GameFormValues }
+    | { mode: "edit"; gameId: number; game: GameFormValues }
+  ),
 ) {
   const copy = useFormCopy();
   // Both actions are set up so an edit form can turn into a copy (a create) without losing what is typed.
@@ -40,15 +53,45 @@ export function GameForm(
   const state = isCreate ? createState : updateState;
   const pending = isCreate ? createPending : updatePending;
   const game = props.mode === "edit" ? props.game : props.copyOf ?? null;
+  const [teamId, setTeamId] = useState(game ? String(game.teamId) : "");
+  const [homeTeam, setHomeTeam] = useState(game?.homeTeam ?? "");
+  const [awayTeam, setAwayTeam] = useState(game?.awayTeam ?? "");
+  const [homeScore, setHomeScore] = useState(scoreText(game?.homeScore));
+  const [awayScore, setAwayScore] = useState(scoreText(game?.awayScore));
+  const [date, setDate] = useState(game?.date ?? "");
   const [startTime, setStartTime] = useState(game?.startTime ?? "");
   const [endTime, setEndTime] = useState(game?.endTime ?? "");
+  const [location, setLocation] = useState(game?.location ?? DEFAULT_LOCATION);
+  const [league, setLeague] = useState(game?.league ?? "");
+  const clubs = useMemo(() => new Map(props.hints.clubs.map((club) => [club.name, club])), [props.hints.clubs]);
+  const clubNames = useMemo(() => props.hints.clubs.map((club) => club.name), [props.hints.clubs]);
+  const preview = buildGamePreview(
+    { teamId: teamId ? Number(teamId) : null, homeTeam, awayTeam, homeScore, awayScore, date, startTime, location, league },
+    clubs,
+    props.hints.leagueLogos,
+  );
+
+  // A copy never carries the score.
+  function startCopy() {
+    copy.startCopy(() => {
+      setHomeScore("");
+      setAwayScore("");
+    });
+  }
 
   function changeStartTime(value: string) {
     setStartTime(value);
     if (!endTime) setEndTime(defaultEndTime(value, DEFAULT_DURATION_MINUTES.game));
   }
 
-  return (
+  const clubIcon = (name: string) => <ClubSuggestionIcon name={name} clubs={clubs} />;
+  // Picking a suggestion fires no input event, so it marks the form as edited here.
+  const edit = (set: (value: string) => void) => (value: string) => {
+    copy.markDirty();
+    set(value);
+  };
+
+  const form = (
     <form action={isCreate ? createAction : updateAction} onInput={copy.markDirty} className="max-w-md">
       <h1 className="mb-6 text-2xl font-extrabold text-club-navy">
         {isCreate ? `Jauna spēle${isCopy ? " (kopija)" : ""}` : "Rediģēt spēli"}
@@ -60,7 +103,8 @@ export function GameForm(
         <select
           name="teamId"
           required
-          defaultValue={game?.teamId ?? ""}
+          value={teamId}
+          onChange={(event) => setTeamId(event.target.value)}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
         >
           <option value="" disabled>
@@ -75,28 +119,8 @@ export function GameForm(
       </label>
 
       <div className="mt-4 flex gap-4">
-        <label className="flex-1 text-sm font-semibold text-club-navy">
-          Mājinieki
-          <input
-            type="text"
-            name="homeTeam"
-            required
-            placeholder="AFA Olaine"
-            defaultValue={game?.homeTeam ?? ""}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-        </label>
-        <label className="flex-1 text-sm font-semibold text-club-navy">
-          Viesi
-          <input
-            type="text"
-            name="awayTeam"
-            required
-            placeholder="FK Ventspils"
-            defaultValue={game?.awayTeam ?? ""}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-        </label>
+        <SuggestInput name="homeTeam" label="Mājinieki" required placeholder="AFA Olaine" value={homeTeam} onChange={edit(setHomeTeam)} options={clubNames} iconFor={clubIcon} className="min-w-0 flex-1" />
+        <SuggestInput name="awayTeam" label="Viesi" required placeholder="FK Ventspils" value={awayTeam} onChange={edit(setAwayTeam)} options={clubNames} iconFor={clubIcon} className="min-w-0 flex-1" />
       </div>
 
       <div className="mt-4 flex gap-4">
@@ -105,12 +129,11 @@ export function GameForm(
           <input
             type="number"
             name="homeScore"
-            // A copy never carries the score; remounting clears what the edit form showed.
-            key={isCopy ? "copy" : "original"}
             min="0"
             step="1"
             inputMode="numeric"
-            defaultValue={isCopy ? "" : game?.homeScore ?? ""}
+            value={homeScore}
+            onChange={(event) => setHomeScore(event.target.value)}
             className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
           />
         </label>
@@ -119,11 +142,11 @@ export function GameForm(
           <input
             type="number"
             name="awayScore"
-            key={isCopy ? "copy" : "original"}
             min="0"
             step="1"
             inputMode="numeric"
-            defaultValue={isCopy ? "" : game?.awayScore ?? ""}
+            value={awayScore}
+            onChange={(event) => setAwayScore(event.target.value)}
             className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
           />
         </label>
@@ -135,7 +158,8 @@ export function GameForm(
           type="date"
           name="date"
           required
-          defaultValue={game?.date ?? ""}
+          value={date}
+          onChange={(event) => setDate(event.target.value)}
           className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
         />
       </label>
@@ -145,27 +169,9 @@ export function GameForm(
         <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
       </div>
 
-      <label className="mt-4 block text-sm font-semibold text-club-navy">
-        Vieta
-        <input
-          type="text"
-          name="location"
-          required
-          defaultValue={game?.location ?? "Olaines pilsētas stadions"}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        />
-      </label>
+      <SuggestInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
 
-      <label className="mt-4 block text-sm font-semibold text-club-navy">
-        Sacensības (nav obligāts)
-        <input
-          type="text"
-          name="league"
-          placeholder="Draudzības spēle"
-          defaultValue={game?.league ?? ""}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        />
-      </label>
+      <SuggestInput name="league" label="Sacensības (nav obligāts)" placeholder="Draudzības spēle" value={league} onChange={edit(setLeague)} options={props.hints.leagues} className="mt-4" />
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Piezīmes (nav obligāts)
@@ -186,7 +192,14 @@ export function GameForm(
       >
         {pending ? "Saglabā..." : "Saglabāt"}
       </button>
-      {!isCreate && <CopyFormButton onClick={copy.startCopy} />}
+      {!isCreate && <CopyFormButton onClick={startCopy} />}
     </form>
+  );
+
+  return (
+    <FormWithPreview
+      form={form}
+      preview={<MatchCard game={preview.game} homeBorderStripe={preview.homeBorderStripe} awayBorderStripe={preview.awayBorderStripe} compact />}
+    />
   );
 }

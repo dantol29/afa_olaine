@@ -12,8 +12,10 @@ export function useFormCopy() {
   const [isCopy, setIsCopy] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
-  function startCopy() {
+  /** `onCopy` clears what a copy must not carry over; it runs only once the copy is confirmed. */
+  function startCopy(onCopy?: () => void) {
     if (isDirty && !window.confirm(UNSAVED_COPY_WARNING)) return;
+    onCopy?.();
     setIsCopy(true);
     window.scrollTo({ top: 0 });
   }
@@ -25,7 +27,7 @@ export function CopyFormButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={() => onClick()}
       className="mt-6 ml-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-club-navy transition hover:bg-club-gray-light"
     >
       <Copy aria-hidden="true" className="h-4 w-4" />

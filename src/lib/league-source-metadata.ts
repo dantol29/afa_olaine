@@ -11,9 +11,3 @@ export const getLeagueSourceMetadata = cachePublicData("league-source-metadata",
   logoUrl: leagueSources.logoUrl,
   isMainLeague: leagueSources.isMainLeague,
 }).from(leagueSources).orderBy(asc(leagueSources.displayOrder), asc(leagueSources.id)));
-
-type LeagueMetadata = Awaited<ReturnType<typeof getLeagueSourceMetadata>>;
-export function leagueLogoForGame(sources: LeagueMetadata, teamId: number, label: string | null) {
-  const normalize = (value: string) => value.trim().toLocaleLowerCase("lv").replace(/\s+/g, " ");
-  return sources.find((source) => source.teamId === teamId && label && normalize(source.label) === normalize(label))?.logoUrl ?? null;
-}

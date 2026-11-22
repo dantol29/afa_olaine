@@ -298,6 +298,17 @@
 .admin-theme input[type="checkbox"],
 .admin-theme input[type="radio"] { accent-color: #fbb040; }
 .admin-theme select option { background: #171717; color: #fff; }
+
+/* The card preview beside admin forms must look as on the site, so it takes back the site's club colors that the
+ * admin theme swaps (initials badges are drawn in them). Keep in step with :root. */
+.admin-theme .admin-card-preview {
+  --club-red: #c90035;
+  --club-red-dark: #a8002c;
+  --club-navy: #142e49;
+  --club-navy-light: #24446b;
+}
+.admin-theme .admin-card-preview .bg-club-red,
+.admin-theme .admin-card-preview.bg-club-red { color: #fff; }
 .admin-theme .admin-main table,
 .admin-theme .admin-main [data-admin-search-item].bg-white { border: 1px solid #292929; }
 .admin-theme .admin-main th {

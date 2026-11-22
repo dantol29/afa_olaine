@@ -10,7 +10,9 @@ const CLUB_WIDE_LABEL = "Visam klubam";
 
 function dateLabel(event: ScheduleEvent) {
   const month = MONTHS.indexOf(event.month) + 1;
-  return `${event.day}.${String(month).padStart(2, "0")}.${event.year} ${event.startTime}–${event.endTime}`;
+  // The admin preview shows a card before its date is picked.
+  const monthText = month > 0 ? String(month).padStart(2, "0") : "--";
+  return `${event.day}.${monthText}.${event.year} ${event.startTime}–${event.endTime}`;
 }
 
 export function EventCard({ event, borderStripe }: { event: ScheduleEvent; borderStripe: string }) {
