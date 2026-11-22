@@ -73,6 +73,8 @@ export function buildGamePreview(values: GamePreviewValues, clubs: ReadonlyMap<s
 export type EventPreviewValues = {
   title: string;
   date: string;
+  /** Empty for a one-day event. */
+  endDate: string;
   startTime: string;
   endTime: string;
   location: string;
@@ -86,6 +88,7 @@ export function buildEventPreview(values: EventPreviewValues, teams: readonly { 
     title: values.title.trim() || PLACEHOLDER.title,
     ...dateParts(values.date),
     rawDate: values.date,
+    rawEndDate: values.endDate && values.endDate !== values.date ? values.endDate : null,
     startTime: values.startTime || EMPTY_TIME,
     endTime: values.endTime || EMPTY_TIME,
     location: values.location.trim() || PLACEHOLDER.location,

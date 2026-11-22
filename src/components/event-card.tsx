@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { formatEventDates } from "@/lib/event-dates";
 import { MONTHS } from "@/lib/games";
 import type { ScheduleEvent } from "@/lib/schedule";
 
@@ -9,6 +10,7 @@ const EVENT_ACCENT = "#fbb040";
 const CLUB_WIDE_LABEL = "Visam klubam";
 
 function dateLabel(event: ScheduleEvent) {
+  if (event.rawEndDate) return `${formatEventDates(event.rawDate, event.rawEndDate)} ${event.startTime}–${event.endTime}`;
   const month = MONTHS.indexOf(event.month) + 1;
   // The admin preview shows a card before its date is picked.
   const monthText = month > 0 ? String(month).padStart(2, "0") : "--";

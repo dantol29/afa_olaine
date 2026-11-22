@@ -13,6 +13,8 @@ export type ScheduleEvent = {
   year: string;
   /** "YYYY-MM-DD" */
   rawDate: string;
+  /** Last day of a multi-day event; null for one day. */
+  rawEndDate: string | null;
   startTime: string;
   endTime: string;
   location: string;

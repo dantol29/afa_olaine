@@ -1,4 +1,4 @@
-import { and, gte, lte } from "drizzle-orm";
+import { and, gte, lte, sql } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { events, games, teams, trainings } from "@/db/schema";
@@ -23,13 +23,15 @@ export default async function WeekTextPage() {
       with: { trainingTeams: true },
     }),
     db.select().from(games).where(and(gte(games.date, thisMonday), lte(games.date, lastDay))),
-    db.select().from(events).where(and(gte(events.date, thisMonday), lte(events.date, lastDay))),
+    // A multi-day event belongs to every week it overlaps.
+    db.select().from(events).where(and(lte(events.date, lastDay), gte(sql`coalesce(${events.endDate}, ${events.date})`, thisMonday))),
   ]);
 
   // A club-wide event (no team) concerns every team, so it goes into each team's text.
   const toEventItem = (event: (typeof eventRows)[number]): WeekItem => ({
     kind: "event",
     date: event.date,
+    endDate: event.endDate,
     startTime: event.startTime,
     endTime: event.endTime,
     location: event.location,

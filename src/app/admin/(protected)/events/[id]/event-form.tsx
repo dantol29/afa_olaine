@@ -17,6 +17,8 @@ import { createEvent, updateEvent } from "../actions";
 export type EventFormValues = {
   title: string;
   date: string;
+  /** Last day of a multi-day event; null for one day. */
+  endDate: string | null;
   startTime: string;
   endTime: string;
   location: string;
@@ -48,12 +50,14 @@ export function EventForm(
   const event = props.mode === "edit" ? props.event : props.copyOf ?? null;
   const [title, setTitle] = useState(event?.title ?? "");
   const [date, setDate] = useState(event?.date ?? "");
+  const [isMultiDay, setIsMultiDay] = useState(Boolean(event?.endDate));
+  const [endDate, setEndDate] = useState(event?.endDate ?? "");
   const [startTime, setStartTime] = useState(event?.startTime ?? "");
   const [endTime, setEndTime] = useState(event?.endTime ?? "");
   const [location, setLocation] = useState(event?.location ?? "");
   const [teamId, setTeamId] = useState(event?.teamId == null ? "" : String(event.teamId));
   const preview = buildEventPreview(
-    { title, date, startTime, endTime, location, teamId: teamId ? Number(teamId) : null },
+    { title, date, endDate: isMultiDay ? endDate : "", startTime, endTime, location, teamId: teamId ? Number(teamId) : null },
     props.teamOptions,
   );
   // Picking a suggestion fires no input event, so it marks the form as edited here.
@@ -88,6 +92,26 @@ export function EventForm(
         />
       </label>
 
+      <label className="mt-2 flex items-center gap-2 text-sm text-club-navy">
+        <input type="checkbox" checked={isMultiDay} onChange={(changeEvent) => setIsMultiDay(changeEvent.target.checked)} />
+        Vairākas dienas
+      </label>
+      {isMultiDay && (
+        <label className="mt-2 block text-sm font-semibold text-club-navy">
+          Beigu datums
+          <input
+            type="date"
+            name="endDate"
+            required
+            min={date || undefined}
+            value={endDate}
+            onChange={(changeEvent) => setEndDate(changeEvent.target.value)}
+            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
+          />
+          <span className="mt-1 block text-xs font-normal text-slate-500">Sākuma laiks ir pirmajā dienā, beigu laiks — pēdējā.</span>
+        </label>
+      )}
+
       <div className="mt-4 flex gap-4">
         <TimeSelect name="startTime" label="Sākuma laiks" value={startTime} onChange={changeStartTime} />
         <TimeSelect name="endTime" label="Beigu laiks" value={endTime} onChange={setEndTime} />
@@ -95,7 +119,7 @@ export function EventForm(
 
       <SuggestInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
       <VenueLoad
-        planned={{ kind: "event", location, date, startTime, endTime }}
+        planned={{ kind: "event", location, date, startTime, endTime, endDate: isMultiDay && endDate && endDate !== date ? endDate : undefined }}
         excludeKey={props.mode === "edit" && !copy.isCopy ? `event-${props.eventId}` : undefined}
       />
 

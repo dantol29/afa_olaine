@@ -1,4 +1,4 @@
-import { and, eq, gte, lte } from "drizzle-orm";
+import { and, eq, gte, lte, sql } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { events, games, teams, trainings } from "@/db/schema";
@@ -194,18 +194,21 @@ async function getAdminEvents(after: Date, before: Date): Promise<CalendarEvent[
       title: events.title,
       date: events.date,
       startTime: events.startTime,
+      endDate: events.endDate,
       endTime: events.endTime,
       location: events.location,
       teamName: teams.name,
     })
     .from(events)
     .leftJoin(teams, eq(events.teamId, teams.id))
-    .where(and(gte(events.date, afterKey), lte(events.date, beforeKey)));
+    // A multi-day event counts on every day it covers, so one that started earlier still shows.
+    .where(and(lte(events.date, beforeKey), gte(sql`coalesce(${events.endDate}, ${events.date})`, afterKey)));
 
   return rows.map((row) => {
     const [year, month, day] = dateKeyToParts(row.date);
+    const [endYear, endMonth, endDay] = dateKeyToParts(row.endDate ?? row.date);
     const start = rigaWallClockToUtc(year, month, day, ...timeToParts(row.startTime));
-    const end = rigaWallClockToUtc(year, month, day, ...timeToParts(row.endTime));
+    const end = rigaWallClockToUtc(endYear, endMonth, endDay, ...timeToParts(row.endTime));
 
     return {
       uid: `event-${row.id}`,
