@@ -125,7 +125,8 @@ export default async function AdminHomePage() {
       <Block key="venue-clashes" title={`Vietas pārklāšanās (nākamās ${CLASH_DAYS} dienas)`}>
         {venueClashes.map((pair) => (
           <Row key={`${pair.first.key}|${pair.second.key}`}>
-            <span className={pair.level === "red" ? "text-red-600" : "text-amber-600"}>{pair.level === "red" ? "🔴" : "🟠"}</span> {pair.first.date} ·{" "}
+            {/* The later start is the first day both are on. */}
+            <span className={pair.level === "red" ? "text-red-600" : "text-amber-600"}>{pair.level === "red" ? "🔴" : "🟠"}</span> {pair.second.date} ·{" "}
             {pair.first.location}: <BookingLink booking={pair.first} /> un <BookingLink booking={pair.second} />
           </Row>
         ))}
@@ -205,7 +206,10 @@ export default async function AdminHomePage() {
 
 /** An AFA booking links to its edit page; an FK one is only named, with its club. */
 function BookingLink({ booking }: { booking: VenueBooking }) {
-  const text = `${booking.title} ${booking.startTime}–${booking.endTime}`;
+  const dayMonth = (date: string) => `${date.slice(8, 10)}.${date.slice(5, 7)}.`;
+  const text = booking.endDate
+    ? `${booking.title} ${dayMonth(booking.date)} ${booking.startTime}–${dayMonth(booking.endDate)} ${booking.endTime}`
+    : `${booking.title} ${booking.startTime}–${booking.endTime}`;
   const match = AFA_KEY.exec(booking.key);
   if (!match) return <span className="font-semibold">FK: {text}</span>;
   const [, kind, id] = match;
