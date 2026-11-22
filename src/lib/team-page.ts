@@ -1,3 +1,4 @@
+import { POSITION_GROUPS } from "@/lib/player-positions";
 import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 
 type PositionedPlayer = { position: string | null };
@@ -7,12 +8,7 @@ type RoleGroup<T> = {
   players: T[];
 };
 
-const ROLE_GROUPS = [
-  { position: "Vārtsargs", label: "Vārtsargi" },
-  { position: "Aizsargs", label: "Aizsargi" },
-  { position: "Pussargs", label: "Pussargi" },
-  { position: "Uzbrucējs", label: "Uzbrucēji" },
-] as const;
+const ROLE_GROUPS = POSITION_GROUPS;
 
 export type TeamTab = "players" | "staff";
 
