@@ -24,6 +24,8 @@ import { resolveClubLogos } from "@/lib/club-logos";
 import { sortByName } from "@/lib/ordering";
 import { loadScheduleTrainings } from "@/lib/training-schedule-server";
 
+import { ScoreForm } from "./score-form";
+
 const EDIT_PATH = { game: "games", training: "trainings", event: "events" } as const;
 
 /** "Uzmanību": what needs someone to act, computed on every visit from the current data. Writes nothing. */
@@ -65,8 +67,11 @@ export default async function AdminHomePage() {
     noScore.length > 0 && (
       <Block key="score" title="Spēles bez rezultāta">
         {noScore.map((game) => (
-          <Row key={game.id} href={`/admin/games/${game.id}`} action="ievadīt">
-            {game.date} · {game.homeTeam || "?"} – {game.awayTeam || "?"} <Muted>({teamName(game.teamId)})</Muted>
+          <Row key={game.id} side={<ScoreForm gameId={game.id} />}>
+            {game.date} · {game.homeTeam || "?"} – {game.awayTeam || "?"} <Muted>({teamName(game.teamId)})</Muted>{" "}
+            <Link href={`/admin/games/${game.id}`} className="text-xs font-semibold text-club-red hover:underline">
+              atvērt →
+            </Link>
           </Row>
         ))}
       </Block>
@@ -187,10 +192,11 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Row({ href, action, children }: { href?: string; action?: string; children: ReactNode }) {
+function Row({ href, action, side, children }: { href?: string; action?: string; side?: ReactNode; children: ReactNode }) {
   return (
     <li className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 px-4 py-2 text-club-navy">
       <div className="min-w-0">{children}</div>
+      {side}
       {href && action && (
         <Link href={href} className="shrink-0 font-semibold text-club-red hover:underline">
           {action} →

@@ -43,3 +43,16 @@ export function parseGameInput(formData: FormData) {
     notes: notes || null,
   } as const;
 }
+
+/** The score typed on the admin home for a played game: both sides are required, whole numbers from 0. */
+export function parseScoreInput(formData: FormData) {
+  const parse = (name: "homeScore" | "awayScore") => {
+    const raw = String(formData.get(name) ?? "").trim();
+    const score = raw === "" ? NaN : Number(raw);
+    return Number.isInteger(score) && score >= 0 ? score : null;
+  };
+  const homeScore = parse("homeScore");
+  const awayScore = parse("awayScore");
+  if (homeScore === null || awayScore === null) return { error: "Jāievada abi rezultāti — veseli skaitļi no 0." } as const;
+  return { homeScore, awayScore } as const;
+}
