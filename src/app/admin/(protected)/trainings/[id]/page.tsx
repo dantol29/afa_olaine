@@ -7,7 +7,11 @@ import { coaches, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
 import { copySourceId } from "@/lib/admin-copy";
 import { getLocationHints } from "@/lib/admin-form-hints";
+import { findSimilarTrainings } from "@/lib/training-schedule";
+import { loadScheduleTrainings } from "@/lib/training-schedule-server";
 import type { SearchParamValue } from "@/lib/url-state";
+
+import { SimilarDelete } from "./similar-delete";
 
 import { TrainingForm } from "./training-form";
 
@@ -47,6 +51,14 @@ export default async function AdminTrainingFormPage({
     if (!training) notFound();
   }
 
+  // The repeats of the training being edited, for "Dzēst līdzīgos"; the page narrows them to an until-date.
+  let similar: ReturnType<typeof findSimilarTrainings> = [];
+  if (training) {
+    const all = await loadScheduleTrainings();
+    const source = all.find((item) => item.id === training.id);
+    similar = source ? findSimilarTrainings(source, null, all) : [];
+  }
+
   let events: CalendarEvent[] = [];
   try {
     events = await getScheduleForWeekBrowsing();
@@ -57,6 +69,7 @@ export default async function AdminTrainingFormPage({
   return (
     <div>
       {training ? (
+        <>
         <TrainingForm
           mode="edit"
           trainingId={training.id}
@@ -65,6 +78,8 @@ export default async function AdminTrainingFormPage({
           coachOptions={coachOptions}
           locations={locations}
         />
+        <SimilarDelete trainingId={training.id} date={training.date} similar={similar} />
+        </>
       ) : (
         <TrainingForm mode="create" teamOptions={teamOptions} coachOptions={coachOptions} locations={locations} copyOf={copyOf} />
       )}

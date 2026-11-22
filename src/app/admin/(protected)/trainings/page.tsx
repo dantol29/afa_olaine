@@ -36,12 +36,20 @@ export default async function AdminTrainingsPage({ searchParams }: { searchParam
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-club-navy">Treniņi</h1>
-        <Link
-          href="/admin/trainings/new"
-          className="rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark"
-        >
-          + Pievienot
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/trainings/schedule"
+            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-club-navy hover:border-club-red"
+          >
+            Pēc grafika
+          </Link>
+          <Link
+            href="/admin/trainings/new"
+            className="rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark"
+          >
+            + Pievienot
+          </Link>
+        </div>
       </div>
       <AdminSearch placeholder="Meklēt treniņus…" />
 
