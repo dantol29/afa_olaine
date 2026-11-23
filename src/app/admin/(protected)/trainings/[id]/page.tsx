@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { WeekCalendar } from "@/components/week-calendar";
 import { db } from "@/db/client";
-import { sortByName } from "@/lib/ordering";
+import { sortByName, sortTeams } from "@/lib/ordering";
 import { coaches, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
 import { copySourceId } from "@/lib/admin-copy";
@@ -37,7 +37,7 @@ export default async function AdminTrainingFormPage({
     db.select({ id: coaches.id, name: coaches.name }).from(coaches),
     getLocationHints(),
   ]);
-  const teamOptions = sortByName(teamRows, (team) => team.name);
+  const teamOptions = sortTeams(teamRows);
   const coachOptions = sortByName(coachRows, (coach) => coach.name);
 
   let training = null;

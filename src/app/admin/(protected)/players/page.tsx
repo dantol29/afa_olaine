@@ -5,15 +5,12 @@ import Link from "next/link";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
-import { sortByName } from "@/lib/ordering";
+import { sortByName, sortTeams } from "@/lib/ordering";
 
 import { deletePlayer } from "./actions";
 
 export default async function AdminPlayersPage() {
-  const teamRows = sortByName(
-    await db.query.teams.findMany({ with: { playerTeams: { with: { player: true } } } }),
-    (team) => team.name,
-  );
+  const teamRows = sortTeams(await db.query.teams.findMany({ with: { playerTeams: { with: { player: true } } } }));
 
   const teamsWithPlayers = teamRows.map((team) => ({
     id: team.id,

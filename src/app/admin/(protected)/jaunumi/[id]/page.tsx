@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { db } from "@/db/client";
-import { sortByName } from "@/lib/ordering";
+import { sortByName, sortTeams } from "@/lib/ordering";
 import { coaches, teams } from "@/db/schema";
 
 import { ArticleForm } from "./article-form";
@@ -16,7 +16,7 @@ export default async function AdminArticleFormPage({
     db.select().from(teams),
     db.select({ id: coaches.id, name: coaches.name }).from(coaches),
   ]);
-  const teamOptions = sortByName(teamRows, (team) => team.name);
+  const teamOptions = sortTeams(teamRows);
   const coachOptions = sortByName(coachRows, (coach) => coach.name);
 
   if (id === "new") {

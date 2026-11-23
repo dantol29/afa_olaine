@@ -18,12 +18,7 @@ import { colorFor, initialsFor } from "@/lib/games";
 import { cn } from "@/lib/utils";
 
 import { deleteGame } from "./actions";
-
-function formatDateDisplay(isoDate: string) {
-  const [year, month, day] = isoDate.split("-");
-  if (!year || !month || !day) return isoDate;
-  return `${day}.${month}.${year}`;
-}
+import { formatDate } from "@/lib/date-display";
 
 function ClubBadge({ name, logo }: { name: string; logo: string | null }) {
   return (
@@ -112,7 +107,7 @@ export default async function AdminGamesPage({ searchParams }: { searchParams: P
           basePath="/admin/games"
           emptyText="Vēl nav nevienas spēles."
           renderRow={(game) => {
-            const dateDisplay = formatDateDisplay(game.date);
+            const dateDisplay = formatDate(game.date);
             return (
             <tr data-admin-search-item={`${game.date} ${dateDisplay} ${game.startTime} ${game.teamName} ${game.homeTeam} ${game.awayTeam} ${game.league ?? ""} ${game.location}`} key={game.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 text-club-navy">{dateDisplay}</td>

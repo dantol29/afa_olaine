@@ -12,6 +12,8 @@ import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
 import { findVenueClashes, worstLevel } from "@/lib/venue-clash";
 
 import { changeSimilarTrainings, deleteSimilarTrainings } from "../actions";
+import { formatDate } from "@/lib/date-display";
+import { DateField } from "@/components/admin/date-field";
 import { SuggestInput } from "@/components/admin/suggest-input";
 
 const DELETE_SUBMITTER = "delete";
@@ -116,20 +118,9 @@ export function SimilarTrainings({
         className="mt-3"
       >
         <p className="text-xs text-slate-500">
-          Tā pati nedēļas diena ({weekdayLabel(date).toLowerCase()}), laiks un komandas, sākot no {date}. Vieta un treneri netiek salīdzināti.
+          Tā pati nedēļas diena ({weekdayLabel(date).toLowerCase()}), laiks un komandas, sākot no {formatDate(date)}. Vieta un treneri netiek salīdzināti.
         </p>
-        <label className="mt-3 block text-sm font-semibold text-club-navy">
-          Līdz (ieskaitot)
-          <input
-            type="date"
-            name="until"
-            required
-            min={date}
-            value={until}
-            onChange={(event) => setUntil(event.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-          />
-        </label>
+        <DateField name="until" label="Līdz (ieskaitot)" required min={date} value={until} onChange={setUntil} className="mt-3" />
 
         <ul className="mt-3 divide-y divide-slate-100 rounded-lg bg-white text-sm">
           {rows.map((row) => (
@@ -143,7 +134,7 @@ export function SimilarTrainings({
                   onChange={(event) => setTicks((current) => ({ ...current, [row.training.id]: event.target.checked }))}
                   className="mt-0.5"
                 />
-                <span className="w-24 shrink-0 font-semibold">{row.training.date}</span>
+                <span className="w-24 shrink-0 font-semibold">{formatDate(row.training.date)}</span>
                 <span className="text-slate-500">
                   {row.training.startTime}–{row.training.endTime}, {row.training.location}
                   {row.training.id === trainingId && " (šis)"}
