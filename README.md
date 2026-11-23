@@ -106,14 +106,15 @@ Configure `NODE_AUTH_TOKEN` with a GitHub classic token granting `read:packages`
 on your development machine and in the cPanel deployment shell. The committed
 `.npmrc` contains only an environment-variable placeholder; never commit a token.
 For cPanel, the token must be available to the shell running `npm install`,
-not just the running Node application. Both deployments run `npm run db:migrate`
-before building. Both apps need the same database URL to share actual data.
+not just the running Node application. Run `npm run db:migrate` before building
+when the package version changes.
 
 ### Releasing a database change
 
 Edit the standalone repository, add any required idempotent migration, bump its
 package version, commit, and push a matching `vVERSION` tag. GitHub Actions
 publishes the private release using its own `GITHUB_TOKEN`.
-From FK Olaine, run `npm run db:update-shared -- VERSION` to install that exact
-release in both websites, then commit both manifests and lockfiles.
+Then install that exact release here with
+`npm install @olaine/database@npm:@dantol29/database@VERSION --save-exact` and commit
+`package.json` and `package-lock.json`. Each site moves to a new release on its own.
 Website database schema/client files are only compatibility imports.

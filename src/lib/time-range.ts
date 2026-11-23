@@ -6,8 +6,8 @@ function toMinutes(time: string): number | null {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-/** An item lasts within one calendar day. The shared calendar feed (read by the FK site) rejects whole feeds that
- *  contain an end earlier than the start, so reject such times when they are saved. */
+/** An item lasts within one calendar day: an end earlier than the start is refused when it is saved, and calendars
+ *  leave such items out. */
 export function isEndAfterStart(startTime: string, endTime: string): boolean {
   const start = toMinutes(startTime);
   const end = toMinutes(endTime);
