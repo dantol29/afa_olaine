@@ -66,7 +66,7 @@ League-source logos and the main-league flag (`is_main_league`) are set under **
 Deployment is manual, from the cPanel terminal (there is no automatic deploy hook).
 Before pushing the change you deploy, run `npm test && npm run lint` on your machine (see "Tests").
 
-**Back up the database first.** `scripts/backup-db.sh` copies the SQLite file (and any `-journal`, `-wal` or `-shm` file next to it) into `/home3/afaolain/afa_olaine-backups`, adding the current date and time to each name, e.g. `app.db.20261112-153045`. It prints the `TS` value and the rollback command. Set `DATA_DIR` or `BACKUP_DIR` if `TURSO_DATABASE_URL` or the backups folder point elsewhere.
+**Back up the database and the photos first.** `scripts/backup-db.sh` copies the SQLite file (and any `-journal`, `-wal` or `-shm` file next to it) into `~/afa_olaine-backups` with the date and time in each name, e.g. `app.db.20261112-153045`, and packs the uploaded photos (`public/uploads`) into `uploads.<date-time>.tar.gz` there. It keeps the newest 100 database copies and the newest 10 photo archives (`KEEP_DB_BACKUPS`, `KEEP_UPLOADS_BACKUPS`) and deletes older ones only after the new copies are made. It prints the `TS` value and the commands to restore the database and the photos. Set `DATA_DIR`, `BACKUP_DIR` or `UPLOADS_SRC` if those point elsewhere.
 
 ```sh
 cd /home3/afaolain/repositories/afa_olaine
@@ -74,7 +74,7 @@ git pull
 bash scripts/backup-db.sh
 ```
 
-`app.db.<TS>` must appear and its size must match the original (check against `/home3/afaolain/afa_olaine-data/app.db`). To roll the data back, stop the app in **Setup Node.js App**, copy `app.db.<TS>` over `/home3/afaolain/afa_olaine-data/app.db` with `cp -p`, and start the app again.
+`app.db.<TS>` must appear and its size must match the original (check against `/home3/afaolain/afa_olaine-data/app.db`). To roll the data back, stop the app in **Setup Node.js App**, copy `app.db.<TS>` over `/home3/afaolain/afa_olaine-data/app.db` with `cp -p`, and start the app again. To restore the photos, run the `tar -xzf …` command the script printed (it unpacks `uploads` into `public/`).
 
 Then build and install the update:
 
