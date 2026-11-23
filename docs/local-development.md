@@ -2,8 +2,7 @@
 
 Runs the site on `http://localhost:3000` with hot reload, a working admin,
 LFF sync and a local mail sink. Nothing is sent to production: the database is
-a local file, emails are printed in the terminal, and the shared calendar feed
-stays disabled. Application code is unchanged; all wiring lives in
+a local file and emails are printed in the terminal. Application code is unchanged; all wiring lives in
 `scripts/local/` and the `local:*` npm scripts.
 
 ## First run
@@ -94,7 +93,6 @@ Every `local:*` command goes through `scripts/local/run.mjs`. It loads only
 - `NODE_ENV` is `production`;
 - `TURSO_DATABASE_URL` is not a `file:` URL, or `TURSO_AUTH_TOKEN` is set;
 - `SMTP_HOST` is set to anything other than a loopback address;
-- `SHARED_CALENDAR_SECRET` is set;
 - `SITE_URL` does not point to localhost.
 
 ## Notes

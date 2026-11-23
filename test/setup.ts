@@ -35,7 +35,6 @@ for (const [name, value] of Object.entries(process.env)) {
 process.env.TURSO_DATABASE_URL = "file::memory:";
 process.env.TURSO_AUTH_TOKEN = "";
 process.env.SESSION_SECRET = "test-session-secret";
-process.env.SHARED_CALENDAR_SECRET = "test-shared-calendar-secret";
 process.env.ADMIN_PASSWORD = "test-admin-password";
 process.env.CRON_SECRET = "test-cron-secret";
 process.env.SITE_URL = "http://localhost:3000";

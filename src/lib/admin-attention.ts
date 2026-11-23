@@ -154,7 +154,7 @@ export function clubsWithoutLogo(
 
 export type BrokenEntry = { kind: "game" | "training" | "event"; id: number; label: string; date: string; startTime: string; endTime: string };
 
-/** 7. Entries whose end is not after their start. The calendar shared with the FK site leaves them out. */
+/** 7. Entries whose end is not after their start. The calendars leave them out. */
 export function entriesWithBadTimes(
   games: readonly AttentionGame[],
   trainings: readonly AttentionTraining[],

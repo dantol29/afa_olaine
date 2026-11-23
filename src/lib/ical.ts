@@ -41,7 +41,7 @@ export function foldLine(line: string): string {
   return pieces.join(`${CRLF} `);
 }
 
-/** The whole feed. Items whose end is not after their start are left out, as in the calendar shared with FK. */
+/** The whole feed. Items whose end is not after their start are left out. */
 export function buildIcal({ name, domain, items, now }: { name: string; domain: string; items: readonly IcalItem[]; now: Date }): string {
   const stamp = icalTime(now);
   const lines = [

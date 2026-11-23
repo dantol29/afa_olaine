@@ -37,7 +37,6 @@ function findIsolationProblems(env) {
   if (env.NODE_ENV === "production") problems.push("NODE_ENV must not be production.");
   if (!env.TURSO_DATABASE_URL?.startsWith("file:")) problems.push("TURSO_DATABASE_URL must be a local file: URL.");
   if (env.TURSO_AUTH_TOKEN) problems.push("TURSO_AUTH_TOKEN must be empty.");
-  if (env.SHARED_CALENDAR_SECRET) problems.push("SHARED_CALENDAR_SECRET must be empty.");
   if (env.SMTP_HOST && !LOOPBACK_HOSTS.has(env.SMTP_HOST)) problems.push("SMTP_HOST must be empty or a loopback address.");
   try {
     if (!LOOPBACK_HOSTS.has(new URL(env.SITE_URL).hostname)) problems.push("SITE_URL must point to localhost.");
