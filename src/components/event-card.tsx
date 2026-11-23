@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { formatEventDates } from "@/lib/event-dates";
 import { MONTHS } from "@/lib/games";
@@ -25,7 +26,7 @@ export function EventCard({ event, borderStripe }: { event: ScheduleEvent; borde
   const watermark = (event.teams.length === 1 ? event.teams[0].name : "AFA").replace(/[^\p{L}\p{N}-]/gu, "").slice(0, 5);
 
   return (
-    <article className="relative isolate flex min-h-[360px] overflow-hidden bg-[#151515] p-5 pb-3 text-white sm:min-h-[390px] sm:p-6 sm:pb-4">
+    <article className="group relative isolate flex min-h-[360px] overflow-hidden bg-[#151515] p-5 pb-3 text-white sm:min-h-[390px] sm:p-6 sm:pb-4">
       <div aria-hidden="true" className="absolute inset-x-0 top-0 z-10 h-1.5" style={{ backgroundImage: borderStripe }} />
       <div aria-hidden="true" className="absolute inset-x-0 bottom-0 z-10 h-1.5" style={{ backgroundImage: borderStripe }} />
       <span aria-hidden="true" className="pointer-events-none absolute bottom-24 right-6 -z-10 font-heading text-[96px] font-semibold uppercase leading-none tracking-[-0.08em] text-white/[0.07] sm:text-[132px]">
@@ -41,7 +42,12 @@ export function EventCard({ event, borderStripe }: { event: ScheduleEvent; borde
         <div className="mt-auto pb-4 pt-12 sm:pb-5">
           <Image src="/hero-logo.png" alt="AFA Olaine" width={62} height={62} className="size-[62px] object-contain" />
           <h3 className="mt-5 line-clamp-3 max-w-[520px] font-heading text-[24px] font-semibold uppercase leading-[0.98] sm:text-[28px]">
-            {event.title}
+            {event.href ? (
+              // The link covers the whole card, so the card opens the event's page wherever it is clicked.
+              <Link href={event.href} className="transition-colors after:absolute after:inset-0 after:z-20 group-hover:text-[#fbb040] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-4 focus-visible:after:outline-[#fbb040]">
+                {event.title}
+              </Link>
+            ) : event.title}
           </h3>
           <p className="mt-4 font-sans text-[15px] font-semibold text-white sm:text-base">
             <span style={{ color: EVENT_ACCENT }}>{teamLabel}</span>

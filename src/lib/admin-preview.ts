@@ -94,6 +94,7 @@ export function buildEventPreview(values: EventPreviewValues, teams: readonly { 
     endTime: values.endTime || EMPTY_TIME,
     location: values.location.trim() || PLACEHOLDER.location,
     teams: teams.filter((team) => values.teamIds.includes(team.id)).map((team, sort) => ({ id: team.id, name: team.name, sort })),
+    href: null,
     isPast: false,
   };
 }

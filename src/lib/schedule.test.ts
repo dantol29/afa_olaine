@@ -24,7 +24,7 @@ function event(id: number, rawDate: string, startTime: string, team: typeof MAIN
   const teams = team === null ? [] : Array.isArray(team) ? team : [team];
   return {
     id, title: `Pasākums ${id}`, day: "", month: "", year: "", rawDate, rawEndDate: null, startTime, endTime: "18:00",
-    location: "Olaine", teams, isPast,
+    location: "Olaine", teams, href: null, isPast,
   };
 }
 

@@ -20,6 +20,8 @@ export type ScheduleEvent = {
   location: string;
   /** In the club's team order; empty for a club-wide event. */
   teams: ScheduleTeam[];
+  /** The event's own page; null in the admin preview of an unsaved event. */
+  href: string | null;
   isPast: boolean;
 };
 

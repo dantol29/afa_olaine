@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TeamLogo } from "./team-logo";
 import { colorFor } from "@/lib/games";
@@ -1197,6 +1198,12 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 </span>
               )}
             </div>
+            {selectedEvent.href && (
+              // The calendar sits beside admin forms, so the public page opens in a new tab and the form stays.
+              <Link href={selectedEvent.href} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-club-red px-4 text-sm font-semibold text-white hover:bg-club-red-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-club-red">
+                Vairāk
+              </Link>
+            )}
           </div>
         </div>
       )}
