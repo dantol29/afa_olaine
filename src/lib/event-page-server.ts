@@ -19,7 +19,7 @@ export type EventPage = {
   description: string | null;
   image: string | null;
   gallery: string[];
-  /** In the club's team order; empty for a club-wide event. */
+  /** In the club's team order; empty when the event belongs to no team. */
   teams: { id: number; name: string }[];
 };
 

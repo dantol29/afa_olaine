@@ -34,3 +34,18 @@ export function formatEventDates(date: string, endDate: string | null, currentYe
   if (endDate.slice(5, 7) === date.slice(5, 7)) return `${date.slice(8, 10)}.–${formatDayMonth(endDate)}${suffix}`;
   return `${formatDayMonth(date)}–${formatDayMonth(endDate)}${suffix}`;
 }
+
+/** When an event happens, each end with its own time: "12.12. 10:00–16:00" for one day, "12.12. 10:00 – 14.12. 16:00"
+ *  for several. Across a new year both dates carry their year: "30.12.2026 10:00 – 02.01.2027 16:00". */
+export function formatEventSpan(
+  date: string,
+  startTime: string,
+  endDate: string | null,
+  endTime: string,
+  currentYear: string = currentRigaYear(),
+): string {
+  if (!endDate) return `${formatDate(date, currentYear)} ${startTime}–${endTime}`;
+  const crossesYear = endDate.slice(0, 4) !== date.slice(0, 4);
+  const show = (day: string) => (crossesYear ? formatFullDate(day) : formatDate(day, currentYear));
+  return `${show(date)} ${startTime} – ${show(endDate)} ${endTime}`;
+}

@@ -28,7 +28,7 @@ import { venueClashPairs, type VenueBooking } from "@/lib/venue-clash";
 
 import { ScoreForm } from "./score-form";
 import { formatDate } from "@/lib/date-display";
-import { formatEventDates } from "@/lib/event-dates";
+import { formatEventSpan } from "@/lib/event-dates";
 
 const EDIT_PATH = { game: "games", training: "trainings", event: "events" } as const;
 const BOOKING_KEY = /^(game|training|event)-(\d+)$/;
@@ -203,10 +203,10 @@ export default async function AdminHomePage() {
 
 /** A booking links to its edit page. */
 function BookingLink({ booking }: { booking: VenueBooking }) {
-  // A multi-day booking names its dates as everywhere else ("05.–07.12.2026 10:00–16:00"); a one-day one only its
-  // times, as the row already starts with the day.
+  // A multi-day booking names its first day with the start and its last day with the end ("05.12. 10:00 – 07.12.
+  // 16:00"); a one-day one only its times, as the row already starts with the day.
   const text = booking.endDate
-    ? `${booking.title} ${formatEventDates(booking.date, booking.endDate)} ${booking.startTime}–${booking.endTime}`
+    ? `${booking.title} ${formatEventSpan(booking.date, booking.startTime, booking.endDate, booking.endTime)}`
     : `${booking.title} ${booking.startTime}–${booking.endTime}`;
   const match = BOOKING_KEY.exec(booking.key);
   if (!match) return <span className="font-semibold">{text}</span>;

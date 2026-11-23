@@ -30,7 +30,6 @@ export default async function WeekTextPage() {
     }),
   ]);
 
-  // A club-wide event (no teams) concerns every team, so it goes into each team's text.
   const toEventItem = (event: (typeof eventRows)[number]): WeekItem => ({
     kind: "event",
     date: event.date,
@@ -40,7 +39,6 @@ export default async function WeekTextPage() {
     location: event.location,
     title: event.title,
   });
-  const clubWide = eventRows.filter((event) => event.eventTeams.length === 0).map(toEventItem);
   const itemsByTeam = Object.fromEntries(
     teamRows.map((team) => [
       team.id,
@@ -51,8 +49,8 @@ export default async function WeekTextPage() {
         ...gameRows
           .filter((game) => game.teamId === team.id)
           .map((game): WeekItem => ({ kind: "game", date: game.date, startTime: game.startTime, endTime: game.endTime, location: game.location, homeTeam: game.homeTeam, awayTeam: game.awayTeam })),
+        // An event without teams is in no team's text.
         ...eventRows.filter((event) => event.eventTeams.some((link) => link.teamId === team.id)).map(toEventItem),
-        ...clubWide,
       ],
     ]),
   );

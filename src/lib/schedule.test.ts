@@ -19,7 +19,7 @@ function game(id: number, rawDate: string, time: string, team: typeof MAIN, isPa
   return { id, rawDate, time, teamId: team.id, teamName: team.name, teamSort: team.sort, isMainTeam: team === MAIN, isPast };
 }
 
-/** `null` is a club-wide event; an array gives an event of several teams. */
+/** `null` is an event of no team; an array gives an event of several teams. */
 function event(id: number, rawDate: string, startTime: string, team: typeof MAIN | (typeof MAIN)[] | null, isPast = false): ScheduleEvent {
   const teams = team === null ? [] : Array.isArray(team) ? team : [team];
   return {
@@ -67,9 +67,9 @@ describe("filterScheduleByTeam", () => {
     assert.equal(filterScheduleByTeam(entries, null).length, 4);
   });
 
-  test("keeps the team's games and events and every club-wide event", () => {
-    assert.deepEqual(keys(filterScheduleByTeam(entries, WU8.id)), ["event-1", "event-2"]);
-    assert.deepEqual(keys(filterScheduleByTeam(entries, U10.id)), ["game-2", "event-2"]);
+  test("keeps the team's games and events, without events that belong to no team", () => {
+    assert.deepEqual(keys(filterScheduleByTeam(entries, WU8.id)), ["event-1"]);
+    assert.deepEqual(keys(filterScheduleByTeam(entries, U10.id)), ["game-2"]);
   });
 
   test("shows an event of several teams under each of them", () => {
@@ -82,7 +82,7 @@ describe("filterScheduleByTeam", () => {
 });
 
 describe("scheduleTeamOptions", () => {
-  test("lists teams of games and events once, in the admin team order, without club-wide events", () => {
+  test("lists teams of games and events once, in the admin team order, without events of no team", () => {
     const entries = buildSchedule(
       [game(1, "2026-12-01", "12:00", MAIN), game(2, "2026-12-02", "12:00", U10), game(3, "2026-12-09", "12:00", MAIN)],
       [event(1, "2026-12-03", "12:00", WU8), event(2, "2026-12-04", "12:00", null)],

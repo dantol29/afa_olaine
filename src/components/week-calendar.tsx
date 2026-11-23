@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatEventDates } from "@/lib/event-dates";
+import { formatEventSpan } from "@/lib/event-dates";
 import { fitHourRange, rowHeightFor, type HourSpan } from "@/lib/week-calendar-scale";
 import { PLANNED_UID, plannedCalendarEvent } from "@/lib/planned-booking";
 import { usePlannedEntry } from "@/components/admin/planned-booking";
@@ -1180,11 +1180,12 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
             <div className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
               <span className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 shrink-0 text-club-red" />
+                {/* Several days: the start time goes with the first day and the end time with the last, on one line. */}
                 {selectedEventLastDay
-                  ? formatEventDates(selectedEvent.dateKey, selectedEventLastDay)
+                  ? formatEventSpan(selectedEvent.dateKey, formatClockTime(selectedEvent.start), selectedEventLastDay, formatClockTime(selectedEvent.end))
                   : `${selectedEvent.weekdayLabel}, ${formatDate(selectedEvent.dateKey)}`}
               </span>
-              {!selectedEvent.allDay && (
+              {!selectedEvent.allDay && !selectedEventLastDay && (
                 <span className="flex items-center gap-2">
                   <Clock className="h-4 w-4 shrink-0 text-club-red" />
                   {formatClockTime(selectedEvent.start)} –{" "}

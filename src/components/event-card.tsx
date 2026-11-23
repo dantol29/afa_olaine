@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { formatEventDates } from "@/lib/event-dates";
+import { formatEventSpan } from "@/lib/event-dates";
 import { MONTHS } from "@/lib/games";
 import type { ScheduleEvent } from "@/lib/schedule";
 import { yearUnlessCurrent } from "@/lib/date-display";
@@ -9,10 +9,9 @@ import { yearUnlessCurrent } from "@/lib/date-display";
 // Events share the match card frame so the two sit in one grid. Both stripes take AFA Olaine's crest colors, as the
 // AFA side of a game card does.
 const EVENT_ACCENT = "#fbb040";
-const CLUB_WIDE_LABEL = "Visam klubam";
 
 function dateLabel(event: ScheduleEvent) {
-  if (event.rawEndDate) return `${formatEventDates(event.rawDate, event.rawEndDate)} ${event.startTime}–${event.endTime}`;
+  if (event.rawEndDate) return formatEventSpan(event.rawDate, event.startTime, event.rawEndDate, event.endTime);
   const month = MONTHS.indexOf(event.month) + 1;
   // The admin preview shows a card before its date is picked.
   const monthText = month > 0 ? String(month).padStart(2, "0") : "--";
@@ -20,8 +19,9 @@ function dateLabel(event: ScheduleEvent) {
 }
 
 export function EventCard({ event, borderStripe }: { event: ScheduleEvent; borderStripe: string }) {
-  const teamLabel = event.teams.length > 0 ? event.teams.map((team) => team.name).join(", ") : CLUB_WIDE_LABEL;
-  // One team names the watermark; several teams or the whole club show the club. Keeps the hyphen so "U10-2" does
+  // No teams says nothing: the event may be a town event that only takes the place.
+  const teamLabel = event.teams.map((team) => team.name).join(", ");
+  // One team names the watermark; several teams or none show the club. Keeps the hyphen so "U10-2" does
   // not read as "U102".
   const watermark = (event.teams.length === 1 ? event.teams[0].name : "AFA").replace(/[^\p{L}\p{N}-]/gu, "").slice(0, 5);
 
@@ -50,8 +50,12 @@ export function EventCard({ event, borderStripe }: { event: ScheduleEvent; borde
             ) : event.title}
           </h3>
           <p className="mt-4 font-sans text-[15px] font-semibold text-white sm:text-base">
-            <span style={{ color: EVENT_ACCENT }}>{teamLabel}</span>
-            <span className="text-white/50"> · </span>
+            {teamLabel && (
+              <>
+                <span style={{ color: EVENT_ACCENT }}>{teamLabel}</span>
+                <span className="text-white/50"> · </span>
+              </>
+            )}
             {dateLabel(event)}
           </p>
           <p className="mt-1 max-w-md font-sans text-sm text-white/80">{event.location}</p>

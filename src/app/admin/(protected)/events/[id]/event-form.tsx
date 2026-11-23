@@ -28,7 +28,7 @@ export type EventFormValues = {
   endTime: string;
   location: string;
   notes: string | null;
-  /** Empty for a club-wide event. */
+  /** Empty when the event belongs to no team. */
   teamIds: number[];
   /** Rich text shown on the event's page. */
   description: string | null;
@@ -129,7 +129,7 @@ export function EventForm(
 
       <fieldset className="mt-4">
         <legend className="text-sm font-semibold text-club-navy">Komandas</legend>
-        <p className="text-xs text-slate-500">Nav obligātas — ja neviena nav atzīmēta, notikums ir visam klubam.</p>
+        <p className="text-xs text-slate-500">Nav obligātas. Notikums bez komandām netiek rādīts komandu filtros un komandu kalendāros; kopīgam kluba notikumam atzīmē visas.</p>
         <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
           {props.teamOptions.map((team) => (
             <label key={team.id} className="flex items-center gap-2 text-sm text-club-navy">

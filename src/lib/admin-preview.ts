@@ -78,7 +78,7 @@ export type EventPreviewValues = {
   startTime: string;
   endTime: string;
   location: string;
-  /** Ticked teams; none means the whole club. */
+  /** Ticked teams; none means the event belongs to no team. */
   teamIds: readonly number[];
 };
 

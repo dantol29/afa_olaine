@@ -13,7 +13,7 @@ import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type EventPhotos = { image: string | null; gallery: string | null };
 
-// The form always sends the whole set of ticked teams; none means the whole club.
+// The form always sends the whole set of ticked teams; none means the event belongs to no team.
 async function syncEventTeams(tx: Transaction, eventId: number, teamIds: number[]) {
   await tx.delete(eventTeams).where(eq(eventTeams.eventId, eventId));
   if (teamIds.length > 0) await tx.insert(eventTeams).values(teamIds.map((teamId) => ({ eventId, teamId })));

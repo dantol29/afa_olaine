@@ -1,8 +1,8 @@
-import { eq, isNull, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { db } from "@/db/client";
-import { eventTeams, events, games, teams, trainingTeams } from "@/db/schema";
+import { eventTeams, games, teams, trainingTeams } from "@/db/schema";
 import { getScheduleForRange } from "@/lib/calendar";
 import { buildIcal } from "@/lib/ical";
 import { getSiteUrl } from "@/lib/site-url";
@@ -19,7 +19,7 @@ const FUTURE_DAYS = 365;
 const CACHE_SECONDS = 900;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-/** `/kalendars/komanda/<team id>.ics`: the team's trainings, games and events, and the club-wide events, as a calendar
+/** `/kalendars/komanda/<team id>.ics`: the team's trainings, games and events as a calendar
  *  feed. Only what the public site already shows: no notes, scores or players. */
 export async function GET(_request: Request, { params }: { params: Promise<{ file: string }> }) {
   const match = TEAM_CALENDAR_FILE.exec((await params).file);
@@ -35,9 +35,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ fil
       getScheduleForRange(new Date(now.getTime() - PAST_DAYS * MS_PER_DAY), new Date(now.getTime() + FUTURE_DAYS * MS_PER_DAY)),
       db.select({ id: trainingTeams.trainingId }).from(trainingTeams).where(eq(trainingTeams.teamId, teamId)),
       db.select({ id: games.id }).from(games).where(eq(games.teamId, teamId)),
-      // The team's events and every club-wide one: an event without teams has no event_teams row, so the join gives null.
-      db.select({ id: events.id }).from(events).leftJoin(eventTeams, eq(eventTeams.eventId, events.id))
-        .where(or(eq(eventTeams.teamId, teamId), isNull(eventTeams.teamId))),
+      // Only the team's own events: an event without teams (a town event that takes a place, say) is in no team's feed.
+      db.select({ id: eventTeams.eventId }).from(eventTeams).where(eq(eventTeams.teamId, teamId)),
     ]);
     // The schedule's uids are "training-<id>", "game-<id>" and "event-<id>".
     const teamUids = new Set([

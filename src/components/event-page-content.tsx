@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarDays, ChevronRight, Clock, House, MapPin, Users } from "lucide-react";
 
 import { formatDate } from "@/lib/date-display";
-import { formatEventDates } from "@/lib/event-dates";
+import { formatEventSpan } from "@/lib/event-dates";
 import type { EventPage } from "@/lib/event-page-server";
 import { sanitizeRichText } from "@/lib/rich-text";
 
@@ -10,25 +10,31 @@ import { ArticleHeroImage } from "./article-hero-image";
 import { ArticleShareButtons } from "./article-share-buttons";
 import { ClubPageGallery } from "./club-page-gallery";
 
-const CLUB_WIDE_LABEL = "Visam klubam";
-
 /** An event's own page, laid out like a news article: photo on top, the facts, the description, the gallery. Without
- *  a main photo the hero shows the club's team photo, as a news article does when its photo fails. */
+ *  a main photo the page starts with a short dark band instead. */
 export function EventPageContent({ event }: { event: EventPage }) {
-  const dates = event.endDate ? formatEventDates(event.date, event.endDate) : formatDate(event.date);
-  const teams = event.teams.length > 0 ? event.teams.map((team) => team.name).join(", ") : CLUB_WIDE_LABEL;
-  const facts = [
-    { icon: CalendarDays, label: "Datums", text: dates },
-    { icon: Clock, label: "Laiks", text: `${event.startTime}–${event.endTime}` },
-    { icon: MapPin, label: "Vieta", text: event.location },
-    { icon: Users, label: event.teams.length > 1 ? "Komandas" : "Komanda", text: teams },
-  ];
+  // Several days: the start time goes with the first day and the end time with the last, in one line.
+  const when = event.endDate
+    ? [{ icon: CalendarDays, label: "Laiks", text: formatEventSpan(event.date, event.startTime, event.endDate, event.endTime) }]
+    : [
+        { icon: CalendarDays, label: "Datums", text: formatDate(event.date) },
+        { icon: Clock, label: "Laiks", text: `${event.startTime}–${event.endTime}` },
+      ];
+  // No teams says nothing: the event may be a town event that only takes the place.
+  const teams = event.teams.length > 0
+    ? [{ icon: Users, label: event.teams.length > 1 ? "Komandas" : "Komanda", text: event.teams.map((team) => team.name).join(", ") }]
+    : [];
+  const facts = [...when, { icon: MapPin, label: "Vieta", text: event.location }, ...teams];
 
   return (
     <article className="bg-[#050505] text-white">
-      <section aria-label={event.title} data-site-hero className="relative isolate h-[56svh] min-h-[440px] overflow-hidden md:h-[64svh] md:min-h-[540px]">
-        <ArticleHeroImage src={event.image ?? ""} alt={event.title} />
-        <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.55)_0%,rgba(5,5,5,0.08)_42%,rgba(5,5,5,0.76)_100%)]" />
+      <section aria-label={event.title} data-site-hero className={event.image ? "relative isolate h-[56svh] min-h-[440px] overflow-hidden md:h-[64svh] md:min-h-[540px]" : "relative isolate h-[260px] overflow-hidden md:h-[320px]"}>
+        {event.image && (
+          <>
+            <ArticleHeroImage src={event.image} alt={event.title} />
+            <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.55)_0%,rgba(5,5,5,0.08)_42%,rgba(5,5,5,0.76)_100%)]" />
+          </>
+        )}
         <nav aria-label="Atpakaļceļš" className="absolute inset-x-0 top-24 z-10 hidden md:top-28 md:block">
           <div className="mx-auto flex w-[calc(100%-3rem)] max-w-[1500px] items-center gap-3 pl-12 text-sm font-semibold text-white/80 md:w-[calc(100%-10rem)] md:pl-24">
             <Link href="/" aria-label="Sākums" className="transition-colors hover:text-[#fbb040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"><House className="size-5" aria-hidden="true" /></Link>

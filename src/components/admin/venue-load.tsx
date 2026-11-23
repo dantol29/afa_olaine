@@ -4,7 +4,8 @@ import { clashLevel, wallClockMinutes, worstLevel, type ClashLevel, type Planned
 import { isSameVenue } from "@/lib/venue";
 
 import { useVenueBookings } from "./use-venue-bookings";
-import { formatDayMonth } from "@/lib/date-display";
+import { formatDate } from "@/lib/date-display";
+import { formatEventSpan } from "@/lib/event-dates";
 
 const ROW_STYLE: Record<ClashLevel | "none", string> = {
   red: "border-l-4 border-red-600 bg-red-600/10",
@@ -17,8 +18,12 @@ const SUMMARY: Record<ClashLevel, { text: string; style: string }> = {
   orange: { text: "🟠 Pārbaudi: vietā tajā pašā laikā ir cits treniņš vai notikums.", style: "text-amber-600" },
 };
 
-function timeText(booking: VenueBooking) {
-  return `${booking.startTime}–${booking.endDate ? `${formatDayMonth(booking.endDate)} ` : ""}${booking.endTime}`;
+/** "17:00–18:30" on the form's own day, "06.12. 17:00–18:30" on another, "05.12. 10:00 – 07.12. 16:00" for several
+ *  days (each day with its own time). */
+function whenText(booking: VenueBooking, formDate?: string) {
+  if (booking.endDate) return formatEventSpan(booking.date, booking.startTime, booking.endDate, booking.endTime);
+  const day = booking.date === formDate ? "" : `${formatDate(booking.date)} `;
+  return `${day}${booking.startTime}–${booking.endTime}`;
 }
 
 /** "Vietas noslodze": every booking of the club at the form's place on its date, the ones that clash with the form's
@@ -55,12 +60,10 @@ export function VenueLoad({ planned, excludeKey }: { planned: PlannedBooking; ex
       ) : (
         <ul className="mt-2 space-y-1">
           {rows.map(({ booking, level }) => (
-            <li key={booking.key} className={`flex items-center gap-2 rounded px-2 py-1 ${ROW_STYLE[level ?? "none"]}`}>
-              <span className="w-28 shrink-0 tabular-nums">
-                {booking.date !== date && `${formatDayMonth(booking.date)} `}
-                {timeText(booking)}
-              </span>
-              <span className="min-w-0 truncate">{booking.title}</span>
+            // Two lines: when on the first, what on the second, so a long date and time never wrap into the title.
+            <li key={booking.key} className={`rounded px-2 py-1 ${ROW_STYLE[level ?? "none"]}`}>
+              <span className="block tabular-nums">{whenText(booking, date)}</span>
+              <span className="block min-w-0 truncate">{booking.title}</span>
             </li>
           ))}
         </ul>
@@ -76,7 +79,7 @@ export function VenueClashNote({ clashes }: { clashes: readonly VenueClash[] }) 
   const [first, ...rest] = clashes;
   return (
     <span className={`block text-xs font-semibold ${level === "red" ? "text-red-600" : "text-amber-600"}`}>
-      {level === "red" ? "🔴" : "🟠"} {first.booking.title} {timeText(first.booking)}, {first.booking.location}
+      {level === "red" ? "🔴" : "🟠"} {first.booking.title} {whenText(first.booking, first.booking.date)}, {first.booking.location}
       {rest.length > 0 && ` (+${rest.length})`}
     </span>
   );

@@ -180,7 +180,7 @@ async function getAdminEvents(after: Date, before: Date): Promise<CalendarEvent[
       start,
       end,
       eventType: "other",
-      // Several teams read "A, B", as a training of several teams does; none is a club-wide event.
+      // Several teams read "A, B", as a training of several teams does; none belongs to no team.
       team: teamsByEvent.get(row.id)?.map((team) => team.name).join(", ") || null,
       href: eventPath(row.id, row.title),
       ...formatLabels(start, false),

@@ -19,7 +19,7 @@ function parse(changes: Record<string, unknown> = {}) {
 }
 
 describe("parseEventInput", () => {
-  test("trims fields; an event without teams is for the whole club", () => {
+  test("trims fields; an event may have no teams", () => {
     assert.deepEqual(parse(), {
       title: "Kluba sapulce",
       date: "2026-10-14",

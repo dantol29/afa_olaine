@@ -13,7 +13,7 @@ export function parseEventInput(formData: FormData) {
   const location = String(formData.get("location") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
   const rawDescription = String(formData.get("description") ?? "");
-  // No ticked team means the event concerns the whole club.
+  // No ticked team: the event belongs to no team.
   const teamIds = parseTeamIds(formData);
 
   if (!title) return { error: "Nosaukums ir obligāts." } as const;
