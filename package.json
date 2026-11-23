@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:hosting": "node scripts/build-hosting.mjs",
+    "build:rollback": "node scripts/build-hosting.mjs --rollback",
     "start": "NODE_ENV=production node server.js",
     "lint": "eslint",
-    "test": "node --import tsx --import ./test/setup.ts --test \"src/**/*.test.ts\"",
+    "test": "node --import tsx --import ./test/setup.ts --test \"src/**/*.test.ts\" \"scripts/*.test.mjs\"",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:migrate": "node node_modules/@olaine/database/migrate.mjs",

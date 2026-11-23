@@ -15,6 +15,9 @@
 
 # next.js
 /.next/
+# scripts/build-hosting.mjs: the rollback build and the separate build copy
+/.next.previous/
+/.build-work/
 /out/
 
 # production

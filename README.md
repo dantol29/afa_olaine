@@ -76,20 +76,37 @@ bash scripts/backup-db.sh
 
 `app.db.<TS>` must appear and its size must match the original (check against `/home3/afaolain/afa_olaine-data/app.db`). To roll the data back, stop the app in **Setup Node.js App**, copy `app.db.<TS>` over `/home3/afaolain/afa_olaine-data/app.db` with `cp -p`, and start the app again.
 
-Then build the update:
+Then build and install the update:
 
 ```sh
 source /home3/afaolain/nodevenv/repositories/afa_olaine/24/bin/activate
 cd /home3/afaolain/repositories/afa_olaine
+cat .next/BUILD_ID; echo   # the running build, to compare with afterwards
 npm install            # only if package.json or package-lock.json changed
 npm run db:migrate     # only if the @olaine/database version changed
-NODE_ENV=production npm run build -- --webpack 2>&1 | tee ~/build-$(date +%Y%m%d-%H%M%S).log
-grep -nE 'no such column|SQLITE|Error' $(ls -t ~/build-*.log | head -1) | tail    # must print nothing
+NODE_ENV=production npm run build:hosting; echo "EXIT=$?"
+cat .next/BUILD_ID; echo; ls -l --time-style=long-iso .next/BUILD_ID .next.previous/BUILD_ID
 ```
 
-The build reads the database, so its output is also written to a log with the date and time in `~/`. Do not restart the app if the `grep` prints anything (a failure can show in the log even when the exit code is 0); check the log first.
+`build:hosting` (`scripts/build-hosting.mjs`, the same script FK Olaine uses) keeps the site running while it builds
+the new version in a separate copy under `.build-work`. It installs the new build only when the build finished, has a
+`BUILD_ID` and its log has no error lines (`no such column`, `no such table`, `SQLITE`, `Error`: a page can fail to
+read the database while the build still ends with exit code 0). The output is also written to
+`~/build-<date>-<time>.log`. A successful run ends with "Build installed; … Passenger restart requested", `EXIT=0`, a
+new `BUILD_ID` with today's time, and the replaced build in `.next.previous`; the app restarts by itself
+(`tmp/restart.txt`). If the site still shows the old version after a minute, restart it with ⟳ in
+**Setup Node.js App**.
 
-Then restart the app with the ⟳ button in **Setup Node.js App**.
+If the build fails, is interrupted or its log has errors, the running site is unchanged: read the log, fix, and run
+`build:hosting` again. Error lines that turn out to be harmless can be accepted with
+`BUILD_ALLOW_LOG_ERRORS=1 NODE_ENV=production npm run build:hosting`. If "Another build or rollback holds
+.build-work/lock" appears and no build is running (`ps aux | grep build-hosting`), remove `.build-work/lock`.
+
+To go back to the previous build (code only; restore the database separately, see above):
+
+```sh
+npm run build:rollback
+```
 
 - **Outgoing email** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) — used for notification emails (e.g. the LFF sync alerting an admin that a game needs review). In cPanel: Email Accounts → pick/create a mailbox (e.g. `info@yourdomain.com`) → "Connect Devices" next to it shows the exact host/port to use (typically `mail.yourdomain.com`, port `465` for SSL or `587` for STARTTLS). `SMTP_USER`/`SMTP_PASSWORD` are that mailbox's full address and password. Leave unset to disable email sending entirely — `src/lib/mailer.ts` just logs a warning and skips it rather than failing whatever triggered the notification.
 
