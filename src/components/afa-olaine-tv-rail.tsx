@@ -1,4 +1,5 @@
 import { Play } from "lucide-react";
+import { formatDate } from "@/lib/date-display";
 
 const CHANNEL_URL = "https://www.youtube.com/@AFA_Olaine/streams";
 const streams = [
@@ -31,7 +32,7 @@ export function AfaOlaineTvRail({ durations }: { durations: Record<string, strin
                 </div>
                 <div className={`flex min-w-0 flex-1 flex-col p-5 ${featured ? "sm:p-7" : "xl:p-6"}`}>
                   <h3 className={`font-heading font-semibold uppercase leading-[1.05] transition-colors group-hover:text-[#fbb040] ${featured ? "text-[28px] sm:text-[36px]" : "text-[24px] xl:text-[28px]"}`}>{video.title}</h3>
-                  <time dateTime={isoDate(video.date)} className="mt-auto pt-4 font-sans text-sm tabular-nums text-white/65">{video.date}</time>
+                  <time dateTime={isoDate(video.date)} className="mt-auto pt-4 font-sans text-sm tabular-nums text-white/65">{formatDate(isoDate(video.date))}</time>
                 </div>
               </a>
             </article>

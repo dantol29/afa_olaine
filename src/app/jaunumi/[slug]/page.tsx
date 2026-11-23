@@ -38,6 +38,10 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   };
 }
 
+// Dates of the current year are shown without it, so a page kept from the old year is rebuilt within an hour of
+// New Year even if nothing is saved in the admin.
+export const revalidate = 3600;
+
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);

@@ -7,7 +7,7 @@ import { AdminSearch } from "@/components/admin/admin-search";
 import { db } from "@/db/client";
 
 import { deleteArticle } from "./actions";
-import { formatDate } from "@/lib/date-display";
+import { formatDate, formatFullDate } from "@/lib/date-display";
 
 export default async function AdminArticlesPage() {
   const rows = await db.query.articles.findMany({
@@ -37,7 +37,7 @@ export default async function AdminArticlesPage() {
           {rows.map((article) => (
             <div
               key={article.id}
-              data-admin-search-item={`${article.title} ${article.date} ${formatDate(article.date)} ${article.category} ${article.team?.name ?? ""}`}
+              data-admin-search-item={`${article.title} ${article.date} ${formatFullDate(article.date)} ${article.category} ${article.team?.name ?? ""}`}
               className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
             >
               <div className="relative aspect-video bg-club-gray-light">

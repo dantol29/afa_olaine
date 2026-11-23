@@ -1,3 +1,5 @@
+import { yearUnlessCurrent } from "@/lib/date-display";
+
 export type ArticleCategory =
   | "Klubs"
   | "Komandas"
@@ -34,5 +36,6 @@ export function formatArticleDate(dateKey: string): string {
     timeZone: "Europe/Riga",
     month: "short",
   }).format(noonUtc);
-  return `${day}. ${monthLabel} ${year}`;
+  const shownYear = yearUnlessCurrent(year);
+  return shownYear ? `${day}. ${monthLabel} ${shownYear}` : `${day}. ${monthLabel}`;
 }
