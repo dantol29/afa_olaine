@@ -15,6 +15,7 @@ import {
 } from "@/lib/training-filters";
 import { replaceSearchParam } from "@/lib/url-state";
 import { TeamCalendarSubscribe } from "@/components/team-calendar-subscribe";
+import { TeamFilterSelect } from "@/components/team-filter-select";
 import { useUrlParam } from "@/lib/use-url-param";
 
 const monthFormatter = new Intl.DateTimeFormat("lv-LV", { month: "long", timeZone: "UTC" });
@@ -98,19 +99,11 @@ export function TrainingSchedule({ trainings, todayKey, initialTeam, initialDate
 
   return (
     <section aria-label="Treniņu grafiks" className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] pb-20 pt-6 text-white md:w-[calc(100%-10rem)] sm:pt-8 xl:pb-28">
-      <div className="mb-8 flex gap-2 overflow-x-auto sm:mb-10 sm:gap-3" role="group" aria-label="Filtrēt pēc komandas">
-        {[null, ...teamOptions.map((team) => team.id)].map((optionId) => (
-          <button
-            key={optionId ?? "all"}
-            type="button"
-            aria-pressed={teamId === optionId}
-            onClick={() => selectTeam(optionId)}
-            className={`min-h-12 shrink-0 px-4 py-3 font-heading text-[18px] font-semibold uppercase leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7 sm:text-[22px] ${teamId === optionId ? "bg-white text-[#050505]" : "border border-white/40 text-white hover:border-white"}`}
-          >
-            {optionId === null ? "Visas komandas" : teamOptions.find((team) => team.id === optionId)?.name}
-          </button>
-        ))}
-      </div>
+      {teamOptions.length > 0 && (
+        <div className="mb-8 sm:mb-10 sm:w-fit sm:max-w-full">
+          <TeamFilterSelect teamOptions={teamOptions} teamId={teamId} onChange={selectTeam} />
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="min-w-0">

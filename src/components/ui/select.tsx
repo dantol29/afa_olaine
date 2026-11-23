@@ -45,7 +45,10 @@ function SelectContent({
 }: SelectPrimitive.Popup.Props & { sideOffset?: number }) {
   return (
     <SelectPrimitive.Portal>
+      {/* Base UI lays a mouse-opened list over the trigger, so the chosen item sits on the field's text; on desktop
+          Chrome that hides the field. Below or above it, as on a phone, reads better. */}
       <SelectPrimitive.Positioner
+        alignItemWithTrigger={false}
         sideOffset={sideOffset}
         className="z-50 outline-none"
       >
