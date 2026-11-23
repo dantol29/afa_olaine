@@ -12,7 +12,7 @@
     "test": "node --import tsx --import ./test/setup.ts --test \"src/**/*.test.ts\" \"scripts/*.test.mjs\"",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "node scripts/check-hosting-env.mjs && node node_modules/@olaine/database/migrate.mjs",
+    "db:migrate": "node scripts/check-hosting-env.mjs --require-backup && node node_modules/@olaine/database/migrate.mjs",
     "local:setup": "node scripts/local/run.mjs drizzle-kit push && node scripts/local/run.mjs node node_modules/@olaine/database/migrate.mjs && node scripts/local/run.mjs tsx scripts/local/seed.mjs",
     "local:dev": "node scripts/local/run.mjs --with-mail-sink next dev",
     "local:sync": "node scripts/local/run.mjs node scripts/local/sync.mjs",
