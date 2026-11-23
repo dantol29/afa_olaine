@@ -23,7 +23,8 @@ export type EventFormValues = {
   endTime: string;
   location: string;
   notes: string | null;
-  teamId: number | null;
+  /** Empty for a club-wide event. */
+  teamIds: number[];
 };
 type TeamOption = { id: number; name: string };
 /** Values used before, offered while typing, and the stripe the card preview draws. */
@@ -55,9 +56,9 @@ export function EventForm(
   const [startTime, setStartTime] = useState(event?.startTime ?? "");
   const [endTime, setEndTime] = useState(event?.endTime ?? "");
   const [location, setLocation] = useState(event?.location ?? "");
-  const [teamId, setTeamId] = useState(event?.teamId == null ? "" : String(event.teamId));
+  const [teamIds, setTeamIds] = useState<number[]>(event?.teamIds ?? []);
   const preview = buildEventPreview(
-    { title, date, endDate: isMultiDay ? endDate : "", startTime, endTime, location, teamId: teamId ? Number(teamId) : null },
+    { title, date, endDate: isMultiDay ? endDate : "", startTime, endTime, location, teamIds },
     props.teamOptions,
   );
   // Picking a suggestion fires no input event, so it marks the form as edited here.
@@ -123,22 +124,26 @@ export function EventForm(
         excludeKey={props.mode === "edit" && !copy.isCopy ? `event-${props.eventId}` : undefined}
       />
 
-      <label className="mt-4 block text-sm font-semibold text-club-navy">
-        Komanda (nav obligāta — atstāj tukšu visam klubam)
-        <select
-          name="teamId"
-          value={teamId}
-          onChange={(changeEvent) => setTeamId(changeEvent.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-club-navy outline-none focus:border-club-red"
-        >
-          <option value="">Viss klubs</option>
+      <fieldset className="mt-4">
+        <legend className="text-sm font-semibold text-club-navy">Komandas</legend>
+        <p className="text-xs text-slate-500">Nav obligātas — ja neviena nav atzīmēta, notikums ir visam klubam.</p>
+        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
           {props.teamOptions.map((team) => (
-            <option key={team.id} value={team.id}>
+            <label key={team.id} className="flex items-center gap-2 text-sm text-club-navy">
+              <input
+                type="checkbox"
+                name="teamIds"
+                value={team.id}
+                checked={teamIds.includes(team.id)}
+                onChange={(changeEvent) =>
+                  setTeamIds((current) => (changeEvent.target.checked ? [...current, team.id] : current.filter((id) => id !== team.id)))
+                }
+              />
               {team.name}
-            </option>
+            </label>
           ))}
-        </select>
-      </label>
+        </div>
+      </fieldset>
 
       <label className="mt-4 block text-sm font-semibold text-club-navy">
         Piezīmes (nav obligāts)

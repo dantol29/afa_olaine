@@ -18,9 +18,10 @@ function dateLabel(event: ScheduleEvent) {
 }
 
 export function EventCard({ event, borderStripe }: { event: ScheduleEvent; borderStripe: string }) {
-  const teamLabel = event.team?.name ?? CLUB_WIDE_LABEL;
-  // Keeps the hyphen so "U10-2" does not read as "U102".
-  const watermark = (event.team?.name ?? "AFA").replace(/[^\p{L}\p{N}-]/gu, "").slice(0, 5);
+  const teamLabel = event.teams.length > 0 ? event.teams.map((team) => team.name).join(", ") : CLUB_WIDE_LABEL;
+  // One team names the watermark; several teams or the whole club show the club. Keeps the hyphen so "U10-2" does
+  // not read as "U102".
+  const watermark = (event.teams.length === 1 ? event.teams[0].name : "AFA").replace(/[^\p{L}\p{N}-]/gu, "").slice(0, 5);
 
   return (
     <article className="relative isolate flex min-h-[360px] overflow-hidden bg-[#151515] p-5 pb-3 text-white sm:min-h-[390px] sm:p-6 sm:pb-4">

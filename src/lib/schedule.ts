@@ -1,6 +1,6 @@
 // Pure rules for the public lists that show games and events together (the homepage block and /speles), shared by
 // server pages and client components. Events are what is neither a game nor a training: tournament days, trips,
-// club gatherings. An event without a team concerns the whole club.
+// club gatherings. An event without teams concerns the whole club.
 import { teamOptionsInOrder } from "@/lib/ordering";
 
 type ScheduleTeam = { id: number; name: string; sort: number };
@@ -18,8 +18,8 @@ export type ScheduleEvent = {
   startTime: string;
   endTime: string;
   location: string;
-  /** null for a club-wide event. */
-  team: ScheduleTeam | null;
+  /** In the club's team order; empty for a club-wide event. */
+  teams: ScheduleTeam[];
   isPast: boolean;
 };
 
@@ -78,7 +78,7 @@ export function splitSchedule<Game extends ScheduleGameFields>(entries: readonly
 export function filterScheduleByTeam<Game extends ScheduleGameFields>(entries: readonly ScheduleEntry<Game>[], teamId: number | null): ScheduleEntry<Game>[] {
   if (teamId === null) return [...entries];
   return entries.filter((entry) =>
-    entry.kind === "game" ? entry.game.teamId === teamId : entry.event.team === null || entry.event.team.id === teamId,
+    entry.kind === "game" ? entry.game.teamId === teamId : entry.event.teams.length === 0 || entry.event.teams.some((team) => team.id === teamId),
   );
 }
 
@@ -86,7 +86,7 @@ export function filterScheduleByTeam<Game extends ScheduleGameFields>(entries: r
 export function scheduleTeamOptions(entries: readonly ScheduleEntry<ScheduleGameFields>[]): { id: number; name: string }[] {
   return teamOptionsInOrder(entries.flatMap((entry) => {
     if (entry.kind === "game") return [{ id: entry.game.teamId, name: entry.game.teamName, sort: entry.game.teamSort }];
-    return entry.event.team ? [entry.event.team] : [];
+    return entry.event.teams;
   }));
 }
 

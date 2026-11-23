@@ -4,6 +4,7 @@ import { db } from "@/db/client";
 import { events, games, teams, trainings } from "@/db/schema";
 import { resolveClubLogos } from "@/lib/club-logos";
 import { compareByStart } from "@/lib/ordering";
+import { getTeamsByEvent } from "@/lib/event-teams";
 import { getTeamNamesByTraining } from "@/lib/training-teams";
 
 export type CalendarEvent = {
@@ -197,12 +198,11 @@ async function getAdminEvents(after: Date, before: Date): Promise<CalendarEvent[
       endDate: events.endDate,
       endTime: events.endTime,
       location: events.location,
-      teamName: teams.name,
     })
     .from(events)
-    .leftJoin(teams, eq(events.teamId, teams.id))
     // A multi-day event counts on every day it covers, so one that started earlier still shows.
     .where(and(lte(events.date, beforeKey), gte(sql`coalesce(${events.endDate}, ${events.date})`, afterKey)));
+  const teamsByEvent = await getTeamsByEvent();
 
   return rows.map((row) => {
     const [year, month, day] = dateKeyToParts(row.date);
@@ -218,7 +218,8 @@ async function getAdminEvents(after: Date, before: Date): Promise<CalendarEvent[
       start,
       end,
       eventType: "other",
-      team: row.teamName,
+      // Several teams read "A, B", as a training of several teams does; none is a club-wide event.
+      team: teamsByEvent.get(row.id)?.map((team) => team.name).join(", ") || null,
       ...formatLabels(start, false),
     };
   });

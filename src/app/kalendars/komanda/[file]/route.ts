@@ -2,7 +2,7 @@ import { eq, isNull, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { db } from "@/db/client";
-import { events, games, teams, trainingTeams } from "@/db/schema";
+import { eventTeams, events, games, teams, trainingTeams } from "@/db/schema";
 import { getScheduleForRange } from "@/lib/calendar";
 import { buildIcal } from "@/lib/ical";
 import { getSiteUrl } from "@/lib/site-url";
@@ -35,7 +35,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ fil
       getScheduleForRange(new Date(now.getTime() - PAST_DAYS * MS_PER_DAY), new Date(now.getTime() + FUTURE_DAYS * MS_PER_DAY)),
       db.select({ id: trainingTeams.trainingId }).from(trainingTeams).where(eq(trainingTeams.teamId, teamId)),
       db.select({ id: games.id }).from(games).where(eq(games.teamId, teamId)),
-      db.select({ id: events.id }).from(events).where(or(eq(events.teamId, teamId), isNull(events.teamId))),
+      // The team's events and every club-wide one: an event without teams has no event_teams row, so the join gives null.
+      db.select({ id: events.id }).from(events).leftJoin(eventTeams, eq(eventTeams.eventId, events.id))
+        .where(or(eq(eventTeams.teamId, teamId), isNull(eventTeams.teamId))),
     ]);
     // The schedule's uids are "training-<id>", "game-<id>" and "event-<id>".
     const teamUids = new Set([

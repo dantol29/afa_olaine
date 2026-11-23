@@ -1,3 +1,4 @@
+import { parseTeamIds } from "@/lib/admin-input/trainings";
 import { eventDatesProblem, storedEndDate } from "@/lib/event-dates";
 
 export function parseEventInput(formData: FormData) {
@@ -9,8 +10,8 @@ export function parseEventInput(formData: FormData) {
   const endDate = storedEndDate(date, String(formData.get("endDate") ?? ""));
   const location = String(formData.get("location") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
-  const teamIdRaw = String(formData.get("teamId") ?? "");
-  const teamId = teamIdRaw ? Number(teamIdRaw) : null;
+  // No ticked team means the event concerns the whole club.
+  const teamIds = parseTeamIds(formData);
 
   if (!title) return { error: "Nosaukums ir obligāts." } as const;
   if (!date) return { error: "Datums ir obligāts." } as const;
@@ -28,6 +29,6 @@ export function parseEventInput(formData: FormData) {
     endTime,
     location,
     notes: notes || null,
-    teamId,
+    teamIds,
   } as const;
 }

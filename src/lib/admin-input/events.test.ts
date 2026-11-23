@@ -11,7 +11,7 @@ const VALID = {
   endTime: "19:00",
   location: " Olaines stadions ",
   notes: "",
-  teamId: "",
+  teamIds: [] as string[],
 };
 
 function parse(changes: Record<string, unknown> = {}) {
@@ -19,7 +19,7 @@ function parse(changes: Record<string, unknown> = {}) {
 }
 
 describe("parseEventInput", () => {
-  test("trims fields; an event without a team is for the whole club", () => {
+  test("trims fields; an event without teams is for the whole club", () => {
     assert.deepEqual(parse(), {
       title: "Kluba sapulce",
       date: "2026-10-14",
@@ -28,9 +28,10 @@ describe("parseEventInput", () => {
       endTime: "19:00",
       location: "Olaines stadions",
       notes: null,
-      teamId: null,
+      teamIds: [],
     });
-    assert.equal(parse({ teamId: "3" }).teamId, 3);
+    assert.deepEqual(parse({ teamIds: ["3"] }).teamIds, [3]);
+    assert.deepEqual(parse({ teamIds: ["7", "3", "7", "x"] }).teamIds, [3, 7]);
     assert.equal(parse({ notes: " Ņemt līdzi formu " }).notes, "Ņemt līdzi formu");
   });
 
