@@ -8,7 +8,9 @@ import type { Article } from "@/lib/jaunumi";
 import { ArticlePageContent } from "./article-page-content";
 
 const article: Article = {
+  id: 1,
   slug: "komandas-jaunumi",
+  path: "/jaunumi/komandas-jaunumi-1",
   title: "Komandas jaunumi",
   excerpt: "Spēles apskats",
   date: "23. nov. 2026",

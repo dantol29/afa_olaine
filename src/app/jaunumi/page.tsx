@@ -33,7 +33,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
             "@type": "ListItem",
             position: index + 1,
             name: article.title,
-            url: absoluteSiteUrl(`/jaunumi/${encodeURIComponent(article.slug)}`),
+            url: absoluteSiteUrl(article.path),
           })),
         },
       })} />

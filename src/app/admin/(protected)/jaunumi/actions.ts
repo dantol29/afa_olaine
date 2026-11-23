@@ -132,7 +132,6 @@ export async function updateArticle(
   revalidatePath("/sitemap.xml");
   revalidatePath("/feed.xml");
   revalidatePath("/");
-  revalidatePath(`/jaunumi/${existing.slug}`);
   redirect("/admin/jaunumi");
 }
 
