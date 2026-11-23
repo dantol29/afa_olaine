@@ -29,7 +29,7 @@ export async function getClubHints(): Promise<ClubHint[]> {
   );
 }
 
-/** Places of games, trainings and events, the most used first. */
+/** Places of earlier games, trainings and events, the most used first. */
 export async function getLocationHints(): Promise<string[]> {
   const rows = await Promise.all([
     db.select({ location: games.location }).from(games),

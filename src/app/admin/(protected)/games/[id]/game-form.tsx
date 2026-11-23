@@ -6,6 +6,7 @@ import { CopyFormButton, CopyNotice, useFormCopy } from "@/components/admin/form
 import { ClubSuggestionIcon, FormWithPreview } from "@/components/admin/form-preview";
 import { SuggestInput } from "@/components/admin/suggest-input";
 import { TimeSelect } from "@/components/admin/time-select";
+import { VenueLoad } from "@/components/admin/venue-load";
 import { MatchCard } from "@/components/match-card";
 import { buildGamePreview, type ClubHint, type LeagueLogoHint } from "@/lib/admin-preview";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
@@ -172,6 +173,10 @@ export function GameForm(
       </div>
 
       <SuggestInput name="location" label="Vieta" required value={location} onChange={edit(setLocation)} options={props.hints.locations} className="mt-4" />
+      <VenueLoad
+        planned={{ kind: "game", location, date, startTime, endTime }}
+        excludeKey={props.mode === "edit" && !copy.isCopy ? `game-${props.gameId}` : undefined}
+      />
 
       <SuggestInput name="league" label="Sacensības (nav obligāts)" placeholder="Draudzības spēle" value={league} onChange={edit(setLeague)} options={props.hints.leagues} className="mt-4" />
 
