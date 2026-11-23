@@ -51,5 +51,6 @@ export function plannedCalendarEvent(entry: PlannedEntry): CalendarEvent | null 
     monthLabel: "",
     eventType: entry.eventType,
     team: null,
+    teams: [],
   };
 }

@@ -23,6 +23,7 @@ function entry(uid: string, eventType: CalendarEvent["eventType"], start: string
     monthLabel: "",
     eventType,
     team: null,
+    teams: [],
   };
 }
 

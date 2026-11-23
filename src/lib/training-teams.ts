@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { teams, trainingTeams } from "@/db/schema";
-import { sortByName, uniqueSortedLabels } from "@/lib/ordering";
+import { sortByName } from "@/lib/ordering";
 
 export type TrainingTeam = { id: number; name: string; sort: number };
 
@@ -20,12 +20,4 @@ export async function getTeamsByTraining(): Promise<Map<number, TrainingTeam[]>>
   }
 
   return new Map([...teamsByTraining].map(([trainingId, list]) => [trainingId, sortByName(list, (team) => team.name)]));
-}
-
-/** Team names per training, joined in Latvian order ("A, B"). */
-export async function getTeamNamesByTraining(): Promise<Map<number, string>> {
-  const teamsByTraining = await getTeamsByTraining();
-  return new Map(
-    [...teamsByTraining].map(([trainingId, list]) => [trainingId, uniqueSortedLabels(list.map((team) => team.name)).join(", ")]),
-  );
 }

@@ -526,7 +526,8 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
   }, [events]);
 
   const teamOptions = useMemo(() => {
-    return uniqueSortedLabels(availableEvents.map((event) => event.team));
+    // One option per team: an entry of several teams adds each of them, not their joined label.
+    return uniqueSortedLabels(availableEvents.flatMap((event) => event.teams));
   }, [availableEvents]);
 
   const toggleType = (type: EventType) => {
@@ -576,7 +577,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
       (event) =>
         event.uid !== planned?.editedUid &&
         activeTypes.has(event.eventType) &&
-        (activeTeam === "all" || event.team === activeTeam),
+        (activeTeam === "all" || event.teams.includes(activeTeam)),
     );
     // The planned entry is always shown, whatever the filters.
     return plannedEvent ? [...shown, plannedEvent].sort(compareByStart) : shown;

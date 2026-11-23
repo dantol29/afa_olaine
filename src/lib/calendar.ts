@@ -7,7 +7,7 @@ import { rigaWallClockToUtc } from "@/lib/riga-time";
 import { compareByStart } from "@/lib/ordering";
 import { eventPath } from "@/lib/event-path";
 import { getTeamsByEvent } from "@/lib/event-teams";
-import { getTeamNamesByTraining } from "@/lib/training-teams";
+import { getTeamsByTraining } from "@/lib/training-teams";
 
 export type CalendarEvent = {
   uid: string;
@@ -25,9 +25,11 @@ export type CalendarEvent = {
   monthLabel: string;
   /** What kind of event this is, for at-a-glance color/icon coding. */
   eventType: "game" | "training" | "other";
-  /** Which of the club's own teams this belongs to, for the calendar's team
-   *  filter. Null for general, not-team-specific events. */
+  /** The club's own teams as one label ("WU12, WU8"), shown on the entry. Null for an entry of no team. */
   team: string | null;
+  /** Each of those teams on its own, for the admin calendar's team filter: an entry of several teams shows under each
+   *  of them. Empty for an entry of no team. */
+  teams: string[];
   /** Only set for eventType "game" — the two sides' names and resolved
    *  logo images (or null if no logo is on file for that side). */
   homeTeam?: string;
@@ -123,11 +125,12 @@ async function getAdminTrainingEvents(after: Date, before: Date): Promise<Calend
     })
     .from(trainings)
     .where(and(gte(trainings.date, afterKey), lte(trainings.date, beforeKey)));
-  const teamNamesByTraining = await getTeamNamesByTraining();
+  const teamsByTraining = await getTeamsByTraining();
 
   return rows.flatMap((row) => {
-    const teamName = teamNamesByTraining.get(row.id);
-    if (!teamName) return [];
+    const teamNames = teamsByTraining.get(row.id)?.map((team) => team.name) ?? [];
+    if (teamNames.length === 0) return [];
+    const teamName = teamNames.join(", ");
 
     const [year, month, day] = dateKeyToParts(row.date);
     const start = rigaWallClockToUtc(year, month, day, ...timeToParts(row.startTime));
@@ -142,6 +145,7 @@ async function getAdminTrainingEvents(after: Date, before: Date): Promise<Calend
       end,
       eventType: "training" as const,
       team: teamName,
+      teams: teamNames,
       ...formatLabels(start, false),
     }];
   });
@@ -182,6 +186,7 @@ async function getAdminEvents(after: Date, before: Date): Promise<CalendarEvent[
       eventType: "other",
       // Several teams read "A, B", as a training of several teams does; none belongs to no team.
       team: teamsByEvent.get(row.id)?.map((team) => team.name).join(", ") || null,
+      teams: teamsByEvent.get(row.id)?.map((team) => team.name) ?? [],
       href: eventPath(row.id, row.title),
       ...formatLabels(start, false),
     };
@@ -223,6 +228,7 @@ async function getAdminGameEvents(after: Date, before: Date): Promise<CalendarEv
       end,
       eventType: "game",
       team: row.teamName,
+      teams: [row.teamName],
       homeTeam: row.homeTeam,
       awayTeam: row.awayTeam,
       homeLogo: logos.get(row.homeTeam) ?? null,
