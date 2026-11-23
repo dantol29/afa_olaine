@@ -88,6 +88,8 @@ NODE_ENV=production npm run build:hosting; echo "EXIT=$?"
 cat .next/BUILD_ID; echo; ls -l --time-style=long-iso .next/BUILD_ID .next.previous/BUILD_ID
 ```
 
+`build:hosting` and `db:migrate` first run `scripts/check-hosting-env.mjs`: on the host they stop if no environment or another site's environment is active (Node gets the settings of the activated environment, not of the current folder) and print the database they will use. See `docs/hosting.md` for the server layout, the settings and the normal build noise.
+
 `build:hosting` (`scripts/build-hosting.mjs`, the same script FK Olaine uses) keeps the site running while it builds
 the new version in a separate copy under `.build-work`. It installs the new build only when the build finished, has a
 `BUILD_ID` and its log has no error lines (`no such column`, `no such table`, `SQLITE`, `Error`: a page can fail to
