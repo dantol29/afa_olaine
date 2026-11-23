@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatDate, formatFullDate, yearUnlessCurrent } from "@/lib/date-display";
 
 type EventType = CalendarEvent["eventType"];
 
@@ -620,7 +621,10 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
 
   const rangeStart = visibleDays[0];
   const rangeEnd = visibleDays[visibleDays.length - 1];
-  const rangeLabel = `${rangeStart.dayNumber}.${String(rangeStart.monthNumber).padStart(2, "0")}. – ${rangeEnd.dayNumber}.${String(rangeEnd.monthNumber).padStart(2, "0")}.${rangeEnd.year}.`;
+  const rangeLabel =
+    rangeStart.year === rangeEnd.year
+      ? `${rangeStart.dayNumber}.${String(rangeStart.monthNumber).padStart(2, "0")}. – ${rangeEnd.dayNumber}.${String(rangeEnd.monthNumber).padStart(2, "0")}.${yearUnlessCurrent(rangeEnd.year)}`
+      : `${formatFullDate(rangeStart.dateKey)} – ${formatFullDate(rangeEnd.dateKey)}`;
 
   // Rendered in two spots — next to "Kalendārs" on mobile, alongside the
   // event-type chips at sm and up — so it's built once and dropped into
@@ -791,8 +795,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
               {WEEKDAY_LABELS[mobileDay.weekdayIndex]}
             </span>
             <span className="text-xs text-slate-400">
-              {mobileDay.dayNumber}. {MONTH_LABELS[mobileDay.monthNumber - 1]}{" "}
-              {mobileDay.year}
+              {mobileDay.dayNumber}. {MONTH_LABELS[mobileDay.monthNumber - 1]} {yearUnlessCurrent(mobileDay.year)}
             </span>
           </button>
 
@@ -1178,7 +1181,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 <CalendarDays className="h-4 w-4 shrink-0 text-club-red" />
                 {selectedEventLastDay
                   ? formatEventDates(selectedEvent.dateKey, selectedEventLastDay)
-                  : `${selectedEvent.weekdayLabel}, ${selectedEvent.dateLabel}`}
+                  : `${selectedEvent.weekdayLabel}, ${formatDate(selectedEvent.dateKey)}`}
               </span>
               {!selectedEvent.allDay && (
                 <span className="flex items-center gap-2">

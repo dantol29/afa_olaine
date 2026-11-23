@@ -14,6 +14,10 @@ import { UpcomingGamesSection } from "@/components/upcoming-games-section";
 import { StructuredData } from "@/components/structured-data";
 import { getSiteUrl } from "@/lib/site-url";
 
+// Dates of the current year are shown without it, so a page kept from the old year is rebuilt within an hour of
+// New Year even if nothing is saved in the admin.
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   alternates: { canonical: "/", types: { "application/rss+xml": "/feed.xml" } },
 };

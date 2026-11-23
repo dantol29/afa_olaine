@@ -20,9 +20,16 @@ test("eventDatesProblem: one day needs the end after the start, several days any
   assert.match(eventDatesProblem("2026-12-12", "10:00", "2026-13-40", "16:00") ?? "", /nav derīgs/);
 });
 
-test("formatEventDates", () => {
-  assert.equal(formatEventDates("2026-12-12", null), "12.12.2026");
-  assert.equal(formatEventDates("2026-12-12", "2026-12-14"), "12.–14.12.2026");
-  assert.equal(formatEventDates("2026-11-30", "2026-12-02"), "30.11.–02.12.2026");
-  assert.equal(formatEventDates("2026-12-30", "2027-01-02"), "30.12.2026–02.01.2027");
+test("formatEventDates leaves out the current year", () => {
+  assert.equal(formatEventDates("2026-12-12", null, "2026"), "12.12.");
+  assert.equal(formatEventDates("2026-12-12", "2026-12-14", "2026"), "12.–14.12.");
+  assert.equal(formatEventDates("2026-11-30", "2026-12-02", "2026"), "30.11.–02.12.");
+  assert.equal(formatEventDates("2026-12-30", "2027-01-02", "2026"), "30.12.2026–02.01.2027");
+});
+
+test("formatEventDates names another year", () => {
+  assert.equal(formatEventDates("2026-12-12", null, "2025"), "12.12.2026");
+  assert.equal(formatEventDates("2026-12-12", "2026-12-14", "2027"), "12.–14.12.2026");
+  assert.equal(formatEventDates("2026-11-30", "2026-12-02", "2025"), "30.11.–02.12.2026");
+  assert.equal(formatEventDates("2026-12-30", "2027-01-02", "2027"), "30.12.2026–02.01.2027");
 });

@@ -13,7 +13,7 @@ import { db } from "@/db/client";
 import { compareLatvian, uniqueSortedLabels } from "@/lib/ordering";
 
 import { deleteTraining } from "./actions";
-import { formatDate } from "@/lib/date-display";
+import { formatDate, formatFullDate } from "@/lib/date-display";
 
 const teamNames = (training: { trainingTeams: { team: { name: string } | null }[] }) =>
   uniqueSortedLabels(training.trainingTeams.map(({ team }) => team?.name)).join(", ");
@@ -79,7 +79,7 @@ export default async function AdminTrainingsPage({ searchParams }: { searchParam
           basePath="/admin/trainings"
           emptyText="Vēl nav neviena treniņa."
           renderRow={(training) => (
-            <tr data-admin-search-item={`${training.date} ${formatDate(training.date)} ${training.startTime} ${teamNames(training)} ${coachNames(training).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
+            <tr data-admin-search-item={`${training.date} ${formatFullDate(training.date)} ${training.startTime} ${teamNames(training)} ${coachNames(training).join(" ")} ${training.location}`} key={training.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 text-club-navy">{formatDate(training.date)}</td>
               <td className="p-4 text-slate-500">
                 {training.startTime}–{training.endTime}
