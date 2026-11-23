@@ -89,6 +89,11 @@ describe("getScheduleForRange", () => {
     assert.deepEqual(starts, [...starts].sort((a, b) => a - b));
   });
 
+  test("lists each team of an entry on its own for the team filter, next to the joined label", () => {
+    const sameDay = schedule.filter((event) => event.dateKey === "2026-05-10");
+    assert.deepEqual(sameDay.map((event) => event.teams), [["U9"], ["U9", "U11"], ["U9"], ["U11"]]);
+  });
+
   test("leaves out trainings without a team", () => {
     assert.equal(schedule.some((event) => event.eventType === "training" && event.timeLabel === "09:00"), false);
   });

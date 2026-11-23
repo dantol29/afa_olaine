@@ -32,4 +32,15 @@ describe("splitAdminSchedule", () => {
     assert.deepEqual(ids(past), [5, 4, 6, 7, 1]);
     assert.equal(hiddenPastCount, 0);
   });
+
+  test("a multi-day event stays upcoming until its last day is over, and counts as recent by that day", () => {
+    const camp = [
+      { id: 8, date: "2026-11-20", endDate: "2026-11-24", startTime: "10:00" },
+      { id: 9, date: "2026-10-10", endDate: "2026-10-30", startTime: "10:00" },
+      { id: 10, date: "2026-11-19", endDate: "2026-11-21", startTime: "10:00" },
+    ];
+    const { upcoming, past } = splitAdminSchedule(camp, TODAY, false);
+    assert.deepEqual(ids(upcoming), [8]);
+    assert.deepEqual(ids(past), [10, 9]);
+  });
 });

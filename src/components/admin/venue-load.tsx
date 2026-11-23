@@ -14,7 +14,7 @@ const ROW_STYLE: Record<ClashLevel | "none", string> = {
 };
 
 const SUMMARY: Record<ClashLevel, { text: string; style: string }> = {
-  red: { text: "🔴 Nevar: šajā laikā vietā ir spēle vai līdz tai paliek mazāk par 30 min.", style: "text-red-600" },
+  red: { text: "🔴 Nevar: spēle un cits ieraksts šajā vietā pārklājas vai starp tiem ir mazāk par 30 min.", style: "text-red-600" },
   orange: { text: "🟠 Pārbaudi: vietā tajā pašā laikā ir cits treniņš vai notikums.", style: "text-amber-600" },
 };
 
