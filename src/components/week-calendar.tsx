@@ -13,6 +13,7 @@ import {
   MapPin,
   Volleyball,
   X,
+  TriangleAlert,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -87,6 +88,9 @@ const EVENT_TYPE_STYLES: Record<
 };
 
 const ALL_EVENT_TYPES = Object.keys(EVENT_TYPE_STYLES) as EventType[];
+
+/** Shown on and for entries with a red venue clash. */
+const CLASH_WARNING = "Vietas pārklāšanās";
 
 function formatClockTime(date: Date) {
   return new Intl.DateTimeFormat("lv-LV", {
@@ -323,6 +327,17 @@ function getTimeBox(start: Date, end: Date, grid: HourGrid) {
   };
 }
 
+/** A warning on an entry that has a red venue clash; what clashes is shown in the entry's own form. */
+function ClashIcon({ event, className }: { event: CalendarEvent; className?: string }) {
+  if (!event.venueClash) return null;
+  return (
+    // A white sign on red, so it shows on every card colour (games are amber, trainings navy, events grey).
+    <span role="img" aria-label={CLASH_WARNING} title={CLASH_WARNING} className={cn("ml-auto flex h-4 w-4 shrink-0 items-center justify-center rounded bg-red-600", className)}>
+      <TriangleAlert className="h-3 w-3 text-white" aria-hidden="true" />
+    </span>
+  );
+}
+
 function EventCardBody({ event }: { event: CalendarEvent }) {
   const style = EVENT_TYPE_STYLES[event.eventType];
   const Icon = style.icon;
@@ -339,6 +354,7 @@ function EventCardBody({ event }: { event: CalendarEvent }) {
           <Icon className="h-3 w-3" />
         </span>
         <span className="line-clamp-2">{event.title}</span>
+        <ClashIcon event={event} />
       </p>
       {!event.allDay && (
         <p className={cn("truncate pt-1 pl-[26px] text-[10px] leading-tight", style.cardMuted)}>
@@ -904,7 +920,10 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                             onClick={() => event.uid !== PLANNED_UID && setSelectedEvent(event)}
                             className={cn("min-w-0 rounded-md px-2 py-1 text-left text-[11px] leading-tight shadow-sm", style.cardBg, event.uid === PLANNED_UID && PLANNED_CARD_CLASS)}
                           >
-                            <span className={cn("block truncate font-bold", style.cardTitle)}>{event.title}</span>
+                            <span className={cn("flex min-w-0 items-center gap-1 font-bold", style.cardTitle)}>
+                              <span className="truncate">{event.title}</span>
+                              <ClashIcon event={event} />
+                            </span>
                             <span className={cn("block truncate", style.cardMuted)}>{label}</span>
                           </button>
                         );
@@ -1199,6 +1218,12 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 </span>
               )}
             </div>
+            {selectedEvent.venueClash && (
+              <p className="mt-4 flex items-start gap-2 text-sm font-semibold text-red-600">
+                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                {CLASH_WARNING}. Sīkāk — ieraksta formā.
+              </p>
+            )}
             {selectedEvent.href && (
               // The calendar sits beside admin forms, so the public page opens in a new tab and the form stays.
               <Link href={selectedEvent.href} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-club-red px-4 text-sm font-semibold text-white hover:bg-club-red-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-club-red">

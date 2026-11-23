@@ -36,6 +36,8 @@ export type CalendarEvent = {
   awayLogo?: string | null;
   /** Only for an event (eventType "other"): its own public page. */
   href?: string;
+  /** A red venue clash with another entry, shown as a warning in the admin calendar; details are in its form. */
+  venueClash?: boolean;
 };
 
 function capitalize(value: string) {
