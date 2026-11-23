@@ -11,6 +11,7 @@ import { getClubHints, getLeagueHints, getLeagueLogoHints, getLocationHints } fr
 import type { SearchParamValue } from "@/lib/url-state";
 
 import { GameForm } from "./game-form";
+import { PlannedEntryProvider } from "@/components/admin/planned-booking";
 
 async function findGame(gameId: number) {
   const [game] = await db.select().from(games).where(eq(games.id, gameId));
@@ -54,8 +55,9 @@ export default async function AdminGameFormPage({
     events = [];
   }
 
+  // The calendar below follows the form: it moves to the picked date and draws what is being planned.
   return (
-    <div>
+    <PlannedEntryProvider>
       {game ? (
         <GameForm mode="edit" gameId={game.id} game={game} teamOptions={teamOptions} hints={hints} />
       ) : (
@@ -68,6 +70,6 @@ export default async function AdminGameFormPage({
         </h2>
         <WeekCalendar events={events} />
       </div>
-    </div>
+    </PlannedEntryProvider>
   );
 }
