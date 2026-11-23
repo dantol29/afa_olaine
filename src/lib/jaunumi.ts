@@ -8,7 +8,10 @@ export type ArticleCategory =
   | "Pasākumi";
 
 export type Article = {
+  id: number;
   slug: string;
+  /** The article's page, /jaunumi/<slug>-<id>. */
+  path: string;
   title: string;
   excerpt: string;
   date: string;

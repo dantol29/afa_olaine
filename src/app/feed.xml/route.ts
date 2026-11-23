@@ -2,6 +2,7 @@ import { desc } from "drizzle-orm";
 import { db } from "@/db/client";
 import { articles } from "@/db/schema";
 import { absoluteSiteUrl, getSiteUrl } from "@/lib/site-url";
+import { articlePath } from "@/lib/article-path";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -13,10 +14,10 @@ function xml(value: string) {
 }
 
 export async function GET() {
-  const rows = await db.select({ slug: articles.slug, title: articles.title, excerpt: articles.excerpt, date: articles.date })
+  const rows = await db.select({ id: articles.id, slug: articles.slug, title: articles.title, excerpt: articles.excerpt, date: articles.date })
     .from(articles).orderBy(desc(articles.date), desc(articles.createdAt)).limit(50);
   const items = rows.map((article) => {
-    const url = xml(absoluteSiteUrl(`/jaunumi/${encodeURIComponent(article.slug)}`));
+    const url = xml(absoluteSiteUrl(articlePath(article)));
     const date = new Date(`${article.date}T00:00:00Z`);
     const validDate = /^\d{4}-\d{2}-\d{2}$/.test(article.date) && !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === article.date;
     // The CMS stores a publication date, not a time. Do not invent a timestamp.

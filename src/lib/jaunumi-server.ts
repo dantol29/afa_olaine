@@ -4,6 +4,7 @@ import { desc, eq, ne } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { articles } from "@/db/schema";
+import { articleAddress, articleIdFromAddress, articlePath } from "@/lib/article-path";
 import { formatArticleDate, type Article } from "@/lib/jaunumi";
 
 type ArticleRow = typeof articles.$inferSelect;
@@ -15,7 +16,9 @@ type AuthorCoach =
 function rowToArticle(row: ArticleRow, team: { id: number; name: string; sort: number } | null, authorCoach: AuthorCoach): Article {
   const highlights = row.highlights?.split("\n").filter(Boolean);
   return {
+    id: row.id,
     slug: row.slug,
+    path: articlePath(row),
     title: row.title,
     excerpt: row.excerpt,
     date: formatArticleDate(row.date),
@@ -45,13 +48,21 @@ export const getArticles = cachePublicData("articles", async function getArticle
 
 /** Public article data is shared across requests for 60 seconds and expires
  *  immediately after an admin content update. */
-export const getArticleBySlug = cachePublicData("article-by-slug",
-  async (slug: string): Promise<Article | null> => {
-    const row = await db.query.articles.findFirst({
-      where: eq(articles.slug, slug),
-      with: { team: true, authorCoach: true },
+export const getArticleByAddress = cachePublicData("article-by-address",
+  async (address: string): Promise<{ article: Article; isCurrentAddress: boolean } | null> => {
+    const find = (where: ReturnType<typeof eq>) => db.query.articles.findFirst({ where, with: { team: true, authorCoach: true } });
+    const toResult = (row: NonNullable<Awaited<ReturnType<typeof find>>>) => ({
+      article: rowToArticle(row, row.team ?? null, row.authorCoach),
+      isCurrentAddress: articleAddress(row) === address,
     });
-    return row ? rowToArticle(row, row.team ?? null, row.authorCoach) : null;
+    // The current address first: "<slug>-<id>" with the id of this very article.
+    const id = articleIdFromAddress(address);
+    const byId = id === null ? undefined : await find(eq(articles.id, id));
+    if (byId && articleAddress(byId) === address) return toResult(byId);
+    // An old address was the slug alone (which may itself end in a number, such as a year).
+    const bySlug = await find(eq(articles.slug, address));
+    if (bySlug) return toResult(bySlug);
+    return byId ? toResult(byId) : null;
   },
 );
 
@@ -59,7 +70,7 @@ export const getArticleBySlug = cachePublicData("article-by-slug",
 export const getRelatedArticles = cachePublicData("related-articles", async function getRelatedArticles(
   excludeSlug: string,
   limit: number = 4,
-): Promise<{ slug: string; title: string; date: string; image: string }[]> {
+): Promise<{ slug: string; path: string; title: string; date: string; image: string }[]> {
   const rows = await db.query.articles.findMany({
     where: ne(articles.slug, excludeSlug),
     orderBy: [desc(articles.date), desc(articles.createdAt)],
@@ -67,6 +78,7 @@ export const getRelatedArticles = cachePublicData("related-articles", async func
   });
   return rows.map((row) => ({
     slug: row.slug,
+    path: articlePath(row),
     title: row.title,
     date: formatArticleDate(row.date),
     image: row.image,

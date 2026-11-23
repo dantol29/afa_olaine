@@ -12,6 +12,7 @@ import { TeamLogo } from "./team-logo";
 
 type HeroArticle = {
   slug: string;
+  path: string;
   title: string;
   date: string;
   image: string;
@@ -180,7 +181,7 @@ export function SiteHero({ articles, lastGame }: { articles: HeroArticle[]; last
                   {article.title}
                 </h2>
                 <div className="flex w-full items-center justify-between gap-2.5">
-                  <Link href={`/jaunumi/${article.slug}`} className="site-action bg-[#fbb040] px-6 py-3 font-heading text-[18px] font-semibold uppercase tracking-wide text-[#050505] transition-colors hover:bg-[#cd8d2e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  <Link href={article.path} className="site-action bg-[#fbb040] px-6 py-3 font-heading text-[18px] font-semibold uppercase tracking-wide text-[#050505] transition-colors hover:bg-[#cd8d2e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                     Lasīt vairāk
                   </Link>
                   {articles.length > 1 && (

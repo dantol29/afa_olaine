@@ -91,7 +91,7 @@ export function NewsGrid({ articles, initialTeam, initialCategory }: { articles:
         {visibleArticles.length > 0 ? (
           <div key={`${teamId}:${category}`} className="site-panel-enter grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-7 xl:gap-y-10">
             {visibleArticles.map((article) => (
-              <Link key={article.slug} href={`/jaunumi/${article.slug}`} className="group block min-w-0 bg-[#19191b] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-[#fbb040]">
+              <Link key={article.slug} href={article.path} className="group block min-w-0 bg-[#19191b] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-[#fbb040]">
                 <article className="h-full">
                   <div className="relative aspect-video overflow-hidden bg-[#19191b]">
                     <NewsImage article={article} />

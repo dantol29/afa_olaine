@@ -5,6 +5,7 @@ import { db } from "@/db/client";
 import { articles, coaches, events, players, teams } from "@/db/schema";
 import { getPublishedClubPages } from "@/lib/club-pages-server";
 import { parseClubPageMedia } from "@/lib/club-page-media";
+import { articlePath } from "@/lib/article-path";
 import { eventPath } from "@/lib/event-path";
 import { absoluteSiteUrl, getSiteUrl } from "@/lib/site-url";
 
@@ -14,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
   const pages = ["", "/jaunumi", "/komanda", "/akademija", "/speles", "/trenini", "/kontakti"];
   const [articleRows, playerRows, coachRows, customPages, teamRows, eventRows] = await Promise.all([
-    db.select({ slug: articles.slug, image: articles.image }).from(articles).orderBy(desc(articles.date)),
+    db.select({ id: articles.id, slug: articles.slug, image: articles.image }).from(articles).orderBy(desc(articles.date)),
     db.select({ id: players.id, photoUrl: players.photoUrl }).from(players),
     db.select({ id: coaches.id, photoUrl: coaches.photoUrl }).from(coaches),
     getPublishedClubPages(),
@@ -37,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...(path === "/akademija" ? { images: imagesFor(teamRows.filter((team) => !team.isMain).map((team) => team.groupPhotoUrl)) } : {}),
     })),
     ...articleRows.map((article) => ({
-      url: `${siteUrl}/jaunumi/${encodeURIComponent(article.slug)}`,
+      url: `${siteUrl}${articlePath(article)}`,
       images: imagesFor([article.image]),
     })),
     ...eventRows.map((event) => ({
