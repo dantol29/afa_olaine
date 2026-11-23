@@ -6,6 +6,7 @@ import { sanitizeRichText } from "@/lib/rich-text";
 
 import { ArticleHeroImage } from "./article-hero-image";
 import { ArticleShareButtons } from "./article-share-buttons";
+import { ClubPageGallery } from "./club-page-gallery";
 
 export function ArticlePageContent({ article }: { article: Article }) {
   return (
@@ -38,6 +39,15 @@ export function ArticlePageContent({ article }: { article: Article }) {
         {article.excerpt && <p className="mb-9 text-[22px] font-semibold leading-[1.5] text-white sm:text-[26px]">{article.excerpt}</p>}
         <div className="rich-page-content custom-page-body article-body" dangerouslySetInnerHTML={{ __html: sanitizeRichText(article.body) }} />
       </div>
+      {article.highlights && article.highlights.length > 0 && (
+        <div className="mx-auto w-[calc(100%-3rem)] max-w-[1500px] pb-20 md:w-[calc(100%-10rem)] sm:pb-28">
+          <ClubPageGallery
+            title={article.title}
+            layout="gallery"
+            photos={article.highlights.map(src => ({ src, alt: "", caption: "" }))}
+          />
+        </div>
+      )}
     </article>
   );
 }
