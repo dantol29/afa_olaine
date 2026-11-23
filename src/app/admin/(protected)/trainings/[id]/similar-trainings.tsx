@@ -2,21 +2,25 @@
 
 import { useActionState, useState } from "react";
 
-import { SuggestInput } from "@/components/admin/suggest-input";
 import { TimeSelect } from "@/components/admin/time-select";
+import { useVenueBookings } from "@/components/admin/use-venue-bookings";
+import { VenueClashNote } from "@/components/admin/venue-load";
 import { DEFAULT_DURATION_MINUTES, defaultEndTime } from "@/lib/admin-time";
 import { isEndAfterStart } from "@/lib/time-range";
 import { findChangeClash, sameTeams, weekdayLabel, type ScheduleTraining } from "@/lib/training-schedule";
 import { useUnsavedChangesGuard } from "@/components/admin/unsaved-changes";
+import { findVenueClashes, worstLevel } from "@/lib/venue-clash";
 
 import { changeSimilarTrainings, deleteSimilarTrainings } from "../actions";
+import { SuggestInput } from "@/components/admin/suggest-input";
 
 const DELETE_SUBMITTER = "delete";
 
 /** "Līdzīgie treniņi": the repeats of this training (same weekday, start, end and teams) from its date up to a chosen
  *  date, each with a tick. The ticked ones can be moved to a new time and/or place, given another set of teams (to
  *  make them shared trainings), or deleted, after a confirmation. With a new time or teams, a repeat that would then
- *  overlap another training of one of its teams starts unticked. */
+ *  overlap another training of one of its teams starts unticked; so does one that a new time or place would put next
+ *  to a game (a red venue clash, see src/lib/venue-clash.ts). An orange venue clash is shown but stays ticked. */
 export function SimilarTrainings({
   trainingId,
   date,
@@ -48,8 +52,26 @@ export function SimilarTrainings({
   const teamsChanged = newTeamIds.length > 0 && !sameTeams(newTeamIds, teamIds);
   const inRange = similar.filter((training) => training.date <= until);
   const changingIds = new Set(inRange.map((training) => training.id));
+  const venue = useVenueBookings(date, until);
+  const newPlace = location.trim();
+  const movesVenue = timesSet || newPlace !== "";
+  // The repeats move together, so their own current bookings are not in the way.
+  const otherBookings =
+    venue.status === "ready" ? venue.bookings.filter((booking) => !inRange.some((training) => booking.key === `training-${training.id}`)) : [];
   const rows = inRange.map((training) => ({
     training,
+    venueClashes: movesVenue
+      ? findVenueClashes(
+          {
+            kind: "training",
+            location: newPlace || training.location,
+            date: training.date,
+            startTime: timesSet ? startTime : training.startTime,
+            endTime: timesSet ? endTime : training.endTime,
+          },
+          otherBookings,
+        )
+      : [],
     clash:
       timesSet || teamsChanged
         ? findChangeClash(
@@ -62,7 +84,7 @@ export function SimilarTrainings({
           )
         : null,
   }));
-  const isTicked = (row: (typeof rows)[number]) => ticks[row.training.id] ?? row.clash === null;
+  const isTicked = (row: (typeof rows)[number]) => ticks[row.training.id] ?? (row.clash === null && worstLevel(row.venueClashes) !== "red");
   const tickedCount = rows.filter(isTicked).length;
   const hasChange = timesSet || location.trim() !== "" || teamsChanged;
   const teamName = (id: number) => teamOptions.find((team) => team.id === id)?.name ?? "";
@@ -131,11 +153,13 @@ export function SimilarTrainings({
                       {`${row.clash.startTime}–${row.clash.endTime}`}, {row.clash.location}
                     </span>
                   )}
+                  <VenueClashNote clashes={row.venueClashes} />
                 </span>
               </label>
             </li>
           ))}
         </ul>
+        {movesVenue && venue.status === "failed" && <p className="mt-2 text-xs text-club-red">Vietas noslodzi neizdevās ielādēt.</p>}
 
         <fieldset className="mt-4 border-t border-slate-200 pt-4">
           <legend className="sr-only">Jaunais laiks, vieta un komandas</legend>

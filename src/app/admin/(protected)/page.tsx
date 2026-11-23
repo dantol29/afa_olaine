@@ -23,22 +23,26 @@ import { toDateKey } from "@/lib/calendar";
 import { resolveClubLogos } from "@/lib/club-logos";
 import { sortByName } from "@/lib/ordering";
 import { loadScheduleTrainings } from "@/lib/training-schedule-server";
+import { loadVenueBookings } from "@/lib/venue-bookings";
+import { venueClashPairs, type VenueBooking } from "@/lib/venue-clash";
 
 import { ScoreForm } from "./score-form";
 
 const EDIT_PATH = { game: "games", training: "trainings", event: "events" } as const;
+const BOOKING_KEY = /^(game|training|event)-(\d+)$/;
 
 /** "Uzmanību": what needs someone to act, computed on every visit from the current data. Writes nothing. */
 export default async function AdminHomePage() {
   const now = new Date();
   const today = toDateKey(now);
-  const [teamRows, gameRows, trainingRows, eventRows, playerRows, statusRows] = await Promise.all([
+  const [teamRows, gameRows, trainingRows, eventRows, playerRows, statusRows, venueBookings] = await Promise.all([
     db.select({ id: teams.id, name: teams.name }).from(teams),
     db.select().from(games),
     loadScheduleTrainings(),
     db.select().from(events),
     db.query.players.findMany({ with: { playerTeams: true } }),
     db.select().from(cronJobStatuses),
+    loadVenueBookings(today, addDays(today, CLASH_DAYS)),
   ]);
   const teamList = sortByName(teamRows, (team) => team.name);
   const players: AttentionPlayer[] = sortByName(playerRows, (player) => player.name).map((player) => ({
@@ -56,6 +60,7 @@ export default async function AdminHomePage() {
   const sync = syncProblems(statusRows, now.getTime());
   const runningOut = teamsRunningOutOfTrainings(teamList, trainingRows, today);
   const clashes = upcomingClashes(teamList, trainingRows, gameRows, today);
+  const venueClashes = venueClashPairs(venueBookings);
   const noTeam = playersWithoutTeam(players);
   const noLogo = clubsWithoutLogo(gameRows, logoByName, today);
   const badTimes = entriesWithBadTimes(gameRows, trainingRows, eventRows);
@@ -116,6 +121,16 @@ export default async function AdminHomePage() {
         ))}
       </Block>
     ),
+    venueClashes.length > 0 && (
+      <Block key="venue-clashes" title={`Vietas pārklāšanās (nākamās ${CLASH_DAYS} dienas)`}>
+        {venueClashes.map((pair) => (
+          <Row key={`${pair.first.key}|${pair.second.key}`}>
+            <span className={pair.level === "red" ? "text-red-600" : "text-amber-600"}>{pair.level === "red" ? "🔴" : "🟠"}</span> {pair.first.date} ·{" "}
+            {pair.first.location}: <BookingLink booking={pair.first} /> un <BookingLink booking={pair.second} />
+          </Row>
+        ))}
+      </Block>
+    ),
     noTeam.length > 0 && (
       <Block key="no-team" title="Spēlētāji bez komandas (vietnē netiek rādīti)">
         {noTeam.map((player) => (
@@ -135,7 +150,7 @@ export default async function AdminHomePage() {
       </Block>
     ),
     badTimes.length > 0 && (
-      <Block key="bad-times" title="Nepareizs laiks (beigas nav pēc sākuma) — netiek rādīti FK kalendārā">
+      <Block key="bad-times" title="Nepareizs laiks (beigas nav pēc sākuma) — netiek rādīti kalendāros">
         {badTimes.map((entry) => (
           <Row key={`${entry.kind}-${entry.id}`} href={`/admin/${EDIT_PATH[entry.kind]}/${entry.id}`} action="labot">
             {entry.date} · {entry.label} <Muted>{entry.startTime}–{entry.endTime}</Muted>
@@ -180,6 +195,19 @@ export default async function AdminHomePage() {
         <div className="flex flex-col gap-6">{blocks}</div>
       )}
     </div>
+  );
+}
+
+/** A booking links to its edit page. */
+function BookingLink({ booking }: { booking: VenueBooking }) {
+  const text = `${booking.title} ${booking.startTime}–${booking.endTime}`;
+  const match = BOOKING_KEY.exec(booking.key);
+  if (!match) return <span className="font-semibold">{text}</span>;
+  const [, kind, id] = match;
+  return (
+    <Link href={`/admin/${EDIT_PATH[kind as keyof typeof EDIT_PATH]}/${id}`} className="font-semibold text-club-red hover:underline">
+      {text}
+    </Link>
   );
 }
 
