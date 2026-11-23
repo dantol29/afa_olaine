@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { formatEventDates } from "@/lib/event-dates";
 import { fitHourRange, rowHeightFor, type HourSpan } from "@/lib/week-calendar-scale";
 import { PLANNED_UID, plannedCalendarEvent } from "@/lib/planned-booking";
 import { usePlannedEntry } from "@/components/admin/planned-booking";
@@ -147,6 +148,10 @@ const MAX_VISIBLE_COLS = 3;
 /** Every event card is at least this tall, so a 30-minute training slot
  *  doesn't render as an illegible sliver; one line of title fits. */
 const MIN_CARD_HEIGHT = 36;
+/** A day of a multi-day event, shown in the "Visu dienu" row above the hour grid with how much of that day it
+ *  takes. Its times are rough (the dates are what matters), so it does not stretch the hour grid to a whole day. */
+type StripItem = { event: CalendarEvent; label: string };
+
 /** The entry an admin form is planning: dashed, and not clickable (it is not saved yet). */
 const PLANNED_CARD_CLASS = "outline-2 outline-dashed outline-club-red -outline-offset-2";
 
@@ -551,30 +556,38 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     return plannedEvent ? [...shown, plannedEvent].sort(compareByStart) : shown;
   }, [availableEvents, activeTypes, activeTeam, planned?.editedUid, plannedEvent]);
 
-  const eventsByDay = useMemo(() => {
+  const { eventsByDay, stripByDay } = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
+    const strip = new Map<string, StripItem[]>();
     for (const event of filteredEvents) {
       if (event.allDay) continue;
-      // A multi-day event shows on each of its days, from its start or midnight to its end or the day's end.
-      for (const piece of splitIntoDays(event.start, event.end)) {
-        const dayEvent =
-          piece.parts === 1
-            ? event
-            : {
-                ...event,
-                title: `${event.title} (${piece.part}. diena no ${piece.parts})`,
-                start: piece.start,
-                end: piece.end,
-                dateKey: piece.dateKey,
-                timeLabel: formatClockTime(piece.start),
-              };
-        const list = map.get(piece.dateKey) ?? [];
-        list.push(dayEvent);
-        map.set(piece.dateKey, list);
+      const pieces = splitIntoDays(event.start, event.end);
+      if (pieces.length === 1) {
+        map.set(event.dateKey, [...(map.get(event.dateKey) ?? []), event]);
+        continue;
+      }
+      // A multi-day event goes to the "Visu dienu" row on each of its days, labelled with its part of that day.
+      for (const piece of pieces) {
+        const part =
+          piece.part === 1
+            ? `no ${formatClockTime(piece.start)}`
+            : piece.part === piece.parts
+              ? `līdz ${formatClockTime(event.end)}`
+              : "visu dienu";
+        // The narrow chip keeps the title short; the day count goes on the second line ("1/3 · no 10:00").
+        const item = { event, label: `${piece.part}/${piece.parts} · ${part}` };
+        strip.set(piece.dateKey, [...(strip.get(piece.dateKey) ?? []), item]);
       }
     }
-    return map;
+    return { eventsByDay: map, stripByDay: strip };
   }, [filteredEvents]);
+  const hasStrip = visibleDays.some((day) => stripByDay.has(day.dateKey));
+  /** The last day of the opened entry when it runs over several days, for "05.–07.12.2026" in its popup. */
+  const selectedEventLastDay = useMemo(() => {
+    if (!selectedEvent) return null;
+    const pieces = splitIntoDays(selectedEvent.start, selectedEvent.end);
+    return pieces.length > 1 ? pieces[pieces.length - 1].dateKey : null;
+  }, [selectedEvent]);
 
   /** Only the hours the visible days use, with an empty hour around them,
    *  scaled to fit the box; null when those days have nothing to show. */
@@ -639,9 +652,16 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
 
   const mobileDay = useMemo(() => toDayInfo(mobileDate), [mobileDate]);
 
+  /** The mobile day list: the multi-day events first, then the day's timed entries, each with its time text. */
   const mobileDayEvents = useMemo(
-    () => eventsByDay.get(mobileDay.dateKey) ?? [],
-    [eventsByDay, mobileDay.dateKey],
+    () => [
+      ...(stripByDay.get(mobileDay.dateKey) ?? []).map(({ event, label }) => ({ event, timeText: label })),
+      ...(eventsByDay.get(mobileDay.dateKey) ?? []).map((event) => ({
+        event,
+        timeText: `${formatClockTime(event.start)}–${formatClockTime(event.end)}`,
+      })),
+    ],
+    [eventsByDay, stripByDay, mobileDay.dateKey],
   );
 
   const navigateMobileDay = (direction: "prev" | "next") => {
@@ -790,7 +810,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
               {isLoading ? "Ielādē notikumus…" : loadError === weekKey ? "Notikumi pašlaik nav pieejami." : "Šajā dienā nav ieplānotu notikumu."}
             </p>
           ) : (
-            mobileDayEvents.map((event) => {
+            mobileDayEvents.map(({ event, timeText }) => {
               const style = EVENT_TYPE_STYLES[event.eventType];
               const Icon = style.icon;
               return (
@@ -815,8 +835,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
                       <span className="flex shrink-0 items-center gap-1">
                         <Clock className="h-3 w-3 shrink-0" />
-                        {formatClockTime(event.start)}–
-                        {formatClockTime(event.end)}
+                        {timeText}
                       </span>
                       {event.location && (
                         <span className="flex min-w-0 items-center gap-1">
@@ -862,7 +881,34 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 ))}
               </div>
 
-              {!grid && (
+              {hasStrip && (
+                <div className={cn("grid border-b border-slate-100", GRID_COLS_CLASS[half])}>
+                  <div className="flex items-center justify-center p-1 text-center text-[10px] font-bold text-club-navy sm:p-2 sm:text-xs">
+                    Visu dienu
+                  </div>
+                  {visibleDays.map((day) => (
+                    <div key={day.dateKey} className="flex min-w-0 flex-col gap-1 border-l border-slate-100 p-1">
+                      {(stripByDay.get(day.dateKey) ?? []).map(({ event, label }) => {
+                        const style = EVENT_TYPE_STYLES[event.eventType];
+                        return (
+                          <button
+                            key={event.uid}
+                            type="button"
+                            title={`${event.title} · ${label}`}
+                            onClick={() => event.uid !== PLANNED_UID && setSelectedEvent(event)}
+                            className={cn("min-w-0 rounded-md px-2 py-1 text-left text-[11px] leading-tight shadow-sm", style.cardBg, event.uid === PLANNED_UID && PLANNED_CARD_CLASS)}
+                          >
+                            <span className={cn("block truncate font-bold", style.cardTitle)}>{event.title}</span>
+                            <span className={cn("block truncate", style.cardMuted)}>{label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!grid && !hasStrip && (
                 <p className="py-10 text-center text-sm text-slate-400">
                   {isLoading ? "Ielādē notikumus…" : loadError === weekKey ? "Notikumi pašlaik nav pieejami." : "Šajās dienās nav notikumu."}
                 </p>
@@ -1128,7 +1174,9 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
             <div className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
               <span className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 shrink-0 text-club-red" />
-                {selectedEvent.weekdayLabel}, {selectedEvent.dateLabel}
+                {selectedEventLastDay
+                  ? formatEventDates(selectedEvent.dateKey, selectedEventLastDay)
+                  : `${selectedEvent.weekdayLabel}, ${selectedEvent.dateLabel}`}
               </span>
               {!selectedEvent.allDay && (
                 <span className="flex items-center gap-2">
