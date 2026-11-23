@@ -12,7 +12,12 @@ export function isShowAllPast(value: string | undefined): boolean {
   return value === SHOW_ALL_PAST_VALUE;
 }
 
-type DatedRow = { date: string; startTime: string; id: number };
+/** `endDate` is the last day of a multi-day event; such an event is upcoming until that day is over. */
+type DatedRow = { date: string; endDate?: string | null; startTime: string; id: number };
+
+function lastDay(row: DatedRow): string {
+  return row.endDate ?? row.date;
+}
 
 function shiftDateKey(dateKey: string, days: number): string {
   const date = new Date(`${dateKey}T12:00:00Z`);
@@ -24,12 +29,12 @@ function compareChronologically(a: DatedRow, b: DatedRow): number {
   return a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime) || a.id - b.id;
 }
 
-/** Splits rows into upcoming (from today, nearest first) and past (latest first, recent ones unless `showAllPast`). */
+/** Splits rows into upcoming (not over by today, nearest first) and past (latest first, recent ones unless `showAllPast`). */
 export function splitAdminSchedule<Row extends DatedRow>(rows: readonly Row[], todayKey: string, showAllPast: boolean) {
   const sorted = [...rows].sort(compareChronologically);
-  const upcoming = sorted.filter((row) => row.date >= todayKey);
-  const allPast = sorted.filter((row) => row.date < todayKey).reverse();
+  const upcoming = sorted.filter((row) => lastDay(row) >= todayKey);
+  const allPast = sorted.filter((row) => lastDay(row) < todayKey).reverse();
   const oldestShown = shiftDateKey(todayKey, -RECENT_PAST_DAYS);
-  const past = showAllPast ? allPast : allPast.filter((row) => row.date >= oldestShown);
+  const past = showAllPast ? allPast : allPast.filter((row) => lastDay(row) >= oldestShown);
   return { upcoming, past, hiddenPastCount: allPast.length - past.length };
 }
