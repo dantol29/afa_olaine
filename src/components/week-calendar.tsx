@@ -16,6 +16,8 @@ import {
 
 import { cn } from "@/lib/utils";
 import { fitHourRange, rowHeightFor, type HourSpan } from "@/lib/week-calendar-scale";
+import { PLANNED_UID, plannedCalendarEvent } from "@/lib/planned-booking";
+import { usePlannedEntry } from "@/components/admin/planned-booking";
 import type { CalendarEvent } from "@/lib/calendar";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
 import { splitIntoDays } from "@/lib/day-pieces";
@@ -145,6 +147,9 @@ const MAX_VISIBLE_COLS = 3;
 /** Every event card is at least this tall, so a 30-minute training slot
  *  doesn't render as an illegible sliver; one line of title fits. */
 const MIN_CARD_HEIGHT = 36;
+/** The entry an admin form is planning: dashed, and not clickable (it is not saved yet). */
+const PLANNED_CARD_CLASS = "outline-2 outline-dashed outline-club-red -outline-offset-2";
+
 /** Visual gap kept between a card and the grid lines / neighbouring cards. */
 const CARD_INSET = 4;
 
@@ -450,6 +455,17 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     setOpenOverflow(null);
   };
 
+  // On an admin form page the calendar follows the form: it moves to a newly picked date (browsing away afterwards
+  // is kept until the date changes again) and draws the planned entry in place of the saved one.
+  const planned = usePlannedEntry();
+  const plannedEvent = useMemo(() => (planned ? plannedCalendarEvent(planned) : null), [planned]);
+  const plannedDate = planned && /^\d{4}-\d{2}-\d{2}$/.test(planned.date) ? planned.date : null;
+  const [followedDate, setFollowedDate] = useState<string | null>(null);
+  if (plannedDate && plannedDate !== followedDate) {
+    setFollowedDate(plannedDate);
+    goToDate(new Date(`${plannedDate}T12:00:00Z`));
+  }
+
   /** A header nav link like "/?type=training#kalendars" pre-selects that
    *  event type filter when the calendar first comes into view, and a
    *  "?event=<uid>" param jumps straight to that event's week/half and
@@ -524,15 +540,16 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     [weekStart, half],
   );
 
-  const filteredEvents = useMemo(
-    () =>
-      availableEvents.filter(
-        (event) =>
-          activeTypes.has(event.eventType) &&
-          (activeTeam === "all" || event.team === activeTeam),
-      ),
-    [availableEvents, activeTypes, activeTeam],
-  );
+  const filteredEvents = useMemo(() => {
+    const shown = availableEvents.filter(
+      (event) =>
+        event.uid !== planned?.editedUid &&
+        activeTypes.has(event.eventType) &&
+        (activeTeam === "all" || event.team === activeTeam),
+    );
+    // The planned entry is always shown, whatever the filters.
+    return plannedEvent ? [...shown, plannedEvent].sort(compareByStart) : shown;
+  }, [availableEvents, activeTypes, activeTeam, planned?.editedUid, plannedEvent]);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
@@ -780,8 +797,8 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 <button
                   key={event.uid}
                   type="button"
-                  onClick={() => setSelectedEvent(event)}
-                  className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 text-left transition hover:bg-slate-50"
+                  onClick={() => event.uid !== PLANNED_UID && setSelectedEvent(event)}
+                  className={cn("flex items-center gap-3 rounded-xl border border-slate-100 p-3 text-left transition hover:bg-slate-50", event.uid === PLANNED_UID && PLANNED_CARD_CLASS)}
                 >
                   <span
                     className={cn(
@@ -937,8 +954,8 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                                 <EventCard
                                   key={event.uid}
                                   event={event}
-                                  onClick={() => setSelectedEvent(event)}
-                                  className="absolute"
+                                  onClick={() => event.uid !== PLANNED_UID && setSelectedEvent(event)}
+                                  className={cn("absolute", event.uid === PLANNED_UID && PLANNED_CARD_CLASS)}
                                   style={{
                                     top,
                                     height,

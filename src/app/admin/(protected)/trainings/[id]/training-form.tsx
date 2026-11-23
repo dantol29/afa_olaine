@@ -12,6 +12,7 @@ import type { LocationHint } from "@/lib/venue";
 
 import { createTraining, updateTraining } from "../actions";
 import { DateField } from "@/components/admin/date-field";
+import { usePublishPlannedEntry } from "@/components/admin/planned-booking";
 
 export type TrainingFormValues = {
   teamIds: number[];
@@ -49,6 +50,15 @@ export function TrainingForm(
   const [startTime, setStartTime] = useState(training?.startTime ?? "");
   const [endTime, setEndTime] = useState(training?.endTime ?? "");
   const [location, setLocation] = useState(training?.location ?? "Olaines pilsētas stadions");
+  usePublishPlannedEntry({
+    eventType: "training",
+    title: isCreate ? "Jaunais treniņš" : "Šis treniņš",
+    location,
+    date,
+    startTime,
+    endTime,
+    editedUid: props.mode === "edit" && !copy.isCopy ? `training-${props.trainingId}` : undefined,
+  });
 
   // Picking a suggestion fires no input event, so it marks the form as edited here.
   function changeLocation(value: string) {

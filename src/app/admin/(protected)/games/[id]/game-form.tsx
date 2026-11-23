@@ -16,6 +16,7 @@ import type { LocationHint } from "@/lib/venue";
 
 import { createGame, updateGame } from "../actions";
 import { DateField } from "@/components/admin/date-field";
+import { usePublishPlannedEntry } from "@/components/admin/planned-booking";
 
 export type GameFormValues = {
   teamId: number;
@@ -69,6 +70,15 @@ export function GameForm(
   const [endTime, setEndTime] = useState(game?.endTime ?? "");
   const [location, setLocation] = useState(game?.location ?? DEFAULT_LOCATION);
   const [league, setLeague] = useState(game?.league ?? "");
+  usePublishPlannedEntry({
+    eventType: "game",
+    title: homeTeam || awayTeam ? `${homeTeam || "?"} – ${awayTeam || "?"}` : isCreate ? "Jaunā spēle" : "Šī spēle",
+    location,
+    date,
+    startTime,
+    endTime,
+    editedUid: props.mode === "edit" && !copy.isCopy ? `game-${props.gameId}` : undefined,
+  });
   const clubs = useMemo(() => new Map(props.hints.clubs.map((club) => [club.name, club])), [props.hints.clubs]);
   const clubNames = useMemo(() => props.hints.clubs.map((club) => club.name), [props.hints.clubs]);
   const preview = buildGamePreview(
