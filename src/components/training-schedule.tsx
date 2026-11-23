@@ -16,6 +16,7 @@ import {
 import { replaceSearchParam } from "@/lib/url-state";
 import { TeamCalendarSubscribe } from "@/components/team-calendar-subscribe";
 import { TeamFilterSelect } from "@/components/team-filter-select";
+import { yearUnlessCurrent } from "@/lib/date-display";
 import { useUrlParam } from "@/lib/use-url-param";
 
 const monthFormatter = new Intl.DateTimeFormat("lv-LV", { month: "long", timeZone: "UTC" });
@@ -31,7 +32,7 @@ function dateKey(date: Date) {
 
 function displayMonth(date: Date) {
   const month = monthFormatter.format(date);
-  return `${month[0].toUpperCase()}${month.slice(1)} ${date.getUTCFullYear()}`;
+  return `${month[0].toUpperCase()}${month.slice(1)} ${yearUnlessCurrent(date.getUTCFullYear())}`.trim();
 }
 
 function displayDate(date: Date) {

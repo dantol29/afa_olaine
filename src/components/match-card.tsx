@@ -2,6 +2,7 @@ import Image from "next/image";
 import { TeamLogo } from "./team-logo";
 
 import { colorFor, initialsFor, MONTHS, type Team, type UpcomingGame } from "@/lib/games";
+import { yearUnlessCurrent } from "@/lib/date-display";
 
 export type MatchCardGame = UpcomingGame & { homeScore?: number | null; awayScore?: number | null };
 
@@ -9,7 +10,7 @@ function dateLabel(game: UpcomingGame) {
   const month = MONTHS.indexOf(game.month) + 1;
   // The admin preview shows a card before its date is picked.
   const monthText = month > 0 ? String(month).padStart(2, "0") : "--";
-  return `${game.day}.${monthText}.${game.year} ${game.time}`;
+  return `${game.day}.${monthText}.${yearUnlessCurrent(game.year)} ${game.time}`;
 }
 
 function MatchCrest({ team }: { team: Team }) {

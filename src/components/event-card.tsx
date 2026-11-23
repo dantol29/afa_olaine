@@ -3,6 +3,7 @@ import Image from "next/image";
 import { formatEventDates } from "@/lib/event-dates";
 import { MONTHS } from "@/lib/games";
 import type { ScheduleEvent } from "@/lib/schedule";
+import { yearUnlessCurrent } from "@/lib/date-display";
 
 // Events share the match card frame so the two sit in one grid. Both stripes take AFA Olaine's crest colors, as the
 // AFA side of a game card does.
@@ -14,7 +15,7 @@ function dateLabel(event: ScheduleEvent) {
   const month = MONTHS.indexOf(event.month) + 1;
   // The admin preview shows a card before its date is picked.
   const monthText = month > 0 ? String(month).padStart(2, "0") : "--";
-  return `${event.day}.${monthText}.${event.year} ${event.startTime}–${event.endTime}`;
+  return `${event.day}.${monthText}.${yearUnlessCurrent(event.year)} ${event.startTime}–${event.endTime}`;
 }
 
 export function EventCard({ event, borderStripe }: { event: ScheduleEvent; borderStripe: string }) {

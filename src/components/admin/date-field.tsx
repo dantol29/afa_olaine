@@ -5,7 +5,7 @@ import { Popover } from "@base-ui/react/popover";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { CalendarMonthGrid, MONTHS } from "@/components/calendar-month-grid";
-import { formatDate } from "@/lib/date-display";
+import { formatFullDate } from "@/lib/date-display";
 import { cn } from "@/lib/utils";
 
 // An admin date picked only from a calendar, shown as "05.12.2026". The browser's own date field shows the order of
@@ -73,10 +73,10 @@ export function DateField({ name, label, hint, value, onChange, min, required, c
         }}
       >
         <Popover.Trigger
-          aria-label={`${label}: ${value ? formatDate(value) : "nav izvēlēts"}`}
+          aria-label={`${label}: ${value ? formatFullDate(value) : "nav izvēlēts"}`}
           className="admin-field mt-1.5 flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm font-normal tabular-nums text-club-navy outline-none focus-visible:border-club-red data-popup-open:border-club-red"
         >
-          <span className={value ? undefined : "text-slate-400"}>{value ? formatDate(value) : "dd.mm.gggg"}</span>
+          <span className={value ? undefined : "text-slate-400"}>{value ? formatFullDate(value) : "dd.mm.gggg"}</span>
           <CalendarDays className="size-4 shrink-0 text-slate-500" aria-hidden="true" />
         </Popover.Trigger>
         <Popover.Portal>

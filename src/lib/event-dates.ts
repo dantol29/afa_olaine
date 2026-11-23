@@ -1,5 +1,5 @@
 import { isEndAfterStart } from "@/lib/time-range";
-import { formatDayMonth } from "@/lib/date-display";
+import { currentRigaYear, formatDate, formatDayMonth, formatFullDate, yearUnlessCurrent } from "@/lib/date-display";
 
 // An event lasts from `date` startTime to `endDate` endTime. `endDate` is null for a one-day event (shared database
 // 0.1.4): never stored equal to `date`, so a one-day event has one form.
@@ -24,12 +24,13 @@ export function eventDatesProblem(date: string, startTime: string, endDate: stri
   return null;
 }
 
-/** "12.12.2026", "12.–14.12.2026", "30.11.–02.12.2026" or "30.12.2026–02.01.2027". */
-export function formatEventDates(date: string, endDate: string | null): string {
+/** In the current year (2026): "12.12.", "12.–14.12.", "30.11.–02.12."; in another year: "12.12.2025",
+ *  "12.–14.12.2027"; across a new year always both years: "30.12.2026–02.01.2027". */
+export function formatEventDates(date: string, endDate: string | null, currentYear: string = currentRigaYear()): string {
+  if (!endDate) return formatDate(date, currentYear);
   const year = date.slice(0, 4);
-  if (!endDate) return `${formatDayMonth(date)}${year}`;
-  const endYear = endDate.slice(0, 4);
-  if (endYear !== year) return `${formatDayMonth(date)}${year}–${formatDayMonth(endDate)}${endYear}`;
-  if (endDate.slice(5, 7) === date.slice(5, 7)) return `${date.slice(8, 10)}.–${formatDayMonth(endDate)}${year}`;
-  return `${formatDayMonth(date)}–${formatDayMonth(endDate)}${year}`;
+  if (endDate.slice(0, 4) !== year) return `${formatFullDate(date)}–${formatFullDate(endDate)}`;
+  const suffix = yearUnlessCurrent(year, currentYear);
+  if (endDate.slice(5, 7) === date.slice(5, 7)) return `${date.slice(8, 10)}.–${formatDayMonth(endDate)}${suffix}`;
+  return `${formatDayMonth(date)}–${formatDayMonth(endDate)}${suffix}`;
 }
