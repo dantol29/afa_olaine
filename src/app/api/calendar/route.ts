@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getScheduleForRange } from "@/lib/calendar";
-import { withVenueClashes } from "@/lib/venue-bookings";
 
 export async function GET(request: NextRequest) {
   const key = request.nextUrl.searchParams.get("date") ?? "";
@@ -16,7 +15,7 @@ export async function GET(request: NextRequest) {
   before.setUTCDate(before.getUTCDate() + 6);
 
   try {
-    const events = withVenueClashes(await getScheduleForRange(after, before));
+    const events = await getScheduleForRange(after, before);
     return NextResponse.json({ events });
   } catch {
     return NextResponse.json({ error: "Unable to load calendar" }, { status: 500 });

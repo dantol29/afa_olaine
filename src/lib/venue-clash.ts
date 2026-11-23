@@ -95,3 +95,26 @@ export function venueClashPairs(bookings: readonly VenueBooking[]): VenueClashPa
   }
   return pairs.sort((a, b) => wallClockMinutes(a.first.date, a.first.startTime) - wallClockMinutes(b.first.date, b.first.startTime));
 }
+
+function dateKeyOfDay(day: number): string {
+  return new Date(day * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** The days ("YYYY-MM-DD") on which two clashing bookings get in each other's way: the days they share, or, when
+ *  they only come too close (less than the game buffer apart), the day or two around that gap. Lets a multi-day
+ *  event be marked only on the day of the clash, not on all of its days. Empty when they do not clash at all. */
+export function clashDates(first: PlannedBooking, second: PlannedBooking): string[] {
+  const a = span(first);
+  const b = span(second);
+  if (!a || !b || !clashLevel(first, second)) return [];
+  const latestStart = Math.max(a.start, b.start);
+  const earliestEnd = Math.min(a.end, b.end);
+  // Overlapping, the clash is the shared time; only too close, it is the gap between the two.
+  const from = Math.min(latestStart, earliestEnd);
+  const to = Math.max(latestStart, earliestEnd);
+  // A span ending exactly at midnight does not reach into the next day.
+  const lastMinute = to > from ? to - 1 : to;
+  const dates: string[] = [];
+  for (let day = Math.floor(from / MINUTES_PER_DAY); day <= Math.floor(lastMinute / MINUTES_PER_DAY); day++) dates.push(dateKeyOfDay(day));
+  return dates;
+}

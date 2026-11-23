@@ -5,7 +5,6 @@ import { db } from "@/db/client";
 import { sortByName, sortTeams } from "@/lib/ordering";
 import { coaches, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
-import { withVenueClashes } from "@/lib/venue-bookings";
 import { copySourceId } from "@/lib/admin-copy";
 import { getLocationHints } from "@/lib/admin-form-hints";
 import { findSimilarTrainings, type ScheduleTraining } from "@/lib/training-schedule";
@@ -68,7 +67,7 @@ export default async function AdminTrainingFormPage({
 
   let events: CalendarEvent[] = [];
   try {
-    events = withVenueClashes(await getScheduleForWeekBrowsing());
+    events = await getScheduleForWeekBrowsing();
   } catch {
     events = [];
   }

@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { formatEventSpan } from "@/lib/event-dates";
 import { fitHourRange, rowHeightFor, type HourSpan } from "@/lib/week-calendar-scale";
 import { PLANNED_UID, plannedCalendarEvent } from "@/lib/planned-booking";
+import { venueClashDays } from "@/lib/calendar-clashes";
 import { usePlannedEntry } from "@/components/admin/planned-booking";
 import type { CalendarEvent } from "@/lib/calendar";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
@@ -91,6 +92,9 @@ const ALL_EVENT_TYPES = Object.keys(EVENT_TYPE_STYLES) as EventType[];
 
 /** Shown on and for entries with a red venue clash. */
 const CLASH_WARNING = "Vietas pārklāšanās";
+/** Clashes are worked out for the shown week and a day either side, so one running over midnight still counts. */
+const CLASH_WINDOW_MARGIN_MS = 24 * 60 * 60 * 1000;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function formatClockTime(date: Date) {
   return new Intl.DateTimeFormat("lv-LV", {
@@ -327,9 +331,9 @@ function getTimeBox(start: Date, end: Date, grid: HourGrid) {
   };
 }
 
-/** A warning on an entry that has a red venue clash; what clashes is shown in the entry's own form. */
-function ClashIcon({ event, className }: { event: CalendarEvent; className?: string }) {
-  if (!event.venueClash) return null;
+/** A warning on an entry that has a red venue clash on that day; what clashes is shown in the entry's own form. */
+function ClashIcon({ show, className }: { show: boolean; className?: string }) {
+  if (!show) return null;
   return (
     // A white sign on red, so it shows on every card colour (games are amber, trainings navy, events grey).
     <span role="img" aria-label={CLASH_WARNING} title={CLASH_WARNING} className={cn("ml-auto flex h-4 w-4 shrink-0 items-center justify-center rounded bg-red-600", className)}>
@@ -338,7 +342,7 @@ function ClashIcon({ event, className }: { event: CalendarEvent; className?: str
   );
 }
 
-function EventCardBody({ event }: { event: CalendarEvent }) {
+function EventCardBody({ event, hasClash }: { event: CalendarEvent; hasClash: boolean }) {
   const style = EVENT_TYPE_STYLES[event.eventType];
   const Icon = style.icon;
 
@@ -354,7 +358,7 @@ function EventCardBody({ event }: { event: CalendarEvent }) {
           <Icon className="h-3 w-3" />
         </span>
         <span className="line-clamp-2">{event.title}</span>
-        <ClashIcon event={event} />
+        <ClashIcon show={hasClash} />
       </p>
       {!event.allDay && (
         <p className={cn("truncate pt-1 pl-[26px] text-[10px] leading-tight", style.cardMuted)}>
@@ -378,11 +382,13 @@ function EventCardBody({ event }: { event: CalendarEvent }) {
 
 function EventCard({
   event,
+  hasClash,
   onClick,
   className,
   style,
 }: {
   event: CalendarEvent;
+  hasClash: boolean;
   onClick: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -400,7 +406,7 @@ function EventCard({
         className,
       )}
     >
-      <EventCardBody event={event} />
+      <EventCardBody event={event} hasClash={hasClash} />
     </button>
   );
 }
@@ -575,6 +581,18 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     // The planned entry is always shown, whatever the filters.
     return plannedEvent ? [...shown, plannedEvent].sort(compareByStart) : shown;
   }, [availableEvents, activeTypes, activeTeam, planned?.editedUid, plannedEvent]);
+
+  // Worked out here rather than on the server, so in a form the planned entry counts in place of the saved one it
+  // edits. All entries count, whatever the filters: a hidden game still clashes with a shown training.
+  const clashDaysByUid = useMemo(() => {
+    const from = weekStart.getTime() - CLASH_WINDOW_MARGIN_MS;
+    const to = weekStart.getTime() + WEEK_MS + CLASH_WINDOW_MARGIN_MS;
+    const nearby = availableEvents.filter(
+      (event) => event.uid !== planned?.editedUid && event.end.getTime() > from && event.start.getTime() < to,
+    );
+    return venueClashDays(plannedEvent ? [...nearby, plannedEvent] : nearby);
+  }, [availableEvents, weekStart, planned?.editedUid, plannedEvent]);
+  const hasClashOn = (event: CalendarEvent, dateKey: string) => clashDaysByUid.get(event.uid)?.has(dateKey) ?? false;
 
   const { eventsByDay, stripByDay } = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
@@ -851,8 +869,9 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                     <Icon className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-club-navy">
-                      {event.title}
+                    <p className="flex min-w-0 items-center gap-1.5 text-sm font-bold text-club-navy">
+                      <span className="truncate">{event.title}</span>
+                      <ClashIcon show={hasClashOn(event, mobileDay.dateKey)} />
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
                       <span className="flex shrink-0 items-center gap-1">
@@ -922,7 +941,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                           >
                             <span className={cn("flex min-w-0 items-center gap-1 font-bold", style.cardTitle)}>
                               <span className="truncate">{event.title}</span>
-                              <ClashIcon event={event} />
+                              <ClashIcon show={hasClashOn(event, day.dateKey)} />
                             </span>
                             <span className={cn("block truncate", style.cardMuted)}>{label}</span>
                           </button>
@@ -1025,6 +1044,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                                 <EventCard
                                   key={event.uid}
                                   event={event}
+                                  hasClash={hasClashOn(event, event.dateKey)}
                                   onClick={() => event.uid !== PLANNED_UID && setSelectedEvent(event)}
                                   className={cn("absolute", event.uid === PLANNED_UID && PLANNED_CARD_CLASS)}
                                   style={{
@@ -1091,6 +1111,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                                           <EventCard
                                             key={event.uid}
                                             event={event}
+                                            hasClash={hasClashOn(event, event.dateKey)}
                                             onClick={() => {
                                               setSelectedEvent(event);
                                               setOpenOverflow(null);
@@ -1218,7 +1239,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 </span>
               )}
             </div>
-            {selectedEvent.venueClash && (
+            {clashDaysByUid.has(selectedEvent.uid) && (
               <p className="mt-4 flex items-start gap-2 text-sm font-semibold text-red-600">
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 {CLASH_WARNING}. Sīkāk — ieraksta formā.

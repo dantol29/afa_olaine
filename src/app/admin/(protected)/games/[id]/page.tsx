@@ -6,7 +6,6 @@ import { db } from "@/db/client";
 import { sortTeams } from "@/lib/ordering";
 import { games, teams } from "@/db/schema";
 import { getScheduleForWeekBrowsing, type CalendarEvent } from "@/lib/calendar";
-import { withVenueClashes } from "@/lib/venue-bookings";
 import { copySourceId } from "@/lib/admin-copy";
 import { getClubHints, getLeagueHints, getLeagueLogoHints, getLocationHints } from "@/lib/admin-form-hints";
 import type { SearchParamValue } from "@/lib/url-state";
@@ -51,7 +50,7 @@ export default async function AdminGameFormPage({
 
   let events: CalendarEvent[] = [];
   try {
-    events = withVenueClashes(await getScheduleForWeekBrowsing());
+    events = await getScheduleForWeekBrowsing();
   } catch {
     events = [];
   }

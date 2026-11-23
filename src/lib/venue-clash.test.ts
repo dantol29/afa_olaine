@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { clashLevel, findVenueClashes, venueClashPairs, worstLevel, type PlannedBooking, type VenueBooking } from "./venue-clash";
+import { clashDates, clashLevel, findVenueClashes, venueClashPairs, worstLevel, type PlannedBooking, type VenueBooking } from "./venue-clash";
 
 const STADIUM = "Olaines pilsētas stadions";
 
@@ -76,4 +76,33 @@ test("venueClashPairs lists only red pairs, earlier booking first", () => {
       ["red", "game-5", "training-6"],
     ],
   );
+});
+
+describe("clashDates", () => {
+  test("a game inside a three-day event clashes on the game's day only", () => {
+    const camp = plan("event", "10:00", "16:00", { date: "2026-12-05", endDate: "2026-12-07" });
+    const game = plan("game", "14:00", "16:00", { date: "2026-12-06" });
+    assert.deepEqual(clashDates(camp, game), ["2026-12-06"]);
+    assert.deepEqual(clashDates(game, camp), ["2026-12-06"]);
+  });
+
+  test("bookings that only come too close clash on the day of the gap", () => {
+    assert.deepEqual(clashDates(plan("training", "10:00", "11:40"), plan("game", "12:00", "13:45")), ["2026-11-28"]);
+  });
+
+  test("a gap over midnight covers both days", () => {
+    const lateGame = plan("game", "22:00", "23:50");
+    const earlyEvent = plan("event", "00:10", "02:00", { date: "2026-11-29" });
+    assert.deepEqual(clashDates(lateGame, earlyEvent), ["2026-11-28", "2026-11-29"]);
+  });
+
+  test("two multi-day bookings clash on the days they share", () => {
+    const tournament = plan("game", "09:00", "18:00", { date: "2026-12-05", endDate: "2026-12-06" });
+    const camp = plan("event", "10:00", "16:00", { date: "2026-12-06", endDate: "2026-12-08" });
+    assert.deepEqual(clashDates(tournament, camp), ["2026-12-06"]);
+  });
+
+  test("no clash, no days", () => {
+    assert.deepEqual(clashDates(plan("training", "10:00", "11:30"), plan("game", "12:00", "13:45")), []);
+  });
 });
