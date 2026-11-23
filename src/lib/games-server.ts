@@ -6,6 +6,7 @@ import { db } from "@/db/client";
 import { events as eventsTable, games as gamesTable, teams as teamsTable } from "@/db/schema";
 import { toDateKey } from "@/lib/calendar";
 import { resolveClubLogos } from "@/lib/club-logos";
+import { getTeamsByEvent } from "@/lib/event-teams";
 import { clubDisplay, MONTHS, type UpcomingGame } from "@/lib/games";
 import type { ScheduleEvent } from "@/lib/schedule";
 import { leagueLogoForGame } from "@/lib/league-logo";
@@ -115,22 +116,16 @@ export const getAllEventsFromDb = cache(async function getAllEventsFromDb(): Pro
         title: eventsTable.title,
         date: eventsTable.date,
         startTime: eventsTable.startTime,
+        endDate: eventsTable.endDate,
         endTime: eventsTable.endTime,
         location: eventsTable.location,
-        teamId: eventsTable.teamId,
-        teamName: teamsTable.name,
-        teamSort: teamsTable.sort,
       })
       .from(eventsTable)
-      .leftJoin(teamsTable, eq(eventsTable.teamId, teamsTable.id))
       .orderBy(eventsTable.date, eventsTable.startTime, eventsTable.id);
+    const teamsByEvent = await getTeamsByEvent();
 
     return rows.map((row) => {
       const [year, month, day] = row.date.split("-").map(Number);
-      // A left join gives a team id together with its name and order, or none of them.
-      const team = row.teamId !== null && row.teamName !== null && row.teamSort !== null
-        ? { id: row.teamId, name: row.teamName, sort: row.teamSort }
-        : null;
       return {
         id: row.id,
         title: row.title,
@@ -138,11 +133,13 @@ export const getAllEventsFromDb = cache(async function getAllEventsFromDb(): Pro
         month: MONTHS[month - 1] ?? "",
         year: String(year),
         rawDate: row.date,
+        rawEndDate: row.endDate,
         startTime: row.startTime,
         endTime: row.endTime,
         location: row.location,
-        team,
-        isPast: row.date < todayKey,
+        teams: teamsByEvent.get(row.id) ?? [],
+        // A multi-day event is current until its last day is over.
+        isPast: (row.endDate ?? row.date) < todayKey,
       };
     });
   } catch {

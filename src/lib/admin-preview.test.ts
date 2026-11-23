@@ -51,15 +51,15 @@ describe("buildEventPreview", () => {
   const teams = [{ id: 3, name: "U8 meitenes" }];
 
   test("shows placeholders and a club-wide event for an empty form", () => {
-    const event = buildEventPreview({ title: " ", date: "", startTime: "", endTime: "", location: "", teamId: null }, teams);
+    const event = buildEventPreview({ title: " ", date: "", endDate: "", startTime: "", endTime: "", location: "", teamIds: [] }, teams);
     assert.equal(event.title, "Nosaukums");
-    assert.equal(event.team, null);
+    assert.deepEqual(event.teams, []);
     assert.deepEqual([event.startTime, event.endTime], ["--:--", "--:--"]);
   });
 
   test("shows the chosen team and date", () => {
-    const event = buildEventPreview({ title: "Lidl WU8 posms 4", date: "2026-12-06", startTime: "10:00", endTime: "13:00", location: "Ogre", teamId: 3 }, teams);
-    assert.equal(event.team?.name, "U8 meitenes");
+    const event = buildEventPreview({ title: "Lidl WU8 posms 4", date: "2026-12-06", endDate: "", startTime: "10:00", endTime: "13:00", location: "Ogre", teamIds: [3] }, teams);
+    assert.deepEqual(event.teams.map((team) => team.name), ["U8 meitenes"]);
     assert.deepEqual([event.day, event.month, event.year], ["06", "DEC", "2026"]);
   });
 });

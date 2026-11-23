@@ -62,7 +62,8 @@ export async function insertTraining(teamIds: number[], values: Partial<typeof s
   return training;
 }
 
-export async function insertEvent(values: Partial<typeof schema.events.$inferInsert> = {}) {
+/** An event; no team ids means a club-wide event. */
+export async function insertEvent(values: Partial<typeof schema.events.$inferInsert> = {}, teamIds: number[] = []) {
   const [event] = await db
     .insert(schema.events)
     .values({
@@ -75,6 +76,9 @@ export async function insertEvent(values: Partial<typeof schema.events.$inferIns
       ...values,
     })
     .returning();
+  if (teamIds.length > 0) {
+    await db.insert(schema.eventTeams).values(teamIds.map((teamId) => ({ eventId: event.id, teamId })));
+  }
   return event;
 }
 

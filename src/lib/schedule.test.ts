@@ -19,10 +19,12 @@ function game(id: number, rawDate: string, time: string, team: typeof MAIN, isPa
   return { id, rawDate, time, teamId: team.id, teamName: team.name, teamSort: team.sort, isMainTeam: team === MAIN, isPast };
 }
 
-function event(id: number, rawDate: string, startTime: string, team: typeof MAIN | null, isPast = false): ScheduleEvent {
+/** `null` is a club-wide event; an array gives an event of several teams. */
+function event(id: number, rawDate: string, startTime: string, team: typeof MAIN | (typeof MAIN)[] | null, isPast = false): ScheduleEvent {
+  const teams = team === null ? [] : Array.isArray(team) ? team : [team];
   return {
-    id, title: `Pasākums ${id}`, day: "", month: "", year: "", rawDate, startTime, endTime: "18:00",
-    location: "Olaine", team, isPast,
+    id, title: `Pasākums ${id}`, day: "", month: "", year: "", rawDate, rawEndDate: null, startTime, endTime: "18:00",
+    location: "Olaine", teams, isPast,
   };
 }
 
@@ -68,6 +70,14 @@ describe("filterScheduleByTeam", () => {
   test("keeps the team's games and events and every club-wide event", () => {
     assert.deepEqual(keys(filterScheduleByTeam(entries, WU8.id)), ["event-1", "event-2"]);
     assert.deepEqual(keys(filterScheduleByTeam(entries, U10.id)), ["game-2", "event-2"]);
+  });
+
+  test("shows an event of several teams under each of them", () => {
+    const shared = buildSchedule([], [event(3, "2026-12-05", "12:00", [WU8, U10])]);
+    assert.deepEqual(keys(filterScheduleByTeam(shared, WU8.id)), ["event-3"]);
+    assert.deepEqual(keys(filterScheduleByTeam(shared, U10.id)), ["event-3"]);
+    assert.deepEqual(keys(filterScheduleByTeam(shared, MAIN.id)), []);
+    assert.deepEqual(scheduleTeamOptions(shared), [{ id: 7, name: "WU8" }, { id: 9, name: "U10" }]);
   });
 });
 

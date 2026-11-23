@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { formatEventDates } from "@/lib/event-dates";
 import { MONTHS } from "@/lib/games";
 import type { ScheduleEvent } from "@/lib/schedule";
 
@@ -9,6 +10,7 @@ const EVENT_ACCENT = "#fbb040";
 const CLUB_WIDE_LABEL = "Visam klubam";
 
 function dateLabel(event: ScheduleEvent) {
+  if (event.rawEndDate) return `${formatEventDates(event.rawDate, event.rawEndDate)} ${event.startTime}–${event.endTime}`;
   const month = MONTHS.indexOf(event.month) + 1;
   // The admin preview shows a card before its date is picked.
   const monthText = month > 0 ? String(month).padStart(2, "0") : "--";
@@ -16,9 +18,10 @@ function dateLabel(event: ScheduleEvent) {
 }
 
 export function EventCard({ event, borderStripe }: { event: ScheduleEvent; borderStripe: string }) {
-  const teamLabel = event.team?.name ?? CLUB_WIDE_LABEL;
-  // Keeps the hyphen so "U10-2" does not read as "U102".
-  const watermark = (event.team?.name ?? "AFA").replace(/[^\p{L}\p{N}-]/gu, "").slice(0, 5);
+  const teamLabel = event.teams.length > 0 ? event.teams.map((team) => team.name).join(", ") : CLUB_WIDE_LABEL;
+  // One team names the watermark; several teams or the whole club show the club. Keeps the hyphen so "U10-2" does
+  // not read as "U102".
+  const watermark = (event.teams.length === 1 ? event.teams[0].name : "AFA").replace(/[^\p{L}\p{N}-]/gu, "").slice(0, 5);
 
   return (
     <article className="relative isolate flex min-h-[360px] overflow-hidden bg-[#151515] p-5 pb-3 text-white sm:min-h-[390px] sm:p-6 sm:pb-4">

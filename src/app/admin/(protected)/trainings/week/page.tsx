@@ -1,4 +1,4 @@
-import { and, gte, lte } from "drizzle-orm";
+import { and, gte, lte, sql } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { events, games, teams, trainings } from "@/db/schema";
@@ -23,19 +23,24 @@ export default async function WeekTextPage() {
       with: { trainingTeams: true },
     }),
     db.select().from(games).where(and(gte(games.date, thisMonday), lte(games.date, lastDay))),
-    db.select().from(events).where(and(gte(events.date, thisMonday), lte(events.date, lastDay))),
+    // A multi-day event belongs to every week it overlaps.
+    db.query.events.findMany({
+      where: and(lte(events.date, lastDay), gte(sql`coalesce(${events.endDate}, ${events.date})`, thisMonday)),
+      with: { eventTeams: true },
+    }),
   ]);
 
-  // A club-wide event (no team) concerns every team, so it goes into each team's text.
+  // A club-wide event (no teams) concerns every team, so it goes into each team's text.
   const toEventItem = (event: (typeof eventRows)[number]): WeekItem => ({
     kind: "event",
     date: event.date,
+    endDate: event.endDate,
     startTime: event.startTime,
     endTime: event.endTime,
     location: event.location,
     title: event.title,
   });
-  const clubWide = eventRows.filter((event) => event.teamId === null).map(toEventItem);
+  const clubWide = eventRows.filter((event) => event.eventTeams.length === 0).map(toEventItem);
   const itemsByTeam = Object.fromEntries(
     teamRows.map((team) => [
       team.id,
@@ -46,7 +51,7 @@ export default async function WeekTextPage() {
         ...gameRows
           .filter((game) => game.teamId === team.id)
           .map((game): WeekItem => ({ kind: "game", date: game.date, startTime: game.startTime, endTime: game.endTime, location: game.location, homeTeam: game.homeTeam, awayTeam: game.awayTeam })),
-        ...eventRows.filter((event) => event.teamId === team.id).map(toEventItem),
+        ...eventRows.filter((event) => event.eventTeams.some((link) => link.teamId === team.id)).map(toEventItem),
         ...clubWide,
       ],
     ]),

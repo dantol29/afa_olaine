@@ -73,23 +73,27 @@ export function buildGamePreview(values: GamePreviewValues, clubs: ReadonlyMap<s
 export type EventPreviewValues = {
   title: string;
   date: string;
+  /** Empty for a one-day event. */
+  endDate: string;
   startTime: string;
   endTime: string;
   location: string;
-  teamId: number | null;
+  /** Ticked teams; none means the whole club. */
+  teamIds: readonly number[];
 };
 
 export function buildEventPreview(values: EventPreviewValues, teams: readonly { id: number; name: string }[]): ScheduleEvent {
-  const team = teams.find((option) => option.id === values.teamId);
+  // `teams` is already in the club's team order, so the ticked ones keep it.
   return {
     id: -1,
     title: values.title.trim() || PLACEHOLDER.title,
     ...dateParts(values.date),
     rawDate: values.date,
+    rawEndDate: values.endDate && values.endDate !== values.date ? values.endDate : null,
     startTime: values.startTime || EMPTY_TIME,
     endTime: values.endTime || EMPTY_TIME,
     location: values.location.trim() || PLACEHOLDER.location,
-    team: team ? { id: team.id, name: team.name, sort: 0 } : null,
+    teams: teams.filter((team) => values.teamIds.includes(team.id)).map((team, sort) => ({ id: team.id, name: team.name, sort })),
     isPast: false,
   };
 }

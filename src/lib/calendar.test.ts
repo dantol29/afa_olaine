@@ -33,7 +33,7 @@ before(async () => {
 
   // Three items starting at the same moment, inserted in the opposite of the expected order.
   await insertGame(u11.id, { homeTeam: "AFA Olaine", awayTeam: "FK Rīga", date: "2026-05-10", startTime: "10:00", endTime: "11:00" });
-  await insertEvent({ title: "Sapulce", date: "2026-05-10", startTime: "10:00", endTime: "11:00", teamId: u9.id });
+  await insertEvent({ title: "Sapulce", date: "2026-05-10", startTime: "10:00", endTime: "11:00" }, [u9.id]);
   await insertTraining([u11.id, u9.id], { date: "2026-05-10", startTime: "10:00", endTime: "11:30" });
   await insertTraining([u9.id], { date: "2026-05-10", startTime: "08:00", endTime: "09:00" });
   await insertTraining([], { date: "2026-05-10", startTime: "09:00", endTime: "10:00" });

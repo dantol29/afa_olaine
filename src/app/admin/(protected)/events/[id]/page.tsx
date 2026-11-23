@@ -12,8 +12,8 @@ import type { SearchParamValue } from "@/lib/url-state";
 import { EventForm } from "./event-form";
 
 async function findEvent(eventId: number) {
-  const [event] = await db.select().from(events).where(eq(events.id, eventId));
-  return event;
+  const event = await db.query.events.findFirst({ where: eq(events.id, eventId), with: { eventTeams: true } });
+  return event && { ...event, teamIds: event.eventTeams.map((link) => link.teamId) };
 }
 
 export default async function AdminEventFormPage({

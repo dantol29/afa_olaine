@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 
@@ -7,27 +6,32 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { CopyRowLink } from "@/components/admin/form-copy";
 import { db } from "@/db/client";
-import { events, teams } from "@/db/schema";
+import { events } from "@/db/schema";
 import { copyHref } from "@/lib/admin-copy";
 import { SHOW_ALL_PAST_PARAM, isShowAllPast, splitAdminSchedule } from "@/lib/admin-schedule-list";
 import { toDateKey } from "@/lib/calendar";
+import { getTeamsByEvent } from "@/lib/event-teams";
 import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 
 import { deleteEvent } from "./actions";
 
 export default async function AdminEventsPage({ searchParams }: { searchParams: Promise<Record<string, SearchParamValue>> }) {
   const query = await searchParams;
-  const rows = await db
-    .select({
-      id: events.id,
-      title: events.title,
-      date: events.date,
-      startTime: events.startTime,
-      endTime: events.endTime,
-      teamName: teams.name,
-    })
-    .from(events)
-    .leftJoin(teams, eq(events.teamId, teams.id));
+  const [eventRows, teamsByEvent] = await Promise.all([
+    db
+      .select({
+        id: events.id,
+        title: events.title,
+        date: events.date,
+        endDate: events.endDate,
+        startTime: events.startTime,
+        endTime: events.endTime,
+      })
+      .from(events),
+    getTeamsByEvent(),
+  ]);
+  // Several teams read "A, B"; none is a club-wide event.
+  const rows = eventRows.map((row) => ({ ...row, teamName: teamsByEvent.get(row.id)?.map((team) => team.name).join(", ") || null }));
   const { upcoming, past, hiddenPastCount } = splitAdminSchedule(
     rows,
     toDateKey(new Date()),
@@ -67,7 +71,10 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
           renderRow={(event) => (
             <tr data-admin-search-item={`${event.title} ${event.date} ${event.startTime} ${event.teamName ?? "Viss klubs"}`} key={event.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 font-semibold text-club-navy">{event.title}</td>
-              <td className="p-4 text-club-navy">{event.date}</td>
+              <td className="p-4 text-club-navy">
+                {event.date}
+                {event.endDate && ` – ${event.endDate}`}
+              </td>
               <td className="p-4 text-slate-500">
                 {event.startTime}–{event.endTime}
               </td>
