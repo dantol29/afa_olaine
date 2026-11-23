@@ -27,7 +27,8 @@ import { loadVenueBookings } from "@/lib/venue-bookings";
 import { venueClashPairs, type VenueBooking } from "@/lib/venue-clash";
 
 import { ScoreForm } from "./score-form";
-import { formatDate, formatDayMonth } from "@/lib/date-display";
+import { formatDate } from "@/lib/date-display";
+import { formatEventDates } from "@/lib/event-dates";
 
 const EDIT_PATH = { game: "games", training: "trainings", event: "events" } as const;
 const AFA_KEY = /^afa:(game|training|event)-(\d+)$/;
@@ -207,8 +208,10 @@ export default async function AdminHomePage() {
 
 /** An AFA booking links to its edit page; an FK one is only named, with its club. */
 function BookingLink({ booking }: { booking: VenueBooking }) {
+  // A multi-day booking names its dates as everywhere else ("05.–07.12.2026 10:00–16:00"); a one-day one only its
+  // times, as the row already starts with the day.
   const text = booking.endDate
-    ? `${booking.title} ${formatDayMonth(booking.date)} ${booking.startTime}–${formatDayMonth(booking.endDate)} ${booking.endTime}`
+    ? `${booking.title} ${formatEventDates(booking.date, booking.endDate)} ${booking.startTime}–${booking.endTime}`
     : `${booking.title} ${booking.startTime}–${booking.endTime}`;
   const match = AFA_KEY.exec(booking.key);
   if (!match) return <span className="font-semibold">FK: {text}</span>;
