@@ -15,6 +15,10 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { formatEventDates } from "@/lib/event-dates";
+import { fitHourRange, rowHeightFor, type HourSpan } from "@/lib/week-calendar-scale";
+import { PLANNED_UID, plannedCalendarEvent } from "@/lib/planned-booking";
+import { usePlannedEntry } from "@/components/admin/planned-booking";
 import type { CalendarEvent } from "@/lib/calendar";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
 import { splitIntoDays } from "@/lib/day-pieces";
@@ -56,22 +60,24 @@ const EVENT_TYPE_STYLES: Record<
     label: "Spēles",
     singular: "Spēle",
   },
+  // Grid cards use the same solid color as their filter pill and legend dot, so a type reads the same everywhere
+  // (light tints of navy and slate both turned dark grey on the dark admin and looked alike).
   training: {
     accent: "bg-club-navy-light",
-    cardBg: "bg-club-navy/[0.06] border border-club-navy/10",
-    cardTitle: "text-club-navy",
-    cardMuted: "text-slate-500",
-    iconBadge: "bg-club-navy-light/15 text-club-navy-light",
+    cardBg: "bg-club-navy-light",
+    cardTitle: "text-white",
+    cardMuted: "text-white/75",
+    iconBadge: "bg-white/20 text-white",
     icon: Dumbbell,
     label: "Treniņi",
     singular: "Treniņš",
   },
   other: {
     accent: "bg-slate-400",
-    cardBg: "bg-slate-100 border border-slate-200",
-    cardTitle: "text-club-navy",
-    cardMuted: "text-slate-500",
-    iconBadge: "bg-slate-300 text-slate-600",
+    cardBg: "bg-slate-400",
+    cardTitle: "text-slate-950",
+    cardMuted: "text-slate-800",
+    iconBadge: "bg-black/10 text-slate-900",
     icon: CalendarDays,
     label: "Cits",
     singular: "Cits",
@@ -126,10 +132,6 @@ const MONTH_LABELS = [
   "Dec",
 ];
 
-/** Used only when the visible days have no timed events to anchor on. */
-const DEFAULT_START_HOUR = 6;
-const END_HOUR = 23;
-const ROW_HEIGHT = 56;
 /** A full 7-day week doesn't leave enough room for event titles/time/place
  *  to be readable, so each Monday-start week is shown in two halves —
  *  Mon–Wed (3 days), then Thu–Sun (4 days) — rather than a sliding N-day
@@ -146,8 +148,15 @@ const GRID_COLS_CLASS = [
  *  "+N" chip rather than squeezing into an unreadably thin column. */
 const MAX_VISIBLE_COLS = 3;
 /** Every event card is at least this tall, so a 30-minute training slot
- *  doesn't render as an illegible sliver. */
-const MIN_CARD_HEIGHT = 64;
+ *  doesn't render as an illegible sliver; one line of title fits. */
+const MIN_CARD_HEIGHT = 36;
+/** A day of a multi-day event, shown in the "Visu dienu" row above the hour grid with how much of that day it
+ *  takes. Its times are rough (the dates are what matters), so it does not stretch the hour grid to a whole day. */
+type StripItem = { event: CalendarEvent; label: string };
+
+/** The entry an admin form is planning: dashed, and not clickable (it is not saved yet). */
+const PLANNED_CARD_CLASS = "outline-2 outline-dashed outline-club-red -outline-offset-2";
+
 /** Visual gap kept between a card and the grid lines / neighbouring cards. */
 const CARD_INSET = 4;
 
@@ -292,15 +301,18 @@ function layoutDayEvents(dayEvents: CalendarEvent[]): LaidOutEvent[] {
   return result;
 }
 
-function getTimeBox(start: Date, end: Date, startHour: number) {
-  const startFraction = Math.max(hourFraction(start), startHour);
+type HourGrid = { startHour: number; endHour: number; rowHeight: number };
+
+function getTimeBox(start: Date, end: Date, grid: HourGrid) {
+  const startFraction = Math.max(hourFraction(start), grid.startHour);
+  const rawEnd = hourFraction(end);
   const endFraction = Math.min(
-    Math.max(hourFraction(end), startFraction + 0.5),
-    END_HOUR + 1,
+    Math.max(rawEnd > hourFraction(start) ? rawEnd : 24, startFraction + 0.5),
+    grid.endHour,
   );
-  const rawTop = (startFraction - startHour) * ROW_HEIGHT;
+  const rawTop = (startFraction - grid.startHour) * grid.rowHeight;
   const rawHeight = Math.max(
-    (endFraction - startFraction) * ROW_HEIGHT,
+    (endFraction - startFraction) * grid.rowHeight,
     MIN_CARD_HEIGHT,
   );
   return {
@@ -450,6 +462,17 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     setOpenOverflow(null);
   };
 
+  // On an admin form page the calendar follows the form: it moves to a newly picked date (browsing away afterwards
+  // is kept until the date changes again) and draws the planned entry in place of the saved one.
+  const planned = usePlannedEntry();
+  const plannedEvent = useMemo(() => (planned ? plannedCalendarEvent(planned) : null), [planned]);
+  const plannedDate = planned && /^\d{4}-\d{2}-\d{2}$/.test(planned.date) ? planned.date : null;
+  const [followedDate, setFollowedDate] = useState<string | null>(null);
+  if (plannedDate && plannedDate !== followedDate) {
+    setFollowedDate(plannedDate);
+    goToDate(new Date(`${plannedDate}T12:00:00Z`));
+  }
+
   /** A header nav link like "/?type=training#kalendars" pre-selects that
    *  event type filter when the calendar first comes into view, and a
    *  "?event=<uid>" param jumps straight to that event's week/half and
@@ -524,69 +547,76 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     [weekStart, half],
   );
 
-  const filteredEvents = useMemo(
-    () =>
-      availableEvents.filter(
-        (event) =>
-          activeTypes.has(event.eventType) &&
-          (activeTeam === "all" || event.team === activeTeam),
-      ),
-    [availableEvents, activeTypes, activeTeam],
-  );
+  const filteredEvents = useMemo(() => {
+    const shown = availableEvents.filter(
+      (event) =>
+        event.uid !== planned?.editedUid &&
+        activeTypes.has(event.eventType) &&
+        (activeTeam === "all" || event.team === activeTeam),
+    );
+    // The planned entry is always shown, whatever the filters.
+    return plannedEvent ? [...shown, plannedEvent].sort(compareByStart) : shown;
+  }, [availableEvents, activeTypes, activeTeam, planned?.editedUid, plannedEvent]);
 
-  const eventsByDay = useMemo(() => {
+  const { eventsByDay, stripByDay } = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
+    const strip = new Map<string, StripItem[]>();
     for (const event of filteredEvents) {
       if (event.allDay) continue;
-      // A multi-day event shows on each of its days, from its start or midnight to its end or the day's end.
-      for (const piece of splitIntoDays(event.start, event.end)) {
-        const dayEvent =
-          piece.parts === 1
-            ? event
-            : {
-                ...event,
-                title: `${event.title} (${piece.part}. diena no ${piece.parts})`,
-                start: piece.start,
-                end: piece.end,
-                dateKey: piece.dateKey,
-                timeLabel: formatClockTime(piece.start),
-              };
-        const list = map.get(piece.dateKey) ?? [];
-        list.push(dayEvent);
-        map.set(piece.dateKey, list);
+      const pieces = splitIntoDays(event.start, event.end);
+      if (pieces.length === 1) {
+        map.set(event.dateKey, [...(map.get(event.dateKey) ?? []), event]);
+        continue;
+      }
+      // A multi-day event goes to the "Visu dienu" row on each of its days, labelled with its part of that day.
+      for (const piece of pieces) {
+        const part =
+          piece.part === 1
+            ? `no ${formatClockTime(piece.start)}`
+            : piece.part === piece.parts
+              ? `līdz ${formatClockTime(event.end)}`
+              : "visu dienu";
+        // The narrow chip keeps the title short; the day count goes on the second line ("1/3 · no 10:00").
+        const item = { event, label: `${piece.part}/${piece.parts} · ${part}` };
+        strip.set(piece.dateKey, [...(strip.get(piece.dateKey) ?? []), item]);
       }
     }
-    return map;
+    return { eventsByDay: map, stripByDay: strip };
   }, [filteredEvents]);
+  const hasStrip = visibleDays.some((day) => stripByDay.has(day.dateKey));
+  /** The last day of the opened entry when it runs over several days, for "05.–07.12.2026" in its popup. */
+  const selectedEventLastDay = useMemo(() => {
+    if (!selectedEvent) return null;
+    const pieces = splitIntoDays(selectedEvent.start, selectedEvent.end);
+    return pieces.length > 1 ? pieces[pieces.length - 1].dateKey : null;
+  }, [selectedEvent]);
 
-  /** Skip the grid's leading empty hours — start at whatever hour the
-   *  visible days' earliest event actually falls in. */
-  const startHour = useMemo(() => {
+  /** Only the hours the visible days use, with an empty hour around them,
+   *  scaled to fit the box; null when those days have nothing to show. */
+  const grid = useMemo((): HourGrid | null => {
     const visibleDateKeys = new Set(visibleDays.map((d) => d.dateKey));
-    let earliest = Infinity;
+    const spans: HourSpan[] = [];
     for (const [dateKey, dayEvents] of eventsByDay) {
       if (!visibleDateKeys.has(dateKey)) continue;
-      for (const event of dayEvents) {
-        earliest = Math.min(earliest, Math.floor(hourFraction(event.start)));
-      }
+      for (const event of dayEvents) spans.push({ start: hourFraction(event.start), end: hourFraction(event.end) });
     }
-    if (!Number.isFinite(earliest)) return DEFAULT_START_HOUR;
-    return Math.max(0, Math.min(earliest, END_HOUR));
+    const range = fitHourRange(spans);
+    return range && { ...range, rowHeight: rowHeightFor(range.endHour - range.startHour) };
   }, [eventsByDay, visibleDays]);
 
   const hours = useMemo(
-    () =>
-      Array.from({ length: END_HOUR - startHour + 1 }, (_, i) => i + startHour),
-    [startHour],
+    () => (grid ? Array.from({ length: grid.endHour - grid.startHour }, (_, i) => i + grid.startHour) : []),
+    [grid],
   );
 
   /** The live "current time" line in the desktop grid — only meaningful
    *  when today is one of the currently-visible days. */
   const nowFraction = hourFraction(now);
   const showNowLine =
+    grid !== null &&
     visibleDays.some((day) => day.dateKey === todayKey) &&
-    nowFraction >= startHour &&
-    nowFraction <= END_HOUR + 1;
+    nowFraction >= grid.startHour &&
+    nowFraction <= grid.endHour;
 
   const rangeStart = visibleDays[0];
   const rangeEnd = visibleDays[visibleDays.length - 1];
@@ -624,9 +654,16 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
 
   const mobileDay = useMemo(() => toDayInfo(mobileDate), [mobileDate]);
 
+  /** The mobile day list: the multi-day events first, then the day's timed entries, each with its time text. */
   const mobileDayEvents = useMemo(
-    () => eventsByDay.get(mobileDay.dateKey) ?? [],
-    [eventsByDay, mobileDay.dateKey],
+    () => [
+      ...(stripByDay.get(mobileDay.dateKey) ?? []).map(({ event, label }) => ({ event, timeText: label })),
+      ...(eventsByDay.get(mobileDay.dateKey) ?? []).map((event) => ({
+        event,
+        timeText: `${formatClockTime(event.start)}–${formatClockTime(event.end)}`,
+      })),
+    ],
+    [eventsByDay, stripByDay, mobileDay.dateKey],
   );
 
   const navigateMobileDay = (direction: "prev" | "next") => {
@@ -775,15 +812,15 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
               {isLoading ? "Ielādē notikumus…" : loadError === weekKey ? "Notikumi pašlaik nav pieejami." : "Šajā dienā nav ieplānotu notikumu."}
             </p>
           ) : (
-            mobileDayEvents.map((event) => {
+            mobileDayEvents.map(({ event, timeText }) => {
               const style = EVENT_TYPE_STYLES[event.eventType];
               const Icon = style.icon;
               return (
                 <button
                   key={event.uid}
                   type="button"
-                  onClick={() => setSelectedEvent(event)}
-                  className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 text-left transition hover:bg-slate-50"
+                  onClick={() => event.uid !== PLANNED_UID && setSelectedEvent(event)}
+                  className={cn("flex items-center gap-3 rounded-xl border border-slate-100 p-3 text-left transition hover:bg-slate-50", event.uid === PLANNED_UID && PLANNED_CARD_CLASS)}
                 >
                   <span
                     className={cn(
@@ -800,8 +837,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
                       <span className="flex shrink-0 items-center gap-1">
                         <Clock className="h-3 w-3 shrink-0" />
-                        {formatClockTime(event.start)}–
-                        {formatClockTime(event.end)}
+                        {timeText}
                       </span>
                       {event.location && (
                         <span className="flex min-w-0 items-center gap-1">
@@ -821,7 +857,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
       <div className="hidden overflow-hidden rounded-2xl border border-slate-100 bg-white sm:block">
         <div className="overflow-x-auto">
           <div className="min-w-0 sm:min-w-[560px]">
-            <div className="max-h-[560px] overflow-y-auto">
+            <div className="max-h-[600px] overflow-y-auto">
               {/* Header row */}
               <div
                 className={cn(
@@ -847,19 +883,52 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 ))}
               </div>
 
+              {hasStrip && (
+                <div className={cn("grid border-b border-slate-100", GRID_COLS_CLASS[half])}>
+                  <div className="flex items-center justify-center p-1 text-center text-[10px] font-bold text-club-navy sm:p-2 sm:text-xs">
+                    Visu dienu
+                  </div>
+                  {visibleDays.map((day) => (
+                    <div key={day.dateKey} className="flex min-w-0 flex-col gap-1 border-l border-slate-100 p-1">
+                      {(stripByDay.get(day.dateKey) ?? []).map(({ event, label }) => {
+                        const style = EVENT_TYPE_STYLES[event.eventType];
+                        return (
+                          <button
+                            key={event.uid}
+                            type="button"
+                            title={`${event.title} · ${label}`}
+                            onClick={() => event.uid !== PLANNED_UID && setSelectedEvent(event)}
+                            className={cn("min-w-0 rounded-md px-2 py-1 text-left text-[11px] leading-tight shadow-sm", style.cardBg, event.uid === PLANNED_UID && PLANNED_CARD_CLASS)}
+                          >
+                            <span className={cn("block truncate font-bold", style.cardTitle)}>{event.title}</span>
+                            <span className={cn("block truncate", style.cardMuted)}>{label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!grid && !hasStrip && (
+                <p className="py-10 text-center text-sm text-slate-400">
+                  {isLoading ? "Ielādē notikumus…" : loadError === weekKey ? "Notikumi pašlaik nav pieejami." : "Šajās dienās nav notikumu."}
+                </p>
+              )}
+
               {/* Hour grid */}
-              <div className={cn("relative grid", GRID_COLS_CLASS[half])}>
+              {grid && <div className={cn("relative grid", GRID_COLS_CLASS[half])}>
                 <div
                   className="relative"
-                  style={{ height: hours.length * ROW_HEIGHT }}
+                  style={{ height: hours.length * grid.rowHeight }}
                 >
                   {hours.map((hour) => (
                     <div
                       key={hour}
                       className="absolute inset-x-0 border-b border-slate-50 px-2 pt-2 text-center text-[10px] text-slate-400 sm:px-3 sm:pt-3 sm:text-xs"
                       style={{
-                        top: (hour - startHour) * ROW_HEIGHT,
-                        height: ROW_HEIGHT,
+                        top: (hour - grid.startHour) * grid.rowHeight,
+                        height: grid.rowHeight,
                       }}
                     >
                       {String(hour).padStart(2, "0")}:00
@@ -875,15 +944,15 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                     <div
                       key={day.dateKey}
                       className="relative border-l border-slate-100"
-                      style={{ height: hours.length * ROW_HEIGHT }}
+                      style={{ height: hours.length * grid.rowHeight }}
                     >
                       {hours.map((hour) => (
                         <div
                           key={hour}
                           className="absolute inset-x-0 border-b border-slate-50"
                           style={{
-                            top: (hour - startHour) * ROW_HEIGHT,
-                            height: ROW_HEIGHT,
+                            top: (hour - grid.startHour) * grid.rowHeight,
+                            height: grid.rowHeight,
                           }}
                         />
                       ))}
@@ -923,7 +992,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                               const { top, height } = getTimeBox(
                                 event.start,
                                 event.end,
-                                startHour,
+                                grid,
                               );
                               const cols = Math.min(event.cols, visibleCols);
                               const widthPercent = 100 / cols;
@@ -933,8 +1002,8 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                                 <EventCard
                                   key={event.uid}
                                   event={event}
-                                  onClick={() => setSelectedEvent(event)}
-                                  className="absolute"
+                                  onClick={() => event.uid !== PLANNED_UID && setSelectedEvent(event)}
+                                  className={cn("absolute", event.uid === PLANNED_UID && PLANNED_CARD_CLASS)}
                                   style={{
                                     top,
                                     height,
@@ -964,7 +1033,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                                 const { top, height } = getTimeBox(
                                   start,
                                   end,
-                                  startHour,
+                                  grid,
                                 );
                                 const widthPercent = 100 / visibleCols;
                                 const leftPercent = widthPercent * overflowCol;
@@ -1022,7 +1091,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 {showNowLine && (
                   <div
                     className="pointer-events-none absolute inset-x-0 z-20 flex items-center"
-                    style={{ top: (nowFraction - startHour) * ROW_HEIGHT }}
+                    style={{ top: (nowFraction - grid.startHour) * grid.rowHeight }}
                   >
                     <span className="flex w-16 shrink-0 justify-end pr-1 sm:w-24 sm:pr-2">
                       <span className="rounded bg-white px-1 text-[10px] font-bold text-club-red sm:text-xs">
@@ -1033,7 +1102,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                     <span className="h-px flex-1 bg-club-red" />
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           </div>
         </div>
@@ -1107,7 +1176,9 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
             <div className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
               <span className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 shrink-0 text-club-red" />
-                {selectedEvent.weekdayLabel}, {selectedEvent.dateLabel}
+                {selectedEventLastDay
+                  ? formatEventDates(selectedEvent.dateKey, selectedEventLastDay)
+                  : `${selectedEvent.weekdayLabel}, ${selectedEvent.dateLabel}`}
               </span>
               {!selectedEvent.allDay && (
                 <span className="flex items-center gap-2">

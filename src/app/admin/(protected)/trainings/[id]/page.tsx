@@ -14,6 +14,7 @@ import type { SearchParamValue } from "@/lib/url-state";
 import { SimilarTrainings } from "./similar-trainings";
 
 import { TrainingForm } from "./training-form";
+import { PlannedEntryProvider } from "@/components/admin/planned-booking";
 
 // The form edits all the teams of a training; a copy takes the same teams.
 async function findTrainingFormValues(trainingId: number) {
@@ -71,8 +72,9 @@ export default async function AdminTrainingFormPage({
     events = [];
   }
 
+  // The calendar below follows the form: it moves to the picked date and draws what is being planned.
   return (
-    <div>
+    <PlannedEntryProvider>
       {training ? (
         <>
         <TrainingForm
@@ -103,6 +105,6 @@ export default async function AdminTrainingFormPage({
         </h2>
         <WeekCalendar events={events} />
       </div>
-    </div>
+    </PlannedEntryProvider>
   );
 }
