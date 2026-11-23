@@ -26,16 +26,16 @@ before(async () => {
 });
 
 describe("team calendar feed", () => {
-  test("has the team's events, events shared with other teams and club-wide events", async () => {
+  test("has the team's events and events shared with other teams, not events of no team", async () => {
     const feed = await feedOf(teamIds.u8);
-    for (const title of ["Kluba svētki", "U8 turnīrs", "Kopīgs turnīrs"]) assert.ok(feed.includes(`SUMMARY:${title}`), title);
+    for (const title of ["U8 turnīrs", "Kopīgs turnīrs"]) assert.ok(feed.includes(`SUMMARY:${title}`), title);
     assert.ok(!feed.includes("U12 nometne"));
+    assert.ok(!feed.includes("Kluba svētki"));
   });
 
   test("lists a shared event once for each of its teams", async () => {
     const feed = await feedOf(teamIds.u10);
     assert.equal(feed.split("SUMMARY:Kopīgs turnīrs").length - 1, 1);
-    assert.ok(feed.includes("SUMMARY:Kluba svētki"));
     assert.ok(!feed.includes("U8 turnīrs"));
   });
 });

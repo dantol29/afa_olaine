@@ -1,6 +1,6 @@
 // Pure rules for the public lists that show games and events together (the homepage block and /speles), shared by
 // server pages and client components. Events are what is neither a game nor a training: tournament days, trips,
-// club gatherings. An event without teams concerns the whole club.
+// club gatherings. An event without teams belongs to no team: it may be a town event that only takes a place.
 import { teamOptionsInOrder } from "@/lib/ordering";
 
 type ScheduleTeam = { id: number; name: string; sort: number };
@@ -18,8 +18,10 @@ export type ScheduleEvent = {
   startTime: string;
   endTime: string;
   location: string;
-  /** In the club's team order; empty for a club-wide event. */
+  /** In the club's team order; empty when the event belongs to no team. */
   teams: ScheduleTeam[];
+  /** The event's own page; null in the admin preview of an unsaved event. */
+  href: string | null;
   isPast: boolean;
 };
 
@@ -74,11 +76,11 @@ export function splitSchedule<Game extends ScheduleGameFields>(entries: readonly
   };
 }
 
-/** A team's games and events; club-wide events stay visible under every team. No team (null) keeps everything. */
+/** A team's games and events. An event without teams is shown only with no team chosen (null keeps everything). */
 export function filterScheduleByTeam<Game extends ScheduleGameFields>(entries: readonly ScheduleEntry<Game>[], teamId: number | null): ScheduleEntry<Game>[] {
   if (teamId === null) return [...entries];
   return entries.filter((entry) =>
-    entry.kind === "game" ? entry.game.teamId === teamId : entry.event.teams.length === 0 || entry.event.teams.some((team) => team.id === teamId),
+    entry.kind === "game" ? entry.game.teamId === teamId : entry.event.teams.some((team) => team.id === teamId),
   );
 }
 

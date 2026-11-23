@@ -5,6 +5,7 @@ import { events, games, teams, trainings } from "@/db/schema";
 import { resolveClubLogos } from "@/lib/club-logos";
 import { rigaWallClockToUtc } from "@/lib/riga-time";
 import { compareByStart } from "@/lib/ordering";
+import { eventPath } from "@/lib/event-path";
 import { getTeamsByEvent } from "@/lib/event-teams";
 import { getTeamNamesByTraining } from "@/lib/training-teams";
 
@@ -33,6 +34,8 @@ export type CalendarEvent = {
   awayTeam?: string;
   homeLogo?: string | null;
   awayLogo?: string | null;
+  /** Only for an event (eventType "other"): its own public page. */
+  href?: string;
 };
 
 function capitalize(value: string) {
@@ -177,8 +180,9 @@ async function getAdminEvents(after: Date, before: Date): Promise<CalendarEvent[
       start,
       end,
       eventType: "other",
-      // Several teams read "A, B", as a training of several teams does; none is a club-wide event.
+      // Several teams read "A, B", as a training of several teams does; none belongs to no team.
       team: teamsByEvent.get(row.id)?.map((team) => team.name).join(", ") || null,
+      href: eventPath(row.id, row.title),
       ...formatLabels(start, false),
     };
   });

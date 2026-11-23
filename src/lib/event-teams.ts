@@ -7,7 +7,7 @@ import { compareTeamOrder } from "@/lib/ordering";
 export type EventTeam = { id: number; name: string; sort: number };
 
 /** Teams per event (an event can have several), in the club's team order. Events with no team are absent from the
- *  map: they concern the whole club. */
+ *  map. */
 export async function getTeamsByEvent(): Promise<Map<number, EventTeam[]>> {
   const rows = await db
     .select({ eventId: eventTeams.eventId, id: teams.id, name: teams.name, sort: teams.sort })

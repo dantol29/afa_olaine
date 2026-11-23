@@ -14,7 +14,8 @@ import { getTeamsByEvent } from "@/lib/event-teams";
 import { firstSearchParam, type SearchParamValue } from "@/lib/url-state";
 
 import { deleteEvent } from "./actions";
-import { formatEventDates } from "@/lib/event-dates";
+import { formatEventSpan } from "@/lib/event-dates";
+import { formatDate } from "@/lib/date-display";
 
 export default async function AdminEventsPage({ searchParams }: { searchParams: Promise<Record<string, SearchParamValue>> }) {
   const query = await searchParams;
@@ -31,7 +32,7 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
       .from(events),
     getTeamsByEvent(),
   ]);
-  // Several teams read "A, B"; none is a club-wide event.
+  // Several teams read "A, B"; none belongs to no team.
   const rows = eventRows.map((row) => ({ ...row, teamName: teamsByEvent.get(row.id)?.map((team) => team.name).join(", ") || null }));
   const { upcoming, past, hiddenPastCount } = splitAdminSchedule(
     rows,
@@ -70,15 +71,22 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
           basePath="/admin/events"
           emptyText="Vēl nav neviena notikuma."
           renderRow={(event) => (
-            <tr data-admin-search-item={`${event.title} ${event.date} ${formatEventDates(event.date, event.endDate)} ${event.startTime} ${event.teamName ?? "Viss klubs"}`} key={event.id} className="border-b border-slate-100 last:border-0">
+            <tr data-admin-search-item={`${event.title} ${event.date} ${formatEventSpan(event.date, event.startTime, event.endDate, event.endTime)} ${event.teamName ?? ""}`} key={event.id} className="border-b border-slate-100 last:border-0">
               <td className="p-4 font-semibold text-club-navy">{event.title}</td>
-              <td className="p-4 text-club-navy">
-                {formatEventDates(event.date, event.endDate)}
-              </td>
-              <td className="p-4 text-slate-500">
-                {event.startTime}–{event.endTime}
-              </td>
-              <td className="p-4 text-slate-500">{event.teamName ?? "Viss klubs"}</td>
+              {/* Several days: the start time goes with the first day and the end time with the last, in one cell. */}
+              {event.endDate ? (
+                <td colSpan={2} className="p-4 text-club-navy">
+                  {formatEventSpan(event.date, event.startTime, event.endDate, event.endTime)}
+                </td>
+              ) : (
+                <>
+                  <td className="p-4 text-club-navy">{formatDate(event.date)}</td>
+                  <td className="p-4 text-slate-500">
+                    {event.startTime}–{event.endTime}
+                  </td>
+                </>
+              )}
+              <td className="p-4 text-slate-500">{event.teamName ?? "—"}</td>
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-4">
                   <CopyRowLink href={copyHref("events", event.id)} label={`Kopēt notikumu "${event.title}"`} />

@@ -24,7 +24,7 @@ export const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
  *  and collision concerns entirely. */
 export async function saveUploadedPhoto(
   file: File,
-  subfolder: "coaches" | "players" | "clubs" | "articles" | "partners" | "club-pages" | "leagues",
+  subfolder: "coaches" | "players" | "clubs" | "articles" | "partners" | "club-pages" | "leagues" | "events",
 ): Promise<string> {
   const extension = EXTENSION_BY_MIME_TYPE[file.type];
   if (!extension) {

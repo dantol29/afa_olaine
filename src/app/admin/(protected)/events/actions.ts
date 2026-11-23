@@ -8,10 +8,12 @@ import { db } from "@/db/client";
 import { eventTeams, events, teams } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
 import { parseEventInput } from "@/lib/admin-input/events";
+import { deleteUploadedPhoto, saveUploadedPhoto } from "@/lib/uploads";
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type EventPhotos = { image: string | null; gallery: string | null };
 
-// The form always sends the whole set of ticked teams; none means the whole club.
+// The form always sends the whole set of ticked teams; none means the event belongs to no team.
 async function syncEventTeams(tx: Transaction, eventId: number, teamIds: number[]) {
   await tx.delete(eventTeams).where(eq(eventTeams.eventId, eventId));
   if (teamIds.length > 0) await tx.insert(eventTeams).values(teamIds.map((teamId) => ({ eventId, teamId })));
@@ -24,11 +26,54 @@ async function missingTeamError(teamIds: number[]): Promise<{ error: string } | 
   return found.length === teamIds.length ? null : { error: "Kāda no izvēlētajām komandām vairs nav atrodama." };
 }
 
-/** Events show on the homepage block and /speles together with games, so those refresh with the admin list. */
+function galleryUrls(gallery: string | null): string[] {
+  return gallery?.split("\n").filter(Boolean) ?? [];
+}
+
+function uploadedFiles(formData: FormData, name: string): File[] {
+  return formData.getAll(name).filter((entry): entry is File => entry instanceof File && entry.size > 0);
+}
+
+/** The photos after this save, as for news: a new main photo replaces the old one, new gallery photos replace the
+ *  whole gallery, and the "remove" boxes clear them. New files are stored first; `replaced` lists the old files to
+ *  delete once the event is saved, so a failed save never loses a photo that is still in use. */
+async function resolveEventPhotos(formData: FormData, current: EventPhotos): Promise<{ photos: EventPhotos; replaced: string[] } | { error: string }> {
+  const [image] = uploadedFiles(formData, "image");
+  const galleryFiles = uploadedFiles(formData, "gallery");
+  const photos = { ...current };
+  const replaced: string[] = [];
+  try {
+    if (image) {
+      photos.image = await saveUploadedPhoto(image, "events");
+    } else if (formData.get("removeImage") === "on") {
+      photos.image = null;
+    }
+    if (galleryFiles.length > 0) {
+      const urls: string[] = [];
+      for (const file of galleryFiles) urls.push(await saveUploadedPhoto(file, "events"));
+      photos.gallery = urls.join("\n");
+    } else if (formData.get("removeGallery") === "on") {
+      photos.gallery = null;
+    }
+  } catch (error) {
+    return { error: (error as Error).message };
+  }
+  if (current.image && photos.image !== current.image) replaced.push(current.image);
+  if (photos.gallery !== current.gallery) replaced.push(...galleryUrls(current.gallery));
+  return { photos, replaced };
+}
+
+async function deletePhotos(urls: readonly string[]) {
+  for (const url of urls) await deleteUploadedPhoto(url);
+}
+
+/** Events show on the homepage block, /speles and their own page, so those refresh with the admin list. */
 function revalidateEventPages() {
   revalidatePath("/admin/events");
   revalidatePath("/");
   revalidatePath("/speles");
+  revalidatePath("/notikumi/[slug]", "page");
+  revalidatePath("/sitemap.xml");
 }
 
 export async function createEvent(
@@ -43,8 +88,10 @@ export async function createEvent(
   const { teamIds, ...eventFields } = parsed;
   const missing = await missingTeamError(teamIds);
   if (missing) return missing;
+  const resolved = await resolveEventPhotos(formData, { image: null, gallery: null });
+  if ("error" in resolved) return resolved;
   await db.transaction(async (tx) => {
-    const [inserted] = await tx.insert(events).values({ ...eventFields, createdAt: Date.now() }).returning({ id: events.id });
+    const [inserted] = await tx.insert(events).values({ ...eventFields, ...resolved.photos, createdAt: Date.now() }).returning({ id: events.id });
     await syncEventTeams(tx, inserted.id, teamIds);
   });
   revalidateEventPages();
@@ -61,13 +108,18 @@ export async function updateEvent(
   const parsed = parseEventInput(formData);
   if ("error" in parsed) return parsed;
 
+  const [existing] = await db.select({ image: events.image, gallery: events.gallery }).from(events).where(eq(events.id, id));
+  if (!existing) return { error: "Notikums nav atrasts." };
   const { teamIds, ...eventFields } = parsed;
   const missing = await missingTeamError(teamIds);
   if (missing) return missing;
+  const resolved = await resolveEventPhotos(formData, existing);
+  if ("error" in resolved) return resolved;
   await db.transaction(async (tx) => {
-    await tx.update(events).set(eventFields).where(eq(events.id, id));
+    await tx.update(events).set({ ...eventFields, ...resolved.photos }).where(eq(events.id, id));
     await syncEventTeams(tx, id, teamIds);
   });
+  await deletePhotos(resolved.replaced);
   revalidateEventPages();
   redirect("/admin/events");
 }
@@ -75,6 +127,8 @@ export async function updateEvent(
 export async function deleteEvent(id: number) {
   await requireAdminSession();
 
+  const [existing] = await db.select({ image: events.image, gallery: events.gallery }).from(events).where(eq(events.id, id));
   await db.delete(events).where(eq(events.id, id));
+  if (existing) await deletePhotos([...(existing.image ? [existing.image] : []), ...galleryUrls(existing.gallery)]);
   revalidateEventPages();
 }

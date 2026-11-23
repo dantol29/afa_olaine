@@ -2,9 +2,10 @@ import type { MetadataRoute } from "next";
 import { asc, desc } from "drizzle-orm";
 
 import { db } from "@/db/client";
-import { articles, coaches, players, teams } from "@/db/schema";
+import { articles, coaches, events, players, teams } from "@/db/schema";
 import { getPublishedClubPages } from "@/lib/club-pages-server";
 import { parseClubPageMedia } from "@/lib/club-page-media";
+import { eventPath } from "@/lib/event-path";
 import { absoluteSiteUrl, getSiteUrl } from "@/lib/site-url";
 
 export const revalidate = 3600;
@@ -12,12 +13,13 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
   const pages = ["", "/jaunumi", "/komanda", "/akademija", "/speles", "/trenini", "/kontakti"];
-  const [articleRows, playerRows, coachRows, customPages, teamRows] = await Promise.all([
+  const [articleRows, playerRows, coachRows, customPages, teamRows, eventRows] = await Promise.all([
     db.select({ slug: articles.slug, image: articles.image }).from(articles).orderBy(desc(articles.date)),
     db.select({ id: players.id, photoUrl: players.photoUrl }).from(players),
     db.select({ id: coaches.id, photoUrl: coaches.photoUrl }).from(coaches),
     getPublishedClubPages(),
     db.select({ groupPhotoUrl: teams.groupPhotoUrl, isMain: teams.isMain }).from(teams).orderBy(asc(teams.sort), asc(teams.id)),
+    db.select({ id: events.id, title: events.title, image: events.image, gallery: events.gallery }).from(events).orderBy(desc(events.date)),
   ]);
   const imagesFor = (images: (string | null | undefined)[]) => [...new Set(images.flatMap((image) => {
     if (!image?.trim()) return [];
@@ -37,6 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...articleRows.map((article) => ({
       url: `${siteUrl}/jaunumi/${encodeURIComponent(article.slug)}`,
       images: imagesFor([article.image]),
+    })),
+    ...eventRows.map((event) => ({
+      url: `${siteUrl}${eventPath(event.id, event.title)}`,
+      images: imagesFor([event.image, ...(event.gallery?.split("\n") ?? [])]),
     })),
     ...playerRows.map((player) => ({
       url: `${siteUrl}/komanda/speletaji/${player.id}`,

@@ -6,6 +6,7 @@ import { db } from "@/db/client";
 import { events as eventsTable, games as gamesTable, teams as teamsTable } from "@/db/schema";
 import { toDateKey } from "@/lib/calendar";
 import { resolveClubLogos } from "@/lib/club-logos";
+import { eventPath } from "@/lib/event-path";
 import { getTeamsByEvent } from "@/lib/event-teams";
 import { clubDisplay, MONTHS, type UpcomingGame } from "@/lib/games";
 import type { ScheduleEvent } from "@/lib/schedule";
@@ -138,6 +139,7 @@ export const getAllEventsFromDb = cache(async function getAllEventsFromDb(): Pro
         endTime: row.endTime,
         location: row.location,
         teams: teamsByEvent.get(row.id) ?? [],
+        href: eventPath(row.id, row.title),
         // A multi-day event is current until its last day is over.
         isPast: (row.endDate ?? row.date) < todayKey,
       };

@@ -50,7 +50,7 @@ describe("buildGamePreview", () => {
 describe("buildEventPreview", () => {
   const teams = [{ id: 3, name: "U8 meitenes" }];
 
-  test("shows placeholders and a club-wide event for an empty form", () => {
+  test("shows placeholders and no teams for an empty form", () => {
     const event = buildEventPreview({ title: " ", date: "", endDate: "", startTime: "", endTime: "", location: "", teamIds: [] }, teams);
     assert.equal(event.title, "Nosaukums");
     assert.deepEqual(event.teams, []);

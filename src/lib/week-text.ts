@@ -31,15 +31,17 @@ const shortDate = formatDayMonth;
 function describe(item: WeekItem): string {
   if (item.kind === "training") return `${item.startTime}–${item.endTime} Treniņš`;
   if (item.kind === "game") return `${item.startTime} Spēle: ${item.homeTeam || "?"} – ${item.awayTeam || "?"}`;
+  // A multi-day event has its times next to its days (see itemWhen).
+  if (item.endDate) return item.title;
   return `${item.startTime}–${item.endTime} ${item.title}`;
 }
 
 const dayAndDate = (date: string) => `${WEEKDAYS[isoWeekday(date) - 1].short} ${shortDate(date)}`;
 
-/** "S 12.12." for one day, "S 12.12.–Sv 13.12." for a multi-day event. */
+/** "S 12.12." for one day; "S 12.12. 10:00 – Sv 13.12. 16:00" for a multi-day event, each day with its own time. */
 function itemDays(item: WeekItem): string {
   const endDate = item.kind === "event" ? item.endDate : null;
-  return endDate ? `${dayAndDate(item.date)}–${dayAndDate(endDate)}` : dayAndDate(item.date);
+  return endDate ? `${dayAndDate(item.date)} ${item.startTime} – ${dayAndDate(endDate)} ${item.endTime}` : dayAndDate(item.date);
 }
 
 const lastDay = (item: WeekItem) => (item.kind === "event" && item.endDate ? item.endDate : item.date);
