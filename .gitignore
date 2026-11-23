@@ -15,6 +15,9 @@
 
 # next.js
 /.next/
+# scripts/build-hosting.mjs: the rollback build and the separate build copy
+/.next.previous/
+/.build-work/
 /out/
 
 # production
@@ -53,3 +56,6 @@ local.db-*
 
 # private local data: full demo seed and database/photo snapshots
 /.local/
+
+# the last backup made by scripts/backup-db.sh and its restore commands (on the host)
+/.last-backup
