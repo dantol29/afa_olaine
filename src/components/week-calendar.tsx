@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { fitHourRange, rowHeightFor, type HourSpan } from "@/lib/week-calendar-scale";
 import type { CalendarEvent } from "@/lib/calendar";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
 import { splitIntoDays } from "@/lib/day-pieces";
@@ -126,10 +127,6 @@ const MONTH_LABELS = [
   "Dec",
 ];
 
-/** Used only when the visible days have no timed events to anchor on. */
-const DEFAULT_START_HOUR = 6;
-const END_HOUR = 23;
-const ROW_HEIGHT = 56;
 /** A full 7-day week doesn't leave enough room for event titles/time/place
  *  to be readable, so each Monday-start week is shown in two halves —
  *  Mon–Wed (3 days), then Thu–Sun (4 days) — rather than a sliding N-day
@@ -146,8 +143,8 @@ const GRID_COLS_CLASS = [
  *  "+N" chip rather than squeezing into an unreadably thin column. */
 const MAX_VISIBLE_COLS = 3;
 /** Every event card is at least this tall, so a 30-minute training slot
- *  doesn't render as an illegible sliver. */
-const MIN_CARD_HEIGHT = 64;
+ *  doesn't render as an illegible sliver; one line of title fits. */
+const MIN_CARD_HEIGHT = 36;
 /** Visual gap kept between a card and the grid lines / neighbouring cards. */
 const CARD_INSET = 4;
 
@@ -292,15 +289,18 @@ function layoutDayEvents(dayEvents: CalendarEvent[]): LaidOutEvent[] {
   return result;
 }
 
-function getTimeBox(start: Date, end: Date, startHour: number) {
-  const startFraction = Math.max(hourFraction(start), startHour);
+type HourGrid = { startHour: number; endHour: number; rowHeight: number };
+
+function getTimeBox(start: Date, end: Date, grid: HourGrid) {
+  const startFraction = Math.max(hourFraction(start), grid.startHour);
+  const rawEnd = hourFraction(end);
   const endFraction = Math.min(
-    Math.max(hourFraction(end), startFraction + 0.5),
-    END_HOUR + 1,
+    Math.max(rawEnd > hourFraction(start) ? rawEnd : 24, startFraction + 0.5),
+    grid.endHour,
   );
-  const rawTop = (startFraction - startHour) * ROW_HEIGHT;
+  const rawTop = (startFraction - grid.startHour) * grid.rowHeight;
   const rawHeight = Math.max(
-    (endFraction - startFraction) * ROW_HEIGHT,
+    (endFraction - startFraction) * grid.rowHeight,
     MIN_CARD_HEIGHT,
   );
   return {
@@ -559,34 +559,32 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
     return map;
   }, [filteredEvents]);
 
-  /** Skip the grid's leading empty hours — start at whatever hour the
-   *  visible days' earliest event actually falls in. */
-  const startHour = useMemo(() => {
+  /** Only the hours the visible days use, with an empty hour around them,
+   *  scaled to fit the box; null when those days have nothing to show. */
+  const grid = useMemo((): HourGrid | null => {
     const visibleDateKeys = new Set(visibleDays.map((d) => d.dateKey));
-    let earliest = Infinity;
+    const spans: HourSpan[] = [];
     for (const [dateKey, dayEvents] of eventsByDay) {
       if (!visibleDateKeys.has(dateKey)) continue;
-      for (const event of dayEvents) {
-        earliest = Math.min(earliest, Math.floor(hourFraction(event.start)));
-      }
+      for (const event of dayEvents) spans.push({ start: hourFraction(event.start), end: hourFraction(event.end) });
     }
-    if (!Number.isFinite(earliest)) return DEFAULT_START_HOUR;
-    return Math.max(0, Math.min(earliest, END_HOUR));
+    const range = fitHourRange(spans);
+    return range && { ...range, rowHeight: rowHeightFor(range.endHour - range.startHour) };
   }, [eventsByDay, visibleDays]);
 
   const hours = useMemo(
-    () =>
-      Array.from({ length: END_HOUR - startHour + 1 }, (_, i) => i + startHour),
-    [startHour],
+    () => (grid ? Array.from({ length: grid.endHour - grid.startHour }, (_, i) => i + grid.startHour) : []),
+    [grid],
   );
 
   /** The live "current time" line in the desktop grid — only meaningful
    *  when today is one of the currently-visible days. */
   const nowFraction = hourFraction(now);
   const showNowLine =
+    grid !== null &&
     visibleDays.some((day) => day.dateKey === todayKey) &&
-    nowFraction >= startHour &&
-    nowFraction <= END_HOUR + 1;
+    nowFraction >= grid.startHour &&
+    nowFraction <= grid.endHour;
 
   const rangeStart = visibleDays[0];
   const rangeEnd = visibleDays[visibleDays.length - 1];
@@ -821,7 +819,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
       <div className="hidden overflow-hidden rounded-2xl border border-slate-100 bg-white sm:block">
         <div className="overflow-x-auto">
           <div className="min-w-0 sm:min-w-[560px]">
-            <div className="max-h-[560px] overflow-y-auto">
+            <div className="max-h-[600px] overflow-y-auto">
               {/* Header row */}
               <div
                 className={cn(
@@ -847,19 +845,25 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 ))}
               </div>
 
+              {!grid && (
+                <p className="py-10 text-center text-sm text-slate-400">
+                  {isLoading ? "Ielādē notikumus…" : loadError === weekKey ? "Notikumi pašlaik nav pieejami." : "Šajās dienās nav notikumu."}
+                </p>
+              )}
+
               {/* Hour grid */}
-              <div className={cn("relative grid", GRID_COLS_CLASS[half])}>
+              {grid && <div className={cn("relative grid", GRID_COLS_CLASS[half])}>
                 <div
                   className="relative"
-                  style={{ height: hours.length * ROW_HEIGHT }}
+                  style={{ height: hours.length * grid.rowHeight }}
                 >
                   {hours.map((hour) => (
                     <div
                       key={hour}
                       className="absolute inset-x-0 border-b border-slate-50 px-2 pt-2 text-center text-[10px] text-slate-400 sm:px-3 sm:pt-3 sm:text-xs"
                       style={{
-                        top: (hour - startHour) * ROW_HEIGHT,
-                        height: ROW_HEIGHT,
+                        top: (hour - grid.startHour) * grid.rowHeight,
+                        height: grid.rowHeight,
                       }}
                     >
                       {String(hour).padStart(2, "0")}:00
@@ -875,15 +879,15 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                     <div
                       key={day.dateKey}
                       className="relative border-l border-slate-100"
-                      style={{ height: hours.length * ROW_HEIGHT }}
+                      style={{ height: hours.length * grid.rowHeight }}
                     >
                       {hours.map((hour) => (
                         <div
                           key={hour}
                           className="absolute inset-x-0 border-b border-slate-50"
                           style={{
-                            top: (hour - startHour) * ROW_HEIGHT,
-                            height: ROW_HEIGHT,
+                            top: (hour - grid.startHour) * grid.rowHeight,
+                            height: grid.rowHeight,
                           }}
                         />
                       ))}
@@ -923,7 +927,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                               const { top, height } = getTimeBox(
                                 event.start,
                                 event.end,
-                                startHour,
+                                grid,
                               );
                               const cols = Math.min(event.cols, visibleCols);
                               const widthPercent = 100 / cols;
@@ -964,7 +968,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                                 const { top, height } = getTimeBox(
                                   start,
                                   end,
-                                  startHour,
+                                  grid,
                                 );
                                 const widthPercent = 100 / visibleCols;
                                 const leftPercent = widthPercent * overflowCol;
@@ -1022,7 +1026,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                 {showNowLine && (
                   <div
                     className="pointer-events-none absolute inset-x-0 z-20 flex items-center"
-                    style={{ top: (nowFraction - startHour) * ROW_HEIGHT }}
+                    style={{ top: (nowFraction - grid.startHour) * grid.rowHeight }}
                   >
                     <span className="flex w-16 shrink-0 justify-end pr-1 sm:w-24 sm:pr-2">
                       <span className="rounded bg-white px-1 text-[10px] font-bold text-club-red sm:text-xs">
@@ -1033,7 +1037,7 @@ export function WeekCalendar({ events }: WeekCalendarProps) {
                     <span className="h-px flex-1 bg-club-red" />
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           </div>
         </div>
