@@ -16,6 +16,12 @@ const nextConfig: NextConfig = {
     // collection as well as static generation to one worker; the batch-size
     // setting below only affects the latter phase.
     cpus: 1,
+    // Same memory profile as FK Olaine's build, which passes while both sites run: the two sites share the
+    // account's 2 GB, and without these the AFA build was killed (SIGKILL) whenever FK was also running.
+    webpackMemoryOptimizations: true,
+    // Keep compiler isolation when the hosting profile customizes Webpack.
+    webpackBuildWorker: true,
+    staticGenerationMaxConcurrency: 1,
     serverActions: {
       // Matches the 5MB cap enforced in src/lib/uploads.ts for photo
       // uploads — Next's own default (1MB) would reject the request
@@ -27,6 +33,12 @@ const nextConfig: NextConfig = {
     // the app's total page count forces static generation onto a single
     // worker instead, trading build speed for a much smaller memory peak.
     staticGenerationMinPagesPerWorker: 50,
+  },
+  webpack(config, { dev }) {
+    // Webpack's filesystem cache is large to load and to write on the resource-limited host, so the hosting build
+    // (scripts/build-hosting.mjs sets NEXT_LOW_MEMORY_BUILD) runs without it. Other builds keep it.
+    if (!dev && process.env.NEXT_LOW_MEMORY_BUILD === "1") config.cache = false;
+    return config;
   },
   images: {
     // Always unoptimized: in dev so edited local images (logos, etc.) show
