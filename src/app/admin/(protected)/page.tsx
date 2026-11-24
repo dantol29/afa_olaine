@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 import type { ReactNode } from "react";
 
 import { db } from "@/db/client";
@@ -76,9 +76,9 @@ export default async function AdminHomePage() {
         {noScore.map((game) => (
           <Row key={game.id} side={<ScoreForm gameId={game.id} />}>
             {formatDate(game.date)} · {game.homeTeam || "?"} – {game.awayTeam || "?"} <Muted>({teamName(game.teamId)})</Muted>{" "}
-            <Link href={`/admin/games/${game.id}`} className="text-xs font-semibold text-club-red hover:underline">
+            <AdminLink href={`/admin/games/${game.id}`} className="text-xs font-semibold text-club-red hover:underline">
               atvērt →
-            </Link>
+            </AdminLink>
           </Row>
         ))}
       </Block>
@@ -114,9 +114,9 @@ export default async function AdminHomePage() {
             {[clash.first, clash.second].map((item, index) => (
               <span key={`${item.kind}-${item.id}`}>
                 {index > 0 && " un "}
-                <Link href={`/admin/${EDIT_PATH[item.kind]}/${item.id}`} className="font-semibold text-club-red hover:underline">
+                <AdminLink href={`/admin/${EDIT_PATH[item.kind]}/${item.id}`} className="font-semibold text-club-red hover:underline">
                   {item.label} {item.startTime}–{item.endTime}
-                </Link>
+                </AdminLink>
               </span>
             ))}
           </Row>
@@ -177,9 +177,9 @@ export default async function AdminHomePage() {
             {group.map((player, index) => (
               <span key={player.id}>
                 {index > 0 && " · "}
-                <Link href={`/admin/players/${player.id}`} className="font-semibold text-club-red hover:underline">
+                <AdminLink href={`/admin/players/${player.id}`} className="font-semibold text-club-red hover:underline">
                   {player.name}
-                </Link>
+                </AdminLink>
               </span>
             ))}{" "}
             <Muted>({group[0].birthdate})</Muted>
@@ -212,9 +212,9 @@ function BookingLink({ booking }: { booking: VenueBooking }) {
   if (!match) return <span className="font-semibold">{text}</span>;
   const [, kind, id] = match;
   return (
-    <Link href={`/admin/${EDIT_PATH[kind as keyof typeof EDIT_PATH]}/${id}`} className="font-semibold text-club-red hover:underline">
+    <AdminLink href={`/admin/${EDIT_PATH[kind as keyof typeof EDIT_PATH]}/${id}`} className="font-semibold text-club-red hover:underline">
       {text}
-    </Link>
+    </AdminLink>
   );
 }
 
@@ -233,9 +233,9 @@ function Row({ href, action, side, children }: { href?: string; action?: string;
       <div className="min-w-0">{children}</div>
       {side}
       {href && action && (
-        <Link href={href} className="shrink-0 font-semibold text-club-red hover:underline">
+        <AdminLink href={href} className="shrink-0 font-semibold text-club-red hover:underline">
           {action} →
-        </Link>
+        </AdminLink>
       )}
     </li>
   );

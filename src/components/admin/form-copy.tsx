@@ -1,7 +1,7 @@
 "use client";
 
 import { Copy } from "lucide-react";
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 import { useState } from "react";
 
 const UNSAVED_COPY_WARNING = "Kopija tiks veidota no nesaglabātās versijas. Oriģināls netiks mainīts.";
@@ -47,13 +47,13 @@ export function CopyNotice() {
 /** The copy icon of an admin list row; it opens the new-record form filled from that row. */
 export function CopyRowLink({ href, label }: { href: string; label: string }) {
   return (
-    <Link
+    <AdminLink
       href={href}
       aria-label={label}
       title="Kopēt"
       className="flex h-8 w-8 items-center justify-center rounded-lg text-club-navy transition hover:bg-club-gray-light"
     >
       <Copy className="h-4 w-4" />
-    </Link>
+    </AdminLink>
   );
 }

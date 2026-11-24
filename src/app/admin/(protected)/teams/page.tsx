@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 
 import { db } from "@/db/client";
 import { teams } from "@/db/schema";
@@ -14,12 +14,12 @@ export default async function AdminTeamsPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-club-navy">Komandas</h1>
-        <Link
+        <AdminLink
           href="/admin/teams/new"
           className="rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark"
         >
           + Pievienot
-        </Link>
+        </AdminLink>
       </div>
       <TeamsTable teams={rows.map(({ id, name, isMain }) => ({ id, name, isMain }))} />
     </div>

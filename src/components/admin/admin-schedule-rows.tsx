@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 import type { ReactNode } from "react";
 
 import { RECENT_PAST_DAYS, SHOW_ALL_PAST_PARAM, SHOW_ALL_PAST_VALUE } from "@/lib/admin-schedule-list";
@@ -48,9 +48,9 @@ export function AdminScheduleRows<Row extends { id: number }>({
         <tbody>
           <tr>
             <td colSpan={columnCount} className="p-4 text-center">
-              <Link href={`${basePath}?${SHOW_ALL_PAST_PARAM}=${SHOW_ALL_PAST_VALUE}`} className="text-sm font-semibold text-club-red hover:underline">
+              <AdminLink href={`${basePath}?${SHOW_ALL_PAST_PARAM}=${SHOW_ALL_PAST_VALUE}`} className="text-sm font-semibold text-club-red hover:underline">
                 Rādīt visas aizvadītās ({hiddenPastCount} vecākas par {RECENT_PAST_DAYS} dienām)
-              </Link>
+              </AdminLink>
             </td>
           </tr>
         </tbody>

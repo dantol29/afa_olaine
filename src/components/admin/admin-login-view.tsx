@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export function AdminLoginView({
@@ -25,15 +25,15 @@ export function AdminLoginView({
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(0,0,0,.55)_0%,rgba(0,0,0,.1)_34%,rgba(0,0,0,.25)_58%,#050505_100%)]" />
 
       <header className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 px-6 py-6 sm:px-10">
-        <Link href="/" aria-label="Atpakaļ uz AFA Olaine sākumlapu" className="inline-flex items-center gap-3">
+        <AdminLink href="/" aria-label="Atpakaļ uz AFA Olaine sākumlapu" className="inline-flex items-center gap-3">
           <Image src="/hero-logo.png" alt="AFA Olaine" width={72} height={72} className="size-14 object-contain sm:size-16" />
           <span className="font-heading text-xl font-semibold uppercase tracking-wide sm:text-2xl">AFA Olaine</span>
-        </Link>
-        <Link href="/" className="inline-flex min-h-11 items-center gap-2 border border-white/55 px-4 font-heading text-sm font-medium uppercase transition-colors hover:border-white hover:bg-white hover:text-[#050505]">
+        </AdminLink>
+        <AdminLink href="/" className="inline-flex min-h-11 items-center gap-2 border border-white/55 px-4 font-heading text-sm font-medium uppercase transition-colors hover:border-white hover:bg-white hover:text-[#050505]">
           <ArrowLeft className="size-4" aria-hidden="true" />
           <span className="hidden sm:inline">Uz sākumlapu</span>
           <span className="sm:hidden">Atpakaļ</span>
-        </Link>
+        </AdminLink>
       </header>
 
       <div className="mx-auto mt-auto w-full max-w-[1180px] px-4 pt-20 sm:px-10">

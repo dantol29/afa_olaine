@@ -1,5 +1,5 @@
 import { Pencil } from "lucide-react";
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminScheduleRows } from "@/components/admin/admin-schedule-rows";
@@ -38,24 +38,24 @@ export default async function AdminTrainingsPage({ searchParams }: { searchParam
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold text-club-navy">Treniņi</h1>
         <div className="flex flex-wrap items-center gap-2">
-          <Link
+          <AdminLink
             href="/admin/trainings/week"
             className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-club-navy hover:border-club-red"
           >
             Nedēļas teksts
-          </Link>
-          <Link
+          </AdminLink>
+          <AdminLink
             href="/admin/trainings/schedule"
             className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-club-navy hover:border-club-red"
           >
             Pēc grafika
-          </Link>
-          <Link
+          </AdminLink>
+          <AdminLink
             href="/admin/trainings/new"
             className="rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark"
           >
             + Pievienot
-          </Link>
+          </AdminLink>
         </div>
       </div>
       <AdminSearch placeholder="Meklēt treniņus…" />
@@ -92,14 +92,14 @@ export default async function AdminTrainingsPage({ searchParams }: { searchParam
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-4">
                   <CopyRowLink href={copyHref("trainings", training.id)} label={`Kopēt treniņu ${formatDate(training.date)}`} />
-                  <Link
+                  <AdminLink
                     href={`/admin/trainings/${training.id}`}
                     aria-label={`Rediģēt treniņu ${formatDate(training.date)}`}
                     title="Rediģēt"
                     className="flex h-8 w-8 items-center justify-center rounded-lg text-club-navy transition hover:bg-club-gray-light"
                   >
                     <Pencil className="h-4 w-4" />
-                  </Link>
+                  </AdminLink>
                   <DeleteButton
                     action={deleteTraining.bind(null, training.id)}
                     confirmMessage="Dzēst šo treniņu?"

@@ -1,5 +1,5 @@
 import { Pencil } from "lucide-react";
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 
 import { AdminScheduleRows } from "@/components/admin/admin-schedule-rows";
 import { DeleteButton } from "@/components/admin/delete-button";
@@ -44,12 +44,12 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-club-navy">Notikumi</h1>
-        <Link
+        <AdminLink
           href="/admin/events/new"
           className="rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark"
         >
           + Pievienot
-        </Link>
+        </AdminLink>
       </div>
       <AdminSearch placeholder="Meklēt notikumus…" />
 
@@ -90,14 +90,14 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-4">
                   <CopyRowLink href={copyHref("events", event.id)} label={`Kopēt notikumu "${event.title}"`} />
-                  <Link
+                  <AdminLink
                     href={`/admin/events/${event.id}`}
                     aria-label={`Rediģēt notikumu "${event.title}"`}
                     title="Rediģēt"
                     className="flex h-8 w-8 items-center justify-center rounded-lg text-club-navy transition hover:bg-club-gray-light"
                   >
                     <Pencil className="h-4 w-4" />
-                  </Link>
+                  </AdminLink>
                   <DeleteButton
                     action={deleteEvent.bind(null, event.id)}
                     confirmMessage={`Dzēst notikumu "${event.title}"?`}
