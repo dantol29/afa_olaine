@@ -1,6 +1,6 @@
 // Reads a roster pasted from WhatsApp (or typed) into people, then matches them with the players on file. Coaches send
 // rosters in many shapes: "Name — 2015", "Name — 04.04.2015", WhatsApp exports with "VĀRTSARGI" headings and
-// "Nr 7", and follow-ups with only a surname and the missing details. The same person may appear on several lines,
+// "Nr 7", rows copied from a spreadsheet (tab-separated, with English positions), and follow-ups with only a surname and the missing details. The same person may appear on several lines,
 // each with part of the data; those lines are merged. Nothing here touches the database.
 import { foldForSearch } from "@/lib/admin-suggestions";
 import { parseBirthdate } from "@/lib/birthdate";
@@ -23,6 +23,28 @@ const POSITION_STEMS: [stem: string, position: string][] = [
   ["pussarg", "Pussargs"],
   ["uzbruc", "Uzbrucējs"],
 ];
+
+// English positions as federation spreadsheets write them ("Left offensive defender", "Central striker"). A cell of
+// only these words is a position; its main noun picks the group, so an "offensive defender" is still a defender.
+const ENGLISH_POSITION_NOUNS: [noun: string, position: string][] = [
+  ["goalkeeper", "Vārtsargs"],
+  ["keeper", "Vārtsargs"],
+  ["defender", "Aizsargs"],
+  ["back", "Aizsargs"],
+  ["midfielder", "Pussargs"],
+  ["midfield", "Pussargs"],
+  ["striker", "Uzbrucējs"],
+  ["forward", "Uzbrucējs"],
+  ["attacker", "Uzbrucējs"],
+  ["winger", "Uzbrucējs"],
+  ["wing", "Uzbrucējs"],
+];
+const ENGLISH_POSITION_WORDS = new Set([
+  ...ENGLISH_POSITION_NOUNS.map(([noun]) => noun),
+  ...["left", "right", "center", "centre", "central", "offensive", "attacking", "defensive", "full"],
+]);
+// A spreadsheet cell holding only the shirt number.
+const NUMBER_CELL = /^\d{1,3}$/;
 
 export type ImportLine = {
   lineNumber: number;
@@ -47,6 +69,30 @@ export type ParsedRoster = {
 function positionOf(word: string): string | null {
   const folded = foldForSearch(word);
   return POSITION_STEMS.find(([stem]) => folded.startsWith(stem))?.[1] ?? null;
+}
+
+function englishPositionOf(cell: string): string | null {
+  const words = foldForSearch(cell).split(/[\s-]+/).filter(Boolean);
+  if (!words.every((word) => ENGLISH_POSITION_WORDS.has(word))) return null;
+  return ENGLISH_POSITION_NOUNS.find(([noun]) => words.includes(noun))?.[1] ?? null;
+}
+
+/** Takes the shirt number and English position cells out of a tab-separated row copied from a spreadsheet. */
+function takeTableCells(text: string): { rest: string; number: number | null; position: string | null } {
+  if (!text.includes("\t")) return { rest: text, number: null, position: null };
+  let number: number | null = null;
+  let position: string | null = null;
+  const kept = text.split("\t").filter((rawCell) => {
+    const cell = rawCell.trim();
+    if (number === null && NUMBER_CELL.test(cell)) {
+      number = Number(cell);
+      return false;
+    }
+    const found = englishPositionOf(cell);
+    if (found) position = found;
+    return !found;
+  });
+  return { rest: kept.join(" "), number, position };
 }
 
 /** Name words without punctuation, for comparing names regardless of word order, case and diacritics. */
@@ -96,6 +142,8 @@ export function parseRoster(text: string): ParsedRoster {
       return;
     }
 
+    const table = takeTableCells(rest);
+    rest = table.rest;
     const date = takeDate(rest);
     rest = date.rest;
     const numberMatch = SHIRT_NUMBER.exec(rest);
@@ -103,7 +151,7 @@ export function parseRoster(text: string): ParsedRoster {
     const yearMatch = date.birthdate || date.invalidDate ? null : BIRTH_YEAR.exec(rest);
     if (yearMatch) rest = rest.replace(yearMatch[0], " ");
 
-    let position: string | null = null;
+    let position: string | null = table.position;
     const words = cleanName(rest).split(" ").filter(Boolean);
     const nameParts = words.filter((word) => {
       const found = positionOf(word);
@@ -111,7 +159,8 @@ export function parseRoster(text: string): ParsedRoster {
       return !found;
     });
     const name = nameParts.join(" ");
-    const hasDetails = date.birthdate || date.invalidDate || numberMatch || yearMatch;
+    const shirtNumber = numberMatch ? Number(numberMatch[1]) : table.number;
+    const hasDetails = date.birthdate || date.invalidDate || shirtNumber !== null || yearMatch;
 
     // A line that is only a position word is a heading: "VĀRTSARGI".
     if (!name && position && !hasDetails) {
@@ -127,7 +176,7 @@ export function parseRoster(text: string): ParsedRoster {
       birthdate: date.birthdate,
       birthYear: yearMatch?.[1] ?? null,
       invalidDate: date.invalidDate,
-      number: numberMatch ? Number(numberMatch[1]) : null,
+      number: shirtNumber,
       position: position ?? sectionPosition,
     });
   });

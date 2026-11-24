@@ -70,6 +70,28 @@ describe("parseRoster", () => {
       ["Ieva Lapa", null, "31.02.2015", 9],
     ]);
   });
+
+  test("reads rows copied from a spreadsheet: number, name, English position, date", () => {
+    const text = [
+      "95\tBērziņš Jānis\tGoalkeeper\t2015-01-09",
+      "36\tKalns Pēteris\tLeft offensive defender\t2015-05-05",
+      "25\tLiepa Mārtiņš\tRight attacking midfielder\t2015-07-08",
+      "7\tOzols Kārlis\tLeft wing offensive\t2015-10-18",
+      "46\tEgle Rihards\tCentral striker\t2015-11-15",
+    ].join("\n");
+    assert.deepEqual(parseRoster(text).lines.map((line) => [line.number, line.name, line.position, line.birthdate]), [
+      [95, "Bērziņš Jānis", "Vārtsargs", "09.01.2015."],
+      [36, "Kalns Pēteris", "Aizsargs", "05.05.2015."],
+      [25, "Liepa Mārtiņš", "Pussargs", "08.07.2015."],
+      [7, "Ozols Kārlis", "Uzbrucējs", "18.10.2015."],
+      [46, "Egle Rihards", "Uzbrucējs", "15.11.2015."],
+    ]);
+  });
+
+  test("keeps a spreadsheet name cell that is not only position words", () => {
+    const [line] = parseRoster("Wing Anna\t2015-04-04").lines;
+    assert.deepEqual([line.name, line.position], ["Wing Anna", null]);
+  });
 });
 
 describe("groupPeople", () => {
