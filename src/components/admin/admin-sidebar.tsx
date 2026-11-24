@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -54,7 +54,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <div>
-        <Link href="/admin" onClick={onNavigate} className="flex items-center gap-3 border-b border-white/15 pb-7">
+        <AdminLink href="/admin" onClick={onNavigate} className="flex items-center gap-3 border-b border-white/15 pb-7">
           <Image
             src="/hero-logo.png"
             alt="AFA Olaine"
@@ -63,14 +63,14 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             className="size-14 object-contain"
           />
           <span className="font-heading text-2xl font-semibold uppercase leading-none">AFA Olaine<span className="mt-1 block text-xs tracking-[0.18em] text-[#fbb040]">Administrācija</span></span>
-        </Link>
+        </AdminLink>
         <nav aria-label="Administrācijas navigācija" className="mt-6 flex flex-col gap-1">
           {NAV_ITEMS.map((item) => {
             // Every admin path starts with the home path, so home is active only on itself.
             const isActive = item.href === HOME_HREF ? pathname === HOME_HREF : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
-              <Link
+              <AdminLink
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
@@ -83,13 +83,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               >
                 <Icon className="size-4 shrink-0" aria-hidden="true" />
                 {item.label}
-              </Link>
+              </AdminLink>
             );
           })}
         </nav>
       </div>
       <div className="mt-8 border-t border-white/15 pt-6">
-        <Link href="/" onClick={onNavigate} className="mb-4 flex items-center justify-between px-4 font-heading text-sm uppercase text-white/55 transition-colors hover:text-white">Atvērt mājaslapu<ArrowUpRight className="size-4" aria-hidden="true" /></Link>
+        <AdminLink href="/" onClick={onNavigate} className="mb-4 flex items-center justify-between px-4 font-heading text-sm uppercase text-white/55 transition-colors hover:text-white">Atvērt mājaslapu<ArrowUpRight className="size-4" aria-hidden="true" /></AdminLink>
         <form action={logout}>
           <button
             type="submit"
@@ -111,7 +111,7 @@ export function AdminSidebar() {
     <>
       {/* Mobile top bar */}
       <div className="flex items-center justify-between border-b border-white/15 bg-[#111] px-6 py-3 lg:hidden">
-        <Link href="/admin">
+        <AdminLink href="/admin">
           <Image
             src="/hero-logo.png"
             alt="AFA Olaine"
@@ -119,7 +119,7 @@ export function AdminSidebar() {
             height={48}
             className="size-11 object-contain"
           />
-        </Link>
+        </AdminLink>
         <button
           type="button"
           onClick={() => setOpen(true)}

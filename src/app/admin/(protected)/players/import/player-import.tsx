@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 import { useActionState, useState } from "react";
 
 import { parseBirthdate } from "@/lib/birthdate";
@@ -128,7 +128,7 @@ export function PlayerImport({ teamOptions, players }: { teamOptions: TeamOption
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-extrabold text-club-navy">Importēt spēlētājus</h1>
-        <Link href="/admin/players" className="text-sm font-semibold text-slate-500 hover:underline">Atpakaļ</Link>
+        <AdminLink href="/admin/players" className="text-sm font-semibold text-slate-500 hover:underline">Atpakaļ</AdminLink>
       </div>
 
       <div className="max-w-2xl">

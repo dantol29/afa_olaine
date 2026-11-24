@@ -1,6 +1,6 @@
 import { Pencil, UserRound } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 
 import { DeleteButton } from "@/components/admin/delete-button";
 import { AdminSearch } from "@/components/admin/admin-search";
@@ -27,30 +27,30 @@ export default async function AdminPlayersPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-club-navy">Spēlētāji</h1>
-        <Link
+        <AdminLink
           href="/admin/players/new"
           className="rounded-lg bg-club-red px-4 py-2 text-sm font-semibold text-white hover:bg-club-red-dark"
         >
           + Pievienot
-        </Link>
+        </AdminLink>
       </div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <AdminSearch placeholder="Meklēt spēlētājus…" />
         </div>
         <div className="flex gap-2">
-          <Link
+          <AdminLink
             href="/admin/players/move"
             className="flex h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-club-navy shadow-sm hover:bg-slate-50"
           >
             Pārvietot
-          </Link>
-          <Link
+          </AdminLink>
+          <AdminLink
             href="/admin/players/import"
             className="flex h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-club-navy shadow-sm hover:bg-slate-50"
           >
             Importēt sarakstu
-          </Link>
+          </AdminLink>
         </div>
       </div>
 
@@ -65,9 +65,9 @@ export default async function AdminPlayersPage() {
               <div className="mb-3 flex items-baseline gap-3">
                 <h2 className="text-lg font-bold text-club-navy">{team.name}</h2>
                 <span className="text-sm text-slate-400">{team.players.length} spēlētāji</span>
-                <Link href={`/admin/players/move?no=${team.id}`} className="ml-auto text-sm font-semibold text-slate-500 hover:text-club-navy">
+                <AdminLink href={`/admin/players/move?no=${team.id}`} className="ml-auto text-sm font-semibold text-slate-500 hover:text-club-navy">
                   Pārvietot…
-                </Link>
+                </AdminLink>
               </div>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {team.players.map((player) => (
@@ -102,14 +102,14 @@ export default async function AdminPlayersPage() {
                       </p>
                       <p className="text-xs text-slate-400">{player.position ?? player.birthdate}</p>
                       <div className="mt-3 flex items-center justify-end gap-2 border-t border-slate-100 pt-2">
-                        <Link
+                        <AdminLink
                           href={`/admin/players/${player.id}`}
                           aria-label={`Rediģēt spēlētāju "${player.name}"`}
                           title="Rediģēt"
                           className="flex h-8 w-8 items-center justify-center rounded-lg text-club-navy transition hover:bg-club-gray-light"
                         >
                           <Pencil className="h-4 w-4" />
-                        </Link>
+                        </AdminLink>
                         <DeleteButton
                           action={deletePlayer.bind(null, player.id)}
                           confirmMessage={`Dzēst spēlētāju "${player.name}"?`}

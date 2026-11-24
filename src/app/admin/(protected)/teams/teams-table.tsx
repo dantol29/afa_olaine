@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Pencil } from "lucide-react";
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 import { useEffect, useState, useTransition } from "react";
 
 import { AdminSearch } from "@/components/admin/admin-search";
@@ -164,14 +164,14 @@ export function TeamsTable({ teams }: { teams: TeamRow[] }) {
                   </div>
                 ) : (
                   <div className="flex items-center justify-end gap-4">
-                    <Link
+                    <AdminLink
                       href={`/admin/teams/${team.id}`}
                       aria-label={`Rediģēt komandu "${team.name}"`}
                       title="Rediģēt"
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-club-navy transition hover:bg-club-gray-light"
                     >
                       <Pencil className="h-4 w-4" />
-                    </Link>
+                    </AdminLink>
                     <DeleteButton
                       action={deleteTeam.bind(null, team.id)}
                       confirmMessage={`Dzēst komandu "${team.name}"? Tiks dzēsti arī tās spēlētāji, treniņi, notikumi un spēles.`}

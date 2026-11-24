@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import Link from "next/link";
+import { AdminLink } from "@/components/admin/admin-link";
 import { notFound } from "next/navigation";
 
 import { db } from "@/db/client";
@@ -26,9 +26,9 @@ export default async function AdminLeagueSourceSyncTopScorersPage({
         </h1>
         <p className="text-sm text-slate-400">
           Šim līgas avotam nav norādīts vārtu guvēju URL.{" "}
-          <Link href={`/admin/league-sources/${source.id}`} className="text-club-red hover:underline">
+          <AdminLink href={`/admin/league-sources/${source.id}`} className="text-club-red hover:underline">
             Pievieno to rediģēšanas formā.
-          </Link>
+          </AdminLink>
         </p>
       </div>
     );
