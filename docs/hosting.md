@@ -83,9 +83,10 @@ source ~/nodevenv/repositories/fk_olaine_code/24/bin/activate && cd ~/repositori
   `package-lock.json` changed (`git diff --stat HEAD@{1} -- package.json package-lock.json` shows it). The database
   package is built into the site (`transpilePackages`), so installing a new one does not affect the running build; a
   new Next.js or React would, until the new build is installed.
-- Build time: the build copy is always `.build-work/source` and starts with the live build's Webpack cache, so AFA
-  recompiles only what changed. FK turns the cache off for this build (`next.config.ts`, to save memory), so FK
-  always compiles everything (about 4 minutes plus checks, *checked* 2026-11-24).
+- Build time: both sites turn Webpack's cache off for this build (`next.config.ts` under `NEXT_LOW_MEMORY_BUILD`,
+  with the same memory settings), so every build compiles everything (about 4–5 minutes plus checks, *checked*
+  2026-11-24). `build-hosting.mjs` would reuse a live cache if a site kept one, but loading it needs more memory than
+  the account has while the other site runs: AFA's build with the cache, and its old settings, was killed (SIGKILL).
 - One site at a time. Both sites run under one hosting account and share its memory and process limits: while one
   site builds, the other can answer 500 for moments (*seen* 2026-11-24 on AFA during FK's build). Deploy at a quiet
   time, finish and check one site, then start the other.
