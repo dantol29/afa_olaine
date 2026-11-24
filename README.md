@@ -69,22 +69,23 @@ Before pushing the change you deploy, run `npm test && npm run lint` on your mac
 **Back up the database and the photos first.** `scripts/backup-db.sh` copies the SQLite file (and any `-journal`, `-wal` or `-shm` file next to it) into `~/afa_olaine-backups` with the date and time in each name, e.g. `app.db.20261112-153045`, and packs the uploaded photos (`public/uploads`) into `uploads.<date-time>.tar.gz` there. It keeps the newest 100 database copies and the newest 10 photo archives (`KEEP_DB_BACKUPS`, `KEEP_UPLOADS_BACKUPS`) and deletes older ones only after the new copies are made. It prints the `TS` value and the commands to restore the database and the photos. Set `DATA_DIR`, `BACKUP_DIR` or `UPLOADS_SRC` if those point elsewhere.
 
 ```sh
-cd /home3/afaolain/repositories/afa_olaine
+cd ~/repositories/afa_olaine
 git pull
 bash scripts/backup-db.sh
 ```
 
-`app.db.<TS>` must appear and its size must match the original (check against `/home3/afaolain/afa_olaine-data/app.db`). To roll the data back, stop the app in **Setup Node.js App**, copy `app.db.<TS>` over `/home3/afaolain/afa_olaine-data/app.db` with `cp -p`, and start the app again. To restore the photos, run the `tar -xzf …` command the script printed (it unpacks `uploads` into `public/`).
+`app.db.<TS>` must appear and its size must match the original (check against `~/afa_olaine-data/app.db`). To roll the data back, stop the app in **Setup Node.js App**, copy `app.db.<TS>` over `~/afa_olaine-data/app.db` with `cp -p`, and start the app again. To restore the photos, run the `tar -xzf …` command the script printed (it unpacks `uploads` into `public/`).
 
 Then build and install the update:
 
 ```sh
-source /home3/afaolain/nodevenv/repositories/afa_olaine/24/bin/activate
-cd /home3/afaolain/repositories/afa_olaine
+source ~/nodevenv/repositories/afa_olaine/24/bin/activate
+cd ~/repositories/afa_olaine
 cat .next/BUILD_ID; echo   # the running build, to compare with afterwards
 npm install            # only if package.json or package-lock.json changed
 npm run db:migrate     # only if the @olaine/database version changed
-NODE_ENV=production npm run build:hosting; echo "EXIT=$?"
+ps -u "$USER" -o pid,etime,args | grep -E 'build-hosting|next build' | grep -v grep   # must print nothing: one build at a time on the account
+nohup npm run build:hosting > ~/deploy-afa.out 2>&1 & sleep 2; tail -f ~/deploy-afa.out   # Ctrl+C stops only tail
 cat .next/BUILD_ID; echo; ls -l --time-style=long-iso .next/BUILD_ID .next.previous/BUILD_ID
 ```
 
@@ -94,14 +95,14 @@ cat .next/BUILD_ID; echo; ls -l --time-style=long-iso .next/BUILD_ID .next.previ
 the new version in a separate copy under `.build-work`. It installs the new build only when the build finished, has a
 `BUILD_ID` and its log has no error lines (`no such column`, `no such table`, `SQLITE`, `Error`: a page can fail to
 read the database while the build still ends with exit code 0). The output is also written to
-`~/build-<date>-<time>.log`. A successful run ends with "Build installed; … Passenger restart requested", `EXIT=0`, a
+`~/build-<date>-<time>.log`. A successful run ends with "Build installed; … Passenger restart requested", a
 new `BUILD_ID` with today's time, and the replaced build in `.next.previous`; the app restarts by itself
 (`tmp/restart.txt`). If the site still shows the old version after a minute, restart it with ⟳ in
 **Setup Node.js App**.
 
 If the build fails, is interrupted or its log has errors, the running site is unchanged: read the log, fix, and run
 `build:hosting` again. Error lines that turn out to be harmless can be accepted with
-`BUILD_ALLOW_LOG_ERRORS=1 NODE_ENV=production npm run build:hosting`. If "Another build or rollback holds
+`BUILD_ALLOW_LOG_ERRORS=1 npm run build:hosting`. If "Another build or rollback holds
 .build-work/lock" appears and no build is running (`ps aux | grep build-hosting`), remove `.build-work/lock`.
 
 To go back to the previous build (code only; restore the database separately, see above):
