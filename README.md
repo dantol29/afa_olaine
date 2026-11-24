@@ -84,8 +84,7 @@ cd ~/repositories/afa_olaine
 cat .next/BUILD_ID; echo   # the running build, to compare with afterwards
 npm install            # only if package.json or package-lock.json changed
 npm run db:migrate     # only if the @olaine/database version changed
-ps -u "$USER" -o pid,etime,args | grep -E 'build-hosting|next build' | grep -v grep   # must print nothing: one build at a time on the account
-nohup npm run build:hosting > ~/deploy-afa.out 2>&1 & sleep 2; tail -f ~/deploy-afa.out   # Ctrl+C stops only tail
+nohup npm run build:hosting > ~/deploy-afa.out 2>&1 & sleep 2; tail --pid=$! -f ~/deploy-afa.out   # output ends with the build; it stops if another build runs on the account
 cat .next/BUILD_ID; echo; ls -l --time-style=long-iso .next/BUILD_ID .next.previous/BUILD_ID
 ```
 
